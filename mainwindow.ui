@@ -208,9 +208,16 @@
      <string>Boards</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuRange">
+    <property name="title">
+     <string>Range</string>
+    </property>
+    <addaction name="actionLoad_Queue"/>
+   </widget>
    <addaction name="menuFunction"/>
    <addaction name="menuBoards"/>
    <addaction name="menuOptions"/>
+   <addaction name="menuRange"/>
    <addaction name="menuTriggering"/>
    <addaction name="menuPlot"/>
   </widget>
@@ -326,6 +333,11 @@
    </property>
    <property name="text">
     <string>Volts vs Time</string>
+   </property>
+  </action>
+  <action name="actionLoad_Queue">
+   <property name="text">
+    <string>Load Queue</string>
    </property>
   </action>
  </widget>

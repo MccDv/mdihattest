@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>475</width>
-    <height>337</height>
+    <width>472</width>
+    <height>328</height>
    </rect>
   </property>
   <property name="font">
@@ -245,7 +245,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,4,6,2,2">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2,6,1,1">
       <property name="leftMargin">
        <number>2</number>
       </property>

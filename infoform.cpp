@@ -15,14 +15,58 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->teShowValues->setFont(QFont ("Courier", 8));
     ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
+    connect(ui->cmbDevList, SIGNAL(currentIndexChanged(QString)), this, SLOT(devSelectedChanged(QString)));
     connect(ui->cmdDevParams, SIGNAL(clicked(bool)), this, SLOT(showBoardParameters()));
     connect(ui->cmdFindHats, SIGNAL(clicked(bool)), this, SLOT(findHats()));
     connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCal()));
+    connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLED()));
 }
 
 InfoForm::~InfoForm()
 {
     delete ui;
+}
+
+void InfoForm::updateParameters()
+{
+
+}
+
+void InfoForm::findHats()
+{
+    uint8_t hatAddress;
+
+    mHatList = mMainWindowInf->hatList();
+    foreach (hatAddress, mHatList.keys()) {
+        ui->cmbDevList->addItem(mHatList.value(hatAddress));
+    }
+    mAddress = hatAddress;
+}
+
+void InfoForm::devSelectedChanged(QString devName)
+{
+    foreach (uint8_t keyVal, mHatList.keys()) {
+        if(mHatList.value(keyVal) == devName) {
+            mAddress = keyVal;
+            mDevName = devName;
+            break;
+        }
+    }
+}
+
+void InfoForm::runSelectedFunction()
+{
+
+}
+
+void InfoForm::functionChanged(int utFunction)
+{
+
+}
+
+void InfoForm::showPlotWindow(bool showIt)
+{
+
 }
 
 void InfoForm::showSysInfo()
@@ -124,6 +168,33 @@ void InfoForm::showSysInfo()
     ui->teShowValues->append(fileText);
 }
 
+void InfoForm::flashLED()
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals, dataText;
+    QTime t;
+    QString sStartTime;
+    uint8_t flashCount;
+
+    nameOfFunc = "118: BlinkLED";
+    funcArgs = "(address, flashCount) = result\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc118_blink_led(mAddress, flashCount);
+    argVals = QStringLiteral("(%1, %2)")
+            .arg(mAddress)
+            .arg(flashCount);
+    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
+    if (mResponse!=RESULT_SUCCESS) {
+        mMainWindowInf->setError(mResponse, sStartTime + funcStr);
+        return;
+    } else {
+        mMainWindowInf->addFunction(sStartTime + funcStr);
+    }
+}
+
 void InfoForm::readCal()
 {
     QString nameOfFunc, funcArgs, funcStr;
@@ -186,14 +257,6 @@ void InfoForm::readCal()
     }
 }
 
-void InfoForm::findHats()
-{
-    mNumHats = hat_list(HAT_ID_ANY, hatInfoList);
-    for(int hatNum = 0; hatNum < mNumHats; hatNum++) {
-        ui->cmbDevList->addItem(hatInfoList[0].product_name);
-    }
-}
-
 void InfoForm::showBoardParameters()
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
@@ -201,21 +264,23 @@ void InfoForm::showBoardParameters()
     QString sStartTime;
     uint8_t address;
     uint16_t version, boot;
+    int isOpen;
     char serNum[10];
 
     ui->lblInfo->clear();
     ui->lblStatus->clear();
     ui->teShowValues->clear();
     //address = hatInfoList[mDevIndex].address;
-    ui->teShowValues->setText(QString("Index %1").arg(mDevIndex));
-    ui->teShowValues->append(QString("Address: %1").arg(address));
-    ui->teShowValues->append(QString("ID: %1").arg(hatInfoList[mDevIndex].id));
-    ui->teShowValues->append(QString("Version: %1\n").arg(hatInfoList[mDevIndex].version));
+    ui->teShowValues->setText(QString("Device %1").arg(mDevName));
+    ui->teShowValues->append(QString("Address: %1").arg(mAddress));
+    return;
+    //ui->teShowValues->append(QString("ID: %1").arg(hatInfoList[mDevIndex].id));
+    //ui->teShowValues->append(QString("Version: %1\n").arg(hatInfoList[mDevIndex].version));
 
     nameOfFunc = "118: IsOpen";
     funcArgs = "(address) = result\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_is_open(address);
+    isOpen = mcc118_is_open(address);
     //mResponse = mcc118_blink_led(address, 2);
     argVals = QStringLiteral("(%1) = %2")
                 .arg(address).arg(mResponse);
@@ -223,14 +288,11 @@ void InfoForm::showBoardParameters()
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     mMainWindowInf->addFunction(sStartTime + funcStr);
-    if (mResponse == 0) {
-        ui->lblStatus->setText(QString("Device at address %1 is not open").arg(address));
-        mAddress = -1;
-        return;
-    } else {
+    if (isOpen) {
         mAddress = address;
         ui->lblStatus->setText(QString("Device at address %1 is ready").arg(address));
 
+        return;
         nameOfFunc = "118: firmwareVer";
         funcArgs = "(mAddress, &version, &boot)\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";

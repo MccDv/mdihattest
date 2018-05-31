@@ -22,15 +22,21 @@ public:
 private slots:
     void showSysInfo();
     void findHats();
+    void devSelectedChanged(QString);
+    void functionChanged(int utFunction);
+    void runSelectedFunction();
     void showBoardParameters();
+    void showPlotWindow(bool showIt);
+    void updateParameters();
     void readCal();
+    void flashLED();
 
 private:
     Ui::InfoForm *ui;
-    struct HatInfo hatInfoList[MAX_NUMBER_HATS];
+    QHash<uint8_t, QString> mHatList;
 
     int mNumHats;
-    int mDevIndex;
+    QString mDevName;
     int mResponse;
     uint8_t mAddress;
 };

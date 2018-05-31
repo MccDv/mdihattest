@@ -16,11 +16,20 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    Q_PROPERTY(QHash<uint8_t, QString> hatList READ hatList WRITE setHatList NOTIFY hatListChanged)
 
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void closeEvent(QCloseEvent *event);
+
+    void setHatList(QHash<uint8_t, QString> hatList)
+    {
+        mHatList = hatList;
+        emit hatListChanged(hatList);
+    }
+
+    QHash<uint8_t, QString> hatList() { return mHatList; }
 
     void addFunction(QString funcString);
     void setError(int curError, QString funcText);
@@ -48,7 +57,7 @@ private:
     ChildWindow *activeMdiChild() const;
     ErrorDialog errDlg;
 
-    QHash<int, QString> hatList;
+    QHash<uint8_t, QString> mHatList;
 
     int mCurFunction;
     TriggerMode mTriggerType;
@@ -65,6 +74,9 @@ private:
     void readWindowPosition();
     void writeWindowPosition();
     uint32_t getSoMask(uint32_t optSelected);
+
+signals:
+    void hatListChanged(QHash<uint8_t, QString>);
 };
 
 #endif // MAINWINDOW_H

@@ -5,6 +5,7 @@
 #include <QTimer>
 //#include "mainwindow.h"
 #include "qcustomplot.h"
+//#include "queuedialog.h"
 #include "unitest.h"
 #include "errordialog.h"
 #include "testutilities.h"
@@ -25,13 +26,6 @@ public:
     void keyPressEvent(QKeyEvent *event);
 
 private slots:
-    //void readHatList();
-    //void devSelectedChanged(int devIndex);
-    //void openCmdClicked();
-    //void closeCmdClicked();
-    //void showBoardInfo();
-    //void showHistory();
-    //void showSysInfo();
     void stopCmdClicked();
     void functionChanged(int utFunction);
     void runSelectedFunction();
@@ -40,6 +34,8 @@ private slots:
     void plotSelect();
     void showPlotWindow(bool showIt);
     void updateParameters();
+    //void showQueueConfig();
+    //void queueDialogResponse();
 
 private:
     Ui::HatDevice *ui;
@@ -48,6 +44,7 @@ private:
     QActionGroup *functionGroup;
     QActionGroup *optionGroup;
     QActionGroup *trigTypeGroup;
+    //QueueDialog *queueSetup;
     ErrorDialog errDlg;
 
     int mNumHats;
@@ -62,6 +59,9 @@ private:
     struct HatInfo hatInfoList[MAX_NUMBER_HATS];
     QString mOptNames;
     bool mBackgroundScan;
+
+    QMap<int, int> mChanList;
+    bool mQueueEnabled;
 
     QHash<int, bool> mPlotList;
     uint8_t mChanCount;
@@ -103,6 +103,7 @@ private:
     void printData(unsigned long long currentCount, long long currentIndex, int blockSize);
     void plotScan(unsigned long long currentCount, long long currentIndex, int blockSize);
     void updatePlot();
+    //void setupQueue();
 
     //void setError(int curError, QString funcText);
     //void addFunction(QString funcString);

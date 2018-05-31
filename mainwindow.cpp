@@ -57,8 +57,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionNOCALIBRATEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
     connect(ui->actionNOSCALEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
 
-    for(int i = 0; i < MAX_NUMBER_HATS; i++)
-        hatList[i] = "";
+    //for(int i = 0; i < MAX_NUMBER_HATS; i++)
+    //    mHatList[i] = "";
+    mHatList.clear();
 }
 
 MainWindow::~MainWindow()
@@ -71,7 +72,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     int response;
     uint8_t address;
 
-    foreach (address, hatList.keys()) {
+    foreach (address, mHatList.keys()) {
         if(mcc118_is_open(address))
             response = mcc118_close(address);
     }
@@ -113,8 +114,8 @@ void MainWindow::createChild(UtFunctionGroup utFuncGroup, int defaultFunction)
         }
     }
 
-    if(hatList.contains(mCurAddress)) {
-        mCurBoardName = hatList.value(mCurAddress);
+    if(mHatList.contains(mCurAddress)) {
+        mCurBoardName = mHatList.value(mCurAddress);
     }
     ui->lblAppStatus->setText("Device: " + mCurBoardName);
 
@@ -244,7 +245,7 @@ void MainWindow::setSelectedDevice()
     devSelected->setProperty("checked", true);
     QVariant addressVar = actDevSelected->data();
     mCurAddress = addressVar.toUInt();
-    mCurBoardName = hatList.value(mCurAddress);
+    mCurBoardName = mHatList.value(mCurAddress);
 //    for (int i = 0; i < MAX_NUMBER_HATS; i++) {
 //        if (hatList.v == mCurAddress) {
 //            descriptorIndex = i;
@@ -349,7 +350,7 @@ void MainWindow::addDeviceToMenu(QString devName, uint8_t devAddress)
     newAction->setData(devAddress);
     newAction->setChecked(true);
     connect(newAction, SIGNAL(triggered(bool)), this, SLOT(setSelectedDevice()));
-    hatList.insert(devAddress, devName);
+    mHatList.insert(devAddress, devName);
 
 }
 
@@ -372,7 +373,7 @@ void MainWindow::removeDeviceFromMenu(uint8_t devAddress)
             if (ui->menuBoards->actions().count())
                 ui->menuBoards->actions().at(0)->setChecked(true);
     }
-    hatList.remove(devAddress);
+    mHatList.remove(devAddress);
 }
 
 void MainWindow::addFunction(QString funcString)

@@ -34,7 +34,8 @@ SOURCES += \
     childwindow.cpp \
     hatdevice.cpp \
     hatdiscovery.cpp \
-    infoform.cpp
+    infoform.cpp \
+    queuedialog.cpp
 
 HEADERS += \
     qcustomplot.h \
@@ -45,14 +46,16 @@ HEADERS += \
     childwindow.h \
     hatdevice.h \
     hatdiscovery.h \
-    infoform.h
+    infoform.h \
+    queuedialog.h
 
 FORMS += \
     errordialog.ui \
     mainwindow.ui \
     hatdevice.ui \
     hatdiscovery.ui \
-    infoform.ui
+    infoform.ui \
+    queuedialog.ui
 
 target.path = /home/pi
 INSTALLS += target
