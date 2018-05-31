@@ -1,0 +1,101 @@
+#include "testutilities.h"
+
+void delay(int milliSeconds)
+{
+    QTime dieTime= QTime::currentTime().addMSecs(milliSeconds);
+    while (QTime::currentTime() < dieTime)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+}
+
+QString getOptionNames(uint32_t curOptions)
+{
+    QString optString;
+
+    if (curOptions == 0)
+        optString = "Default";
+    else {
+        if (curOptions & OPTS_NOSCALEDATA)
+            optString += "Unscaled, ";
+        if (curOptions & OPTS_NOCALIBRATEDATA)
+            optString += "Uncalibrated, ";
+        if (curOptions & OPTS_EXTCLOCK)
+            optString += "ExtClock, ";
+        if (curOptions & OPTS_EXTTRIGGER)
+            optString += "ExtTrigger, ";
+        if (curOptions & OPTS_CONTINUOUS)
+            optString += "Continuous, ";
+        optString = optString.left(optString.length() - 2);
+    }
+    return optString;
+}
+
+QString getStatusText(uint16_t status)
+{
+    QString statusString;
+
+    statusString = "";
+    if (status & STATUS_HW_OVERRUN)
+        statusString += "HW Overrun, ";
+    if (status & STATUS_BUFFER_OVERRUN)
+        statusString += "Buf Overrun, ";
+    if (status & STATUS_TRIGGERED)
+        statusString += "Triggered, ";
+    if (status & STATUS_RUNNING)
+        statusString += "Running, ";
+    statusString = statusString.left(statusString.length() - 2);
+    return statusString;
+}
+
+QString getErrorDescription(int response)
+{
+    switch (response) {
+    case RESULT_SUCCESS:
+        return "SUCCESS (No error)";
+        break;
+    case RESULT_BAD_PARAMETER:
+        return "BAD_PARAMETER (Invalid parameter)";
+        break;
+    case RESULT_BUSY:
+        return "BUSY (Device is busy)";
+        break;
+    case RESULT_TIMEOUT:
+        return "TIMEOUT (Resource access timeout)";
+        break;
+    case RESULT_LOCK_TIMEOUT:
+        return "LOCK_TIMEOUT (Resource lock timeout)";
+        break;
+    case RESULT_INVALID_DEVICE:
+        return "INVALID_DEVICE (Wrong device type at address)";
+        break;
+    case RESULT_RESOURCE_UNAVAIL:
+        return "RESOURCE_UNAVAIL (Resource unavailable)";
+        break;
+    case RESULT_UNDEFINED:
+        return "UNDEFINED (Some other error -10)";
+        break;
+    default:
+        return QString("Invalid error code (%1)").arg(response);
+        break;
+    }
+}
+
+QString getTrigText(TriggerMode trigType)
+{
+    switch (trigType) {
+    case TRIG_RISING_EDGE:
+        return "RisingEdge";
+        break;
+    case TRIG_FALLING_EDGE:
+        return "FallingEdge";
+        break;
+    case TRIG_ACTIVE_HIGH:
+        return "ActiveHigh";
+        break;
+    case TRIG_ACTIVE_LOW:
+        return "ActiveLow";
+        break;
+    default:
+        return "";
+    }
+}
+

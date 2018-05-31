@@ -1,0 +1,935 @@
+#include "hatdevice.h"
+#include "ui_hatdevice.h"
+#include "mainwindow.h"
+//#include "childwindow.h"
+
+MainWindow* getMainWindow();
+MainWindow *mMainWindow;
+
+HatDevice::HatDevice(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::HatDevice)
+{
+    ui->setupUi(this);
+    mMainWindow = getMainWindow();
+
+    mHistListSize = 50;
+
+    tmrCheckStatus = new QTimer(this);
+    mUseGetStatus = true;
+    mStopOnStart = false;
+    functionGroup = new QActionGroup(this);
+    buffer = NULL;
+
+    mAddress = -1;
+    mNumHats = 0;
+    mScanOptions = 0;
+    mTriggerType = TRIG_RISING_EDGE;
+    mAiResolution = 12;
+    mCurFunction = UL_AIN;
+    mTriggered = false;
+    mBackgroundScan = true;
+
+    ui->teShowValues->setFont(QFont ("Courier", 8));
+    ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
+    ui->lblRateReturned->setFont(QFont ("Courier", 8));
+    ui->lblRateReturned->setStyleSheet("QLabel { background-color : white; color : blue; }" );
+    ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
+    ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
+
+    connect(tmrCheckStatus, SIGNAL(timeout()), this, SLOT(checkStatus()));
+    connect(ui->cmdGo, SIGNAL(clicked(bool)), this, SLOT(runSelectedFunction()));
+    connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(stopCmdClicked()));
+
+    connect(ui->AiPlot->xAxis, SIGNAL(rangeChanged(QCPRange)),
+            ui->AiPlot->xAxis2, SLOT(setRange(QCPRange)));
+    connect(ui->AiPlot->yAxis, SIGNAL(rangeChanged(QCPRange)),
+            ui->AiPlot->yAxis2, SLOT(setRange(QCPRange)));
+    connect(ui->rbAutoScale, SIGNAL(clicked(bool)), this, SLOT(replot()));
+    connect(ui->rbFullScale, SIGNAL(clicked(bool)), this, SLOT(replot()));
+    rbPlotSel[0] = ui->rbPlot0;
+    rbPlotSel[1] = ui->rbPlot1;
+    rbPlotSel[2] = ui->rbPlot2;
+    rbPlotSel[3] = ui->rbPlot3;
+    rbPlotSel[4] = ui->rbPlot4;
+    rbPlotSel[5] = ui->rbPlot5;
+    rbPlotSel[6] = ui->rbPlot6;
+    rbPlotSel[7] = ui->rbPlot7;
+    for (int i = 0; i<8; i++) {
+        connect(rbPlotSel[i], SIGNAL(clicked(bool)), this, SLOT(plotSelect()));
+        rbPlotSel[i]->setVisible(false);
+    }
+    mPlotChan = -1;
+    setupPlot(ui->AiPlot, 1);
+    ui->AiPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+    ui->AiPlot->axisRect()->setRangeZoom(Qt::Vertical);
+    ui->AiPlot->axisRect()->setRangeDrag(Qt::Vertical);
+    ui->AiPlot->replot();
+    for (int i = 0; i < 8; i++)
+        mPlotList[i] = true;
+    showPlotWindow(false);
+
+}
+
+HatDevice::~HatDevice()
+{
+    delete ui;
+}
+
+void HatDevice::keyPressEvent(QKeyEvent *event)
+{
+    int keyCode = event->key();
+    if (keyCode == Qt::Key_Escape) {
+        //setTmrRunning(false);
+        stopScan();
+    }
+}
+
+void HatDevice::closeEvent(QCloseEvent *event)
+{
+    uint8_t address;
+    for(int hat = 0; hat < mNumHats; hat++) {
+        address = hatInfoList[mDevIndex].address;
+        if(mcc118_is_open(address))
+            mResponse = mcc118_close(address);
+    }
+    event->accept();
+}
+
+void HatDevice::updateParameters()
+{
+    ChildWindow *parentWindow;
+    //bool showStop;
+    QString trigString;
+
+    parentWindow = qobject_cast<ChildWindow *>(this->parent());
+    mDevName = parentWindow->devName();
+    mAddress = parentWindow->devAddress();
+    mScanOptions = parentWindow->scanOptions();
+    mTriggerType = parentWindow->triggerType();
+
+    mOptNames = getOptionNames(mScanOptions);
+    trigString = getTrigText(mTriggerType);
+    ui->lblInfo->setText(QString("Options: %1,  Trigger: %2")
+                         .arg(mOptNames).arg(trigString));
+    ui->lblStatus->clear();
+    this->setWindowTitle(mFuncName + ": " + mDevName);
+}
+
+void HatDevice::setUiForFunction()
+{
+    //ChildWindow *parentWindow;
+    //parentWindow = qobject_cast<ChildWindow *>(this->parent());
+    //mRange = parentWindow->getCurrentRange();
+    bool scanVisible;
+
+    //mChanList.clear();
+    //mRangeList.clear();
+    mPlot = false;
+    scanVisible = false;
+    switch (mCurFunction) {
+    case UL_AIN:
+        mFuncName = "ulAIn";
+        ui->leNumSamples->setText("10");
+        break;
+    case UL_AINSCAN:
+        mFuncName = "ulAInScan";
+        scanVisible = true;
+        mPlot = true;
+        ui->leRate->setText("1000");
+        ui->leNumSamples->setText("1000");
+        ui->leBlockSize->setText("1000");
+        break;
+    default:
+        break;
+    }
+    ui->fraScan->setVisible(scanVisible);
+    //ui->cmdStop->setEnabled(false);
+    showPlotWindow(mPlot);
+    this->setWindowTitle(mFuncName + ": " + mDevName);
+}
+
+void HatDevice::functionChanged(int utFunction)
+{
+    mCurFunction = utFunction;
+    this->setUiForFunction();
+}
+
+void HatDevice::stopCmdClicked()
+{
+    stopScan();
+    return;
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+
+    //mUseTimer = false;
+    //if (mUtFunction == UL_AINSCAN) {
+        uint16_t status;
+        //struct TransferStatus xferStatus;
+        //unsigned long long currentScanCount;
+        //unsigned long long currentTotalCount;
+        //long long currentIndex;
+
+        //if(mUseGetStatus) {
+            funcArgs = "(mAddress, &status, samplesPerChan, timeout, &buffer, bufferSize, samplesRead)\n";
+            mStatusTimerEnabled = false;
+            nameOfFunc = "118: AInScanRead";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            //err = ulAInScanStatus(mDaqDeviceHandle, &status, &xferStatus);
+            mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, 0.0, NULL, 0, NULL);
+
+            /*
+            currentScanCount = xferStatus.currentScanCount;
+            currentTotalCount = xferStatus.currentTotalCount;
+            currentIndex = xferStatus.currentIndex;
+            */
+            argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+                    .arg(mAddress)
+                    .arg(status)
+                    .arg("0")
+                    .arg("0.0")
+                    .arg("NULL")
+                    .arg("0")
+                    .arg("NULL");
+            mRunning = false; //((status && STATUS_RUNNING) == STATUS_RUNNING);
+            tmrCheckStatus->stop();
+            /*
+            ui->lblStatus->setText(QStringLiteral("Idle at %1, (%2 perChan), %3")
+                                   .arg(currentTotalCount)
+                                   .arg(currentScanCount)
+                                   .arg(currentIndex));
+            */
+            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            if (mResponse != RESULT_SUCCESS) {
+                mMainWindow->setError(mResponse, sStartTime + funcStr);
+            } else {
+                mMainWindow->addFunction(sStartTime + funcStr);
+            }
+        //}
+        //err = stopScan(currentScanCount, currentTotalCount, currentIndex);
+        nameOfFunc = "118_AInScanStop";
+        funcArgs = "(mAddress)\n";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_a_in_scan_stop(mAddress);
+        argVals = QStringLiteral("(%1)")
+                .arg(mAddress);
+        ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+        //ui->cmdStop->setEnabled(mRunning);
+
+        funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+        if (mResponse != RESULT_SUCCESS) {
+            mMainWindow->setError(mResponse, sStartTime + funcStr);
+            return;
+        } else {
+            mMainWindow->addFunction(sStartTime + funcStr);
+        }
+    //}
+}
+
+void HatDevice::runSelectedFunction()
+{
+    if(mPlot && (ui->stackedWidget->currentIndex() == 0))
+        showPlotWindow(mPlot);
+    ui->lblInfo->clear();
+    ui->lblStatus->clear();
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+    switch (mCurFunction) {
+    case UL_AIN:
+        runAinFunction();
+        break;
+    case UL_AINSCAN:
+        runAInScanFunc();
+        break;
+    default:
+        break;
+    }
+}
+
+void HatDevice::runSetTriggerFunc()
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime, trigString;
+
+    nameOfFunc = "118: TrigMode";
+    funcArgs = "(mAddress, mTriggerType)\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc118_trigger_mode(mAddress, mTriggerType);
+    argVals = QStringLiteral("(%1, %2)")
+                .arg(mAddress ).arg(mTriggerType);
+    trigString = getTrigText(mTriggerType);
+    ui->lblInfo->setText("Trigger type: " + trigString);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    if (mResponse != RESULT_SUCCESS) {
+        mMainWindow->setError(mResponse, sStartTime + funcStr);
+        return;
+    } else {
+        mMainWindow->addFunction(sStartTime + funcStr);
+    }
+}
+
+void HatDevice::runAinFunction()
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    uint8_t aInChan, aInLastChan;
+    int curIndex;
+    double data;
+    QTime t;
+    QString sStartTime;
+
+    data = 0.0;
+    aInChan = ui->spnLowChan->value();
+    aInLastChan = ui->spnHighChan->value();
+    mChanCount = (aInLastChan - aInChan) + 1;
+    if(mChanCount < 1) mChanCount = 1;
+    mSamplesPerChan = ui->leNumSamples->text().toLong();
+    if(mPlot)
+        setupPlot(ui->AiPlot, mChanCount);
+
+    if (buffer) {
+        delete[] buffer;
+        buffer = NULL;
+    }
+
+    long long bufSize = mChanCount * mSamplesPerChan;
+    mBufSize = bufSize;
+    buffer = new double[bufSize];
+    memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+
+    nameOfFunc = "118: AInRead";
+    funcArgs = "(mAddress, curChan, mScanOptions, &data)\n";
+
+    curIndex = 0;
+    mRunning = true;
+    for (uint32_t sampleNum = 0; sampleNum < mSamplesPerChan; sampleNum++) {
+        for (uint8_t curChan = aInChan; curChan <= aInLastChan; curChan ++) {
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc118_a_in_read(mAddress, curChan, mScanOptions, &data);
+            argVals = QStringLiteral("(%1, %2, %3, %4)")
+                    .arg(mAddress)
+                    .arg(curChan)
+                    .arg(mScanOptions)
+                    .arg(data);
+            ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+
+            //dataVal[curIndex] = data;
+            //dataArray[sampleNum][curIndex] = dataVal[curIndex];
+            buffer[curIndex] = data;
+            curIndex++;
+            //(sampleNum * mChanCount) + curChan
+
+            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            if (mResponse != RESULT_SUCCESS) {
+                mMainWindow->setError(mResponse, sStartTime + funcStr);
+                return;
+            } else {
+                mMainWindow->addFunction(sStartTime + funcStr);
+            }
+        }
+    }
+
+    mRunning = false;
+    if(mPlot)
+        plotScan(0, 0, mSamplesPerChan);
+    else
+        printData(0, 0, mSamplesPerChan);
+}
+
+void HatDevice::runAInScanFunc()
+{
+    int lowChan, highChan;
+    uint8_t chanMask;
+    int32_t sampsToRead;
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime, statString;
+
+    if(mScanOptions & OPTS_EXTTRIGGER) {
+        runSetTriggerFunc();
+        mTriggered = false;
+    }
+    //backgroundScan = ui->actionBACKGROUND->isChecked();
+    lowChan = ui->spnLowChan->value();
+    highChan = ui->spnHighChan->value();
+    mBlockSize = ui->leBlockSize->text().toLongLong();
+    mChanCount = (highChan - lowChan) + 1;
+    if(mChanCount < 1) mChanCount = 1;
+    mSamplesPerChan = ui->leNumSamples->text().toLong();
+    double rate = ui->leRate->text().toDouble();
+    double rateRtn;
+
+    chanMask = 0;
+    for(int i = 0; i < mChanCount; i++)
+        chanMask |= (1 << i);
+
+    mTotalRead =0;
+    ui->lblStatus->clear();
+    long long bufSize = mChanCount * mSamplesPerChan;
+    if(mPlot)
+        setupPlot(ui->AiPlot, mChanCount);
+
+    //mFunctionFlag = (AInScanFlag)mAiFlags;
+    if (mStopOnStart) {
+        nameOfFunc = "ulAInScanStop";
+        funcArgs = "(mDaqDeviceHandle)";
+        //sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        //err = ulAInScanStop(mDaqDeviceHandle);
+        //argVals = QString("(%1)").arg(mDaqDeviceHandle);
+/*
+        funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+        if (!err==ERR_NO_ERROR) {
+            mMainWindow->setError(err, sStartTime + funcStr);
+        } else {
+            mMainWindow->addFunction(sStartTime + funcStr);
+        }
+  */
+    }
+
+    if (buffer) {
+        delete[] buffer;
+        buffer = NULL;
+    }
+
+    mBufSize = bufSize;
+    buffer = new double[bufSize];
+    memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+
+    nameOfFunc = "118: AInScanStart";
+    funcArgs = "(mAddress, chanMask, mSamplesPerChan, &rate, mScanOptions)\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc118_a_in_scan_start(mAddress, chanMask, mSamplesPerChan, rate, mScanOptions);
+    argVals = QStringLiteral("(%1, %2, %3, %4, %5)")
+            .arg(mAddress)
+            .arg(chanMask)
+            .arg(mSamplesPerChan)
+            .arg(rate)
+            .arg(mScanOptions);
+    ui->lblInfo->setText(nameOfFunc + argVals + "   " +
+                         mOptNames + QString("  [Error = %1]").arg(mResponse));
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    if (mResponse!=RESULT_SUCCESS) {
+        //ulAInScanStop(mDaqDeviceHandle);
+        mStatusTimerEnabled = false;
+        mMainWindow->setError(mResponse, sStartTime + funcStr);
+    } else {
+        mMainWindow->addFunction(sStartTime + funcStr);
+        mRunning = true;
+        mResponse = mcc118_a_in_scan_actual_rate(mChanCount, rate, &rateRtn);
+        ui->lblRateReturned->setText(QString("%1").arg(rateRtn, 1, 'f', 4, '0'));
+        if(mBackgroundScan) {
+            mStatusTimerEnabled = true;
+            tmrCheckStatus->start(500);
+        } else {
+            uint16_t status;
+            double timeout;
+            uint32_t sampsReadPerChan;
+            timeout = ui->leTimeout->text().toDouble();
+            nameOfFunc = "118: AInScanRead";
+            funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            do {
+                mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
+                statString = getStatusText(status);
+                ui->lblStatus->setText(QString("  Status: %1").arg(statString));
+                delay(200);
+            } while (status & STATUS_RUNNING);
+            argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+                    .arg(mAddress)
+                    .arg(status)
+                    .arg("0")
+                    .arg(timeout)
+                    .arg("NULL")
+                    .arg("0")
+                    .arg("NULL");
+            ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+
+            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            if (mResponse!=RESULT_SUCCESS) {
+                mMainWindow->setError(mResponse, sStartTime + funcStr);
+                return;
+            } else {
+                mMainWindow->addFunction(sStartTime + funcStr);
+            }
+
+            sampsToRead = -1;
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc118_a_in_scan_read(mAddress, &status, sampsToRead, timeout, buffer, mBufSize, &sampsReadPerChan);
+            argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+                    .arg(mAddress)
+                    .arg(status)
+                    .arg(sampsToRead)
+                    .arg(timeout)
+                    .arg("buffer")
+                    .arg(mBufSize)
+                    .arg(sampsReadPerChan);
+            ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+            statString = getStatusText(status);
+
+            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            if (mResponse!=RESULT_SUCCESS) {
+                mMainWindow->setError(mResponse, sStartTime + funcStr);
+                return;
+            } else {
+                mMainWindow->addFunction(sStartTime + funcStr);
+            }
+
+            if(sampsReadPerChan) {
+                ui->lblStatus->setText(QString("%1 samples read  Status: %2").arg(sampsReadPerChan).arg(statString));
+                if(mPlot)
+                    plotScan(0, 0, sampsReadPerChan);
+                else
+                    printData(0, 0, sampsReadPerChan);
+            }
+            stopScan();
+        }
+    }
+}
+
+void HatDevice::checkStatus()
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime, statString;
+    QFont goFont = ui->cmdGo->font();
+    bool makeBold;
+    bool trigWait, overrunDetected;
+
+    uint16_t status;
+    double timeout;
+    uint32_t samplesPerChanRead;
+    timeout = ui->leTimeout->text().toDouble();
+    overrunDetected = false;
+
+    //check if the scan is triggered - if not, wait here
+    nameOfFunc = "118: AInScanRead";
+    funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
+    if((mScanOptions & OPTS_EXTTRIGGER) && !mTriggered) {
+        do {
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
+            statString = getStatusText(status);
+            ui->lblStatus->setText(QString("  Status: %1").arg(statString));
+            trigWait = ((status & (STATUS_TRIGGERED
+                                   | STATUS_BUFFER_OVERRUN
+                                   | STATUS_HW_OVERRUN)) == 0);
+            argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+                    .arg(mAddress).arg(status).arg("0")
+                    .arg(timeout).arg("NULL").arg("0").arg("NULL");
+            ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+
+            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            if (mResponse!=RESULT_SUCCESS) {
+                mMainWindow->setError(mResponse, sStartTime + funcStr);
+                trigWait = false;
+                stopScan();
+                return;
+            } else {
+                mMainWindow->addFunction(sStartTime + funcStr);
+            }
+            delay(200);
+        } while (trigWait);
+        mTriggered = true;
+    }
+
+    if(mRunning) {
+        funcArgs = "(mAddress, &status, mBlockSize, timeout, buffer, mBufSize, &samplesPerChanRead)\n";
+        nameOfFunc = "118: AInScanRead";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_a_in_scan_read(mAddress, &status, mBlockSize,
+            timeout, buffer, mBufSize, &samplesPerChanRead);
+        argVals = QString("(%1, %2, %3, %4, %5, %6, %7)")
+                .arg(mAddress).arg(status).arg(mBlockSize).arg(timeout)
+                .arg("buffer").arg(mBufSize).arg(samplesPerChanRead);
+        overrunDetected = (status & (STATUS_BUFFER_OVERRUN | STATUS_HW_OVERRUN));
+        if (overrunDetected)
+            argVals += " [OVERRUN]";
+        statString = getStatusText(status);
+        ui->lblInfo->setText(nameOfFunc + argVals + "   " +
+                             mOptNames + QString(" [Error = %1]").arg(mResponse));
+
+        funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+        qApp->processEvents();
+        if ((mResponse!=RESULT_SUCCESS) | overrunDetected) {
+            mStatusTimerEnabled = false;
+            mMainWindow->setError(mResponse, sStartTime + funcStr);
+            delay(200);
+            stopScan();
+            return;
+        } else {
+            mMainWindow->addFunction(sStartTime + funcStr);
+        }
+    }
+
+    if(samplesPerChanRead) {
+        mPlotSize = samplesPerChanRead;
+        mTotalRead += samplesPerChanRead;
+        if(mPlot)
+            plotScan(0, 0, samplesPerChanRead);
+        else
+            printData(0, 0, samplesPerChanRead);
+    }
+    mRunning = (status & STATUS_RUNNING);
+    ui->lblStatus->setText(QString("%1 samples read  Status: %2").arg(mTotalRead).arg(statString));
+    if(!mRunning) {
+        stopScan();
+        goFont.setBold(false);
+    }
+
+    makeBold = !ui->cmdGo->font().bold();
+    goFont.setBold(makeBold);
+    ui->cmdGo->setFont(goFont);
+}
+
+void HatDevice::stopScan()
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QFont goFont = ui->cmdGo->font();
+
+    //long long finalBlockSize;
+    tmrCheckStatus->stop();
+    goFont.setBold(false);
+    ui->cmdGo->setFont(goFont);
+
+    funcArgs = "(mAddress)\n";
+    nameOfFunc = "118: AInScanStop";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc118_a_in_scan_stop(mAddress);
+    argVals = QStringLiteral("(%1)").arg(mAddress);
+
+    mStatusTimerEnabled = false;
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    if (mResponse!=RESULT_SUCCESS) {
+        mMainWindow->setError(mResponse, sStartTime + funcStr);
+        return;
+    } else {
+        mMainWindow->addFunction(sStartTime + funcStr);
+        delay(200);
+        runReadScanStatus();
+    }
+
+    funcArgs = "(mAddress)\n";
+    nameOfFunc = "118: AInScanCleanup";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc118_a_in_scan_cleanup(mAddress);
+    argVals = QStringLiteral("(%1)").arg(mAddress);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    if (mResponse!=RESULT_SUCCESS) {
+        mMainWindow->setError(mResponse, sStartTime + funcStr);
+        return;
+    } else {
+        mMainWindow->addFunction(sStartTime + funcStr);
+    }
+
+    /*
+    if(mUseGetStatus) {
+        ui->lblStatus->setText(QStringLiteral("IDLE Count = %1 (%2 perChan), index: %3")
+                               .arg(curCount)
+                               .arg(perChan)
+                               .arg(curIndex));
+        mRunning = false;
+        if (mChanCount != 0) {
+            finalBlockSize = (curCount - mPlotCount) / mChanCount;
+            if (finalBlockSize > 1) {
+                if (mPlot) {
+                    plotScan(mPlotCount, mPlotIndex, finalBlockSize);
+                } else {
+                    printData(mPlotCount, mPlotIndex, finalBlockSize);
+                }
+            }
+        }
+        mPlotCount = curCount;
+        mFinalCount = curCount;
+    } else {
+        mRunning = false;
+        ui->cmdStop->setEnabled(false);
+    }
+    return;
+    */
+}
+
+void HatDevice::runReadScanStatus()
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime, statString;
+    uint16_t status;
+    double timeout;
+
+    timeout = 0.0;
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    nameOfFunc = "118: AInScanRead";
+    funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
+    mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
+    statString = getStatusText(status);
+    ui->lblStatus->setText(QString("Total samples read: %1  Status: %2   [Current options: %3]")
+                           .arg(mTotalRead).arg(statString).arg(mOptNames));
+    argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+            .arg(mAddress).arg(status).arg("0")
+            .arg(timeout).arg("NULL").arg("0").arg("NULL");
+    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    mRunning = (status & STATUS_RUNNING);
+    if (mResponse!=RESULT_SUCCESS) {
+        mMainWindow->setError(mResponse, sStartTime + funcStr);
+        return;
+    } else {
+        mMainWindow->addFunction(sStartTime + funcStr);
+    }
+}
+
+void HatDevice::showPlotWindow(bool showIt)
+{
+    QFrame::Shape frameShape;
+
+    //mPlot = ui->actionVolts_vs_Time->isChecked();
+    mPlot = showIt;
+
+    int curIndex = 0;
+    frameShape = QFrame::Box;
+
+    if (showIt) {
+        curIndex = 1;
+        frameShape = QFrame::NoFrame;
+    }
+    ui->stackedWidget->setFrameShape(frameShape);
+    ui->stackedWidget->setCurrentIndex(curIndex);
+}
+
+void HatDevice::setupPlot(QCustomPlot *dataPlot, int chanCount)
+{
+    QColor penColor;
+    QPalette brushColor;
+
+    //brushColor = QPalette::background();
+    int chanCycle;
+    int curChanCount;
+    dataPlot->clearGraphs();
+    dataPlot->setBackground(brushColor.background());
+    dataPlot->axisRect()->setBackground(Qt::white);
+    chanCycle = -1;
+
+    if(mPlotChan == -1)
+        curChanCount = chanCount;
+    else
+        curChanCount = 1;
+
+    for(int chan=0; chan<curChanCount; chan++)
+    {
+        if(mPlotChan == -1)
+            chanCycle += 1;
+        else
+            chanCycle = mPlotChan;
+        if(chanCycle>7)
+            chanCycle = chanCycle % 8;
+        switch(chanCycle)
+        {
+        case 0:
+            penColor = Qt::blue;
+            break;
+        case 1:
+            penColor = Qt::red;
+            break;
+        case 2:
+            penColor = Qt::green;
+            break;
+        case 3:
+            penColor = Qt::cyan;
+            break;
+        case 4:
+            penColor = Qt::darkCyan;
+            break;
+        case 5:
+            penColor = Qt::magenta;
+            break;
+        case 6:
+            penColor = Qt::gray;
+            break;
+        default:
+            penColor = Qt::black;
+            break;
+        }
+        dataPlot->addGraph();
+        dataPlot->addGraph();
+        dataPlot->graph(chan)->setPen(penColor);
+    }
+    dataPlot->xAxis2->setVisible(true);
+    dataPlot->xAxis2->setTickLabels(false);
+    dataPlot->axisRect(0)->setAutoMargins(QCP::msLeft|QCP::msBottom);
+    dataPlot->axisRect(0)->setMargins(QMargins(0,2,2,0));
+    dataPlot->yAxis2->setVisible(true);
+    dataPlot->yAxis2->setTickLabels(false);
+    dataPlot->xAxis->setTickLabelFont(QFont(QFont().family(), 8));
+    dataPlot->yAxis->setTickLabelFont(QFont(QFont().family(), 8));
+    dataPlot->xAxis->setTickLabelColor(Qt::blue);
+    dataPlot->yAxis->setTickLabelColor(Qt::blue);
+    dataPlot->xAxis->setAutoTickCount(3);
+}
+
+void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex, int blockSize)
+{
+    xValues.resize(blockSize);
+    double *xData = xValues.data();
+    yChans.resize(mChanCount);
+    for (int chan=0; chan<mChanCount; chan++)
+        yChans[chan].resize(blockSize);
+
+    int curScan, plotData, curChanCount;
+    int listIndex;
+    int sampleNum = 0;
+    int increment = 0;
+    long long totalSamples;
+
+    totalSamples = mChanCount * ui->leNumSamples->text().toLong();
+
+    for (int y = 0; y < blockSize; y++) {
+        curScan = currentIndex + increment;
+        if (!(curScan < totalSamples)) {
+            currentIndex = 0;
+            curScan = 0;
+            increment = 0;
+        }
+        xData[y] = currentCount + sampleNum;
+        for (int chan = 0; chan < mChanCount; chan++) {
+            yChans[chan][y] = buffer[curScan + chan];
+            sampleNum++;
+       }
+        increment +=mChanCount;
+    }
+
+    curChanCount = 1;
+    if (mPlotChan == -1)
+        curChanCount = mChanCount;
+
+    for (int plotNum=0; plotNum<curChanCount; plotNum++) {
+        plotData = mPlotChan;
+        listIndex = plotNum % 8;
+        if (mPlotChan == -1)
+            plotData = plotNum;
+
+        if (mPlotList[listIndex])
+            ui->AiPlot->graph(plotNum)->setData(xValues, yChans[plotData]);
+    }
+    updatePlot();
+}
+
+void HatDevice::printData(unsigned long long currentCount, long long currentIndex, int blockSize)
+{
+    QString dataText, str, val;
+    double curSample;
+    int curScan, samplesToPrint, sampleLimit;
+    int sampleNum = 0;
+    int increment = 0;
+    bool floatValue;
+    long long samplePerChanel = mChanCount * ui->leNumSamples->text().toLongLong();;
+    //ui->textEdit->setText(QString("Chans: %1, perChan: %2").arg(mChanCount).arg(samplePerChanel));
+
+    floatValue = (!(mScanOptions & OPTS_NOSCALEDATA));
+
+    ui->teShowValues->clear();
+    dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
+    sampleLimit = mRunning? 100 : 1000 / mChanCount;
+    samplesToPrint = blockSize < sampleLimit? blockSize : sampleLimit;
+    for (int y = 0; y < samplesToPrint; y++) {
+        curScan = currentIndex + increment;
+        if (!(curScan < samplePerChanel)) {
+            currentIndex = 0;
+            curScan = 0;
+            sampleNum = 0;
+        }
+        dataText.append("<td>" + str.setNum(currentCount + increment) + "</td>");
+        for (int chan = 0; chan < mChanCount; chan++) {
+            curSample = buffer[curScan + chan];
+            if (floatValue) {
+                val = QString("%1%2").arg((curSample < 0) ? "" : "+")
+                        .arg(curSample, 2, 'f', 5, '0');
+            } else {
+                val = QString("%1").arg(curSample);
+            }
+            dataText.append("<td>" + val + "</td>");
+        }
+        dataText.append("</tr><tr>");
+        sampleNum = sampleNum + 1;
+        increment +=mChanCount;
+    }
+    dataText.append("</td></tr>");
+    ui->teShowValues->setHtml(dataText);
+    if (samplesToPrint < blockSize)
+        ui->teShowValues->append("...");
+}
+
+void HatDevice::updatePlot()
+{
+    bool setTCRange = false;
+    bool autoScale, bipolar;
+    double rangeBuf;
+    double rangeUpper, rangeLower;
+    int ctlIndex;
+
+    for (int plotNum=0; plotNum<mChanCount; plotNum++) {
+        ctlIndex = plotNum % 8;
+        rbPlotSel[ctlIndex]->setVisible(true);
+        if (!mPlotList[ctlIndex])
+            ui->AiPlot->graph(plotNum)->clearData();
+    }
+    for (int i = mChanCount; i<8; i++)
+        rbPlotSel[i]->setVisible(false);
+    autoScale = ui->rbAutoScale->isChecked();
+    if(autoScale)
+        ui->AiPlot->rescaleAxes();
+    else {
+        /*if (mRange == BIPPT078VOLTS) {
+            AiConfigItem configItem = AI_CFG_CHAN_TYPE;
+            unsigned int index = 0;
+            long long configValue;
+            UlError err = ulAIGetConfig(mDaqDeviceHandle,
+                                        configItem,  index, &configValue);
+            if ((err == ERR_NO_ERROR) && (configValue == 2))
+                setTCRange = true;
+        }*/
+        setTCRange = false;
+        if (setTCRange) {
+            rangeBuf = 0;
+            rangeUpper = 35;
+            rangeLower = 15;
+        } else {
+            if (mScanOptions & OPTS_NOSCALEDATA) {
+                long fsCount = qPow(2, mAiResolution);
+                rangeBuf = fsCount / 10;
+                rangeUpper = fsCount;
+                rangeLower = 0;
+            } else {
+                bipolar = true; //mRange < 100;
+                double rangeVolts = 20; //getRangeVolts(mRange);
+                rangeBuf = rangeVolts / 10;
+                rangeUpper = bipolar? rangeVolts / 2 : rangeVolts;
+                rangeLower = bipolar? rangeUpper * -1 : 0;
+            }
+        }
+        ui->AiPlot->xAxis->rescale();
+        ui->AiPlot->yAxis->setRangeLower(rangeLower - rangeBuf);
+        ui->AiPlot->yAxis->setRangeUpper(rangeUpper + rangeBuf);
+    }
+    ui->AiPlot->replot();
+}
+
+void HatDevice::replot()
+{
+    updatePlot();
+}
+
+void HatDevice::plotSelect()
+{
+    for (int i = 0; i<8; i++)
+        mPlotList[i] = rbPlotSel[i]->isChecked();
+
+    int plotSize = ui->leBlockSize->text().toInt();
+    if (!mRunning)
+        plotScan(0, 0, plotSize);
+}
