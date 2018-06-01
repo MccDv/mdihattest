@@ -116,6 +116,38 @@ void HatDevice::updateParameters()
     this->setWindowTitle(mFuncName + ": " + mDevName);
 }
 
+void HatDevice::showQueueConfig()
+{
+    queueSetup = new QueueDialog(this);
+    if (mChanList.count()) {
+        queueSetup->setChanList(mChanList);
+        queueSetup->setNumQueueElements(mChanList.count());
+    }
+    connect(queueSetup, SIGNAL(accepted()), this, SLOT(queueDialogResponse()));
+    queueSetup->exec();
+}
+
+void HatDevice::queueDialogResponse()
+{
+    mChanList = queueSetup->chanList();
+
+    disconnect(queueSetup);
+    delete queueSetup;
+    setupQueue();
+}
+
+void HatDevice::setupQueue()
+{
+    unsigned int numElements = mChanList.count();
+
+    mChanCount = numElements;
+    int chanAdjust = 0;
+    if (numElements)
+        chanAdjust = 1;
+    ui->spnLowChan->setValue(0);
+    ui->spnHighChan->setValue(numElements - chanAdjust);
+}
+
 void HatDevice::setUiForFunction()
 {
     //ChildWindow *parentWindow;

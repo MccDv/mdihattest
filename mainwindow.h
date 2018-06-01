@@ -6,6 +6,7 @@
 #include <QActionGroup>
 #include <QMap>
 //#include "hatdevice.h"
+//#include "queuedialog.h"
 #include "unitest.h"
 #include "childwindow.h"
 
@@ -48,6 +49,7 @@ private slots:
     void setSelectedDevice();
     void showHistory();
     void showPlot(bool showIt);
+    void configureQueue();
 
 private:
     Ui::MainWindow *ui;

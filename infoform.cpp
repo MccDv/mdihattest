@@ -11,9 +11,13 @@ InfoForm::InfoForm(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    this->setWindowTitle("Information");
     mMainWindowInf = getMainWindow();
     ui->teShowValues->setFont(QFont ("Courier", 8));
     ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
+    ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
+    ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
+
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
     connect(ui->cmbDevList, SIGNAL(currentIndexChanged(QString)), this, SLOT(devSelectedChanged(QString)));
     connect(ui->cmdDevParams, SIGNAL(clicked(bool)), this, SLOT(showBoardParameters()));
@@ -36,6 +40,7 @@ void InfoForm::findHats()
 {
     uint8_t hatAddress;
 
+    ui->cmbDevList->clear();
     mHatList = mMainWindowInf->hatList();
     foreach (hatAddress, mHatList.keys()) {
         ui->cmbDevList->addItem(mHatList.value(hatAddress));
@@ -176,6 +181,12 @@ void InfoForm::flashLED()
     QString sStartTime;
     uint8_t flashCount;
 
+    flashCount = ui->leFlashCount->text().toUInt();
+    if(!mcc118_is_open(mAddress)) {
+        ui->teShowValues->setText
+                ("Device is not open.\n\nUse Discover to open device.");
+        return;
+    }
     nameOfFunc = "118: BlinkLED";
     funcArgs = "(address, flashCount) = result\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -206,6 +217,11 @@ void InfoForm::readCal()
     double slope, offset;
     char calDate[12];
 
+    if(!mcc118_is_open(mAddress)) {
+        ui->teShowValues->setText
+                ("Device is not open.\n\nUse Discover to open device.");
+        return;
+    }
     ui->teShowValues->clear();
     nameOfFunc = "118: CalDate";
     funcArgs = "(address, calDate) = result\n";
@@ -270,7 +286,11 @@ void InfoForm::showBoardParameters()
     ui->lblInfo->clear();
     ui->lblStatus->clear();
     ui->teShowValues->clear();
-    //address = hatInfoList[mDevIndex].address;
+    if(!mcc118_is_open(mAddress)) {
+        ui->teShowValues->setText
+                ("Device is not open.\n\nUse Discover to open device.");
+        return;
+    }
     ui->teShowValues->setText(QString("Device %1").arg(mDevName));
     ui->teShowValues->append(QString("Address: %1").arg(mAddress));
     return;

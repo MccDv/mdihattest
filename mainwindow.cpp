@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->cmdHistory, SIGNAL(clicked(bool)), this, SLOT(showHistory()));
     connect(ui->actionVolts_vs_Time, SIGNAL(triggered(bool)), this, SLOT(showPlot(bool)));
     connect(ui->mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(setBoardMenuSelect(QMdiSubWindow*)));
+    connect(ui->actionLoad_Queue, SIGNAL(triggered(bool)), this, SLOT(configureQueue()));
 
     readWindowPosition();
 
@@ -307,6 +308,15 @@ uint32_t MainWindow::getSoMask(uint32_t optSelected)
                 OPTS_EXTTRIGGER | OPTS_NOCALIBRATEDATA | OPTS_NOSCALEDATA);
     uint32_t maskVal = (uint32_t)(allOpts ^ optSelected);
     return maskVal;
+}
+
+void MainWindow::configureQueue()
+{
+    ChildWindow *curChild = activeMdiChild();
+
+    if (curChild) {
+        curChild->showQueueConfig();
+    }
 }
 
 void MainWindow::changeTrigType()

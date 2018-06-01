@@ -72,6 +72,7 @@ public:
     int curFunction() { return mCurFunction; }
     TriggerMode triggerType() { return mTriggerType; }
     UtFunctionGroup curFunctionGroup() { return mCurFunctionGroup; }
+    void showQueueConfig() { emit configQueue(); }
 
 private:
     QWidget *subwidget;
@@ -97,6 +98,7 @@ signals:
     void showPlotChanged(bool);
     void scanOptionsChanged(u_int32_t);
     void triggerTypeChanged(TriggerMode);
+    void configQueue();
 
 };
 

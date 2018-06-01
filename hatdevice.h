@@ -5,7 +5,7 @@
 #include <QTimer>
 //#include "mainwindow.h"
 #include "qcustomplot.h"
-//#include "queuedialog.h"
+#include "queuedialog.h"
 #include "unitest.h"
 #include "errordialog.h"
 #include "testutilities.h"
@@ -34,8 +34,8 @@ private slots:
     void plotSelect();
     void showPlotWindow(bool showIt);
     void updateParameters();
-    //void showQueueConfig();
-    //void queueDialogResponse();
+    void showQueueConfig();
+    void queueDialogResponse();
 
 private:
     Ui::HatDevice *ui;
@@ -44,7 +44,7 @@ private:
     QActionGroup *functionGroup;
     QActionGroup *optionGroup;
     QActionGroup *trigTypeGroup;
-    //QueueDialog *queueSetup;
+    QueueDialog *queueSetup;
     ErrorDialog errDlg;
 
     int mNumHats;
@@ -103,7 +103,7 @@ private:
     void printData(unsigned long long currentCount, long long currentIndex, int blockSize);
     void plotScan(unsigned long long currentCount, long long currentIndex, int blockSize);
     void updatePlot();
-    //void setupQueue();
+    void setupQueue();
 
     //void setError(int curError, QString funcText);
     //void addFunction(QString funcString);
