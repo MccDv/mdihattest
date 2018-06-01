@@ -18,6 +18,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
     Q_PROPERTY(QHash<uint8_t, QString> hatList READ hatList WRITE setHatList NOTIFY hatListChanged)
+    Q_PROPERTY(QHash<uint8_t, uint16_t> hatIDList READ hatIDList WRITE setHatIDList NOTIFY hatIDListChanged)
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -30,11 +31,18 @@ public:
         emit hatListChanged(hatList);
     }
 
+    void setHatIDList(QHash<uint8_t, uint16_t> hatIDList)
+    {
+        mHatIDList = hatIDList;
+        emit hatIDListChanged(hatIDList);
+    }
+
     QHash<uint8_t, QString> hatList() { return mHatList; }
+    QHash<uint8_t, uint16_t> hatIDList() { return mHatIDList; }
 
     void addFunction(QString funcString);
     void setError(int curError, QString funcText);
-    void addDeviceToMenu(QString devName, uint8_t devAddress);
+    void addDeviceToMenu(QString devName, uint8_t devAddress, uint16_t hatType);
     void removeDeviceFromMenu(uint8_t devAddress);
 
 private slots:
@@ -60,6 +68,7 @@ private:
     ErrorDialog errDlg;
 
     QHash<uint8_t, QString> mHatList;
+    QHash<uint8_t, uint16_t> mHatIDList;
 
     int mCurFunction;
     TriggerMode mTriggerType;
@@ -79,6 +88,7 @@ private:
 
 signals:
     void hatListChanged(QHash<uint8_t, QString>);
+    void hatIDListChanged(QHash<uint8_t, uint16_t>);
 };
 
 #endif // MAINWINDOW_H

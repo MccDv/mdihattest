@@ -29,11 +29,14 @@ HatDevice::HatDevice(QWidget *parent) :
     mCurFunction = UL_AIN;
     mTriggered = false;
     mBackgroundScan = true;
+    mQueueEnabled = false;
 
     ui->teShowValues->setFont(QFont ("Courier", 8));
     ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
     ui->lblRateReturned->setFont(QFont ("Courier", 8));
     ui->lblRateReturned->setStyleSheet("QLabel { background-color : white; color : blue; }" );
+    ui->lblBufferSize->setFont(QFont ("Courier", 8));
+    ui->lblBufferSize->setStyleSheet("QLabel { background-color : white; color : grey; }" );
     ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
 
@@ -130,6 +133,7 @@ void HatDevice::showQueueConfig()
 void HatDevice::queueDialogResponse()
 {
     mChanList = queueSetup->chanList();
+    mQueueEnabled = queueSetup->queueEnabled();
 
     disconnect(queueSetup);
     delete queueSetup;
@@ -312,10 +316,18 @@ void HatDevice::runAinFunction()
     QString sStartTime;
 
     data = 0.0;
-    aInChan = ui->spnLowChan->value();
-    aInLastChan = ui->spnHighChan->value();
-    mChanCount = (aInLastChan - aInChan) + 1;
+
+    if(!mQueueEnabled) {
+        mChanList.clear();
+        aInChan = ui->spnLowChan->value();
+        aInLastChan = ui->spnHighChan->value();
+        mChanCount = (aInLastChan - aInChan) + 1;
+        for(int chan = 0; chan < mChanCount; chan++)
+            mChanList[chan] = aInChan + chan;
+    }
     if(mChanCount < 1) mChanCount = 1;
+
+    //if queue is enabled, mChanCount is set in setupQueue
     mSamplesPerChan = ui->leNumSamples->text().toLong();
     if(mPlot)
         setupPlot(ui->AiPlot, mChanCount);
@@ -333,11 +345,12 @@ void HatDevice::runAinFunction()
     nameOfFunc = "118: AInRead";
     funcArgs = "(mAddress, curChan, mScanOptions, &data)\n";
 
+    uint8_t curChan;
     curIndex = 0;
     mRunning = true;
     for (uint32_t sampleNum = 0; sampleNum < mSamplesPerChan; sampleNum++) {
-        for (uint8_t curChan = aInChan; curChan <= aInLastChan; curChan ++) {
-            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        foreach(curChan, mChanList) {
+                sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             mResponse = mcc118_a_in_read(mAddress, curChan, mScanOptions, &data);
             argVals = QStringLiteral("(%1, %2, %3, %4)")
                     .arg(mAddress)
@@ -346,11 +359,8 @@ void HatDevice::runAinFunction()
                     .arg(data);
             ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
 
-            //dataVal[curIndex] = data;
-            //dataArray[sampleNum][curIndex] = dataVal[curIndex];
             buffer[curIndex] = data;
             curIndex++;
-            //(sampleNum * mChanCount) + curChan
 
             funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
             if (mResponse != RESULT_SUCCESS) {
@@ -374,27 +384,37 @@ void HatDevice::runAInScanFunc()
     int lowChan, highChan;
     uint8_t chanMask;
     int32_t sampsToRead;
+    uint32_t bufferSize;
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime, statString;
 
+    bufferSize = 0;
     if(mScanOptions & OPTS_EXTTRIGGER) {
         runSetTriggerFunc();
         mTriggered = false;
     }
     //backgroundScan = ui->actionBACKGROUND->isChecked();
-    lowChan = ui->spnLowChan->value();
-    highChan = ui->spnHighChan->value();
     mBlockSize = ui->leBlockSize->text().toLongLong();
-    mChanCount = (highChan - lowChan) + 1;
+    if(!mQueueEnabled) {
+        mChanList.clear();
+        lowChan = ui->spnLowChan->value();
+        highChan = ui->spnHighChan->value();
+        mChanCount = (highChan - lowChan) + 1;
+        for(int chan = 0; chan < mChanCount; chan++)
+            mChanList[chan] = lowChan + chan;
+    }
+    //if queue is enabled, mChanCount is set in setupQueue
     if(mChanCount < 1) mChanCount = 1;
+
     mSamplesPerChan = ui->leNumSamples->text().toLong();
     double rate = ui->leRate->text().toDouble();
     double rateRtn;
 
     chanMask = 0;
-    for(int i = 0; i < mChanCount; i++)
-        chanMask |= (1 << i);
+    uint8_t curChan;
+    foreach(curChan, mChanList)
+        chanMask |= (1 << curChan);
 
     mTotalRead =0;
     ui->lblStatus->clear();
@@ -451,6 +471,8 @@ void HatDevice::runAInScanFunc()
         mRunning = true;
         mResponse = mcc118_a_in_scan_actual_rate(mChanCount, rate, &rateRtn);
         ui->lblRateReturned->setText(QString("%1").arg(rateRtn, 1, 'f', 4, '0'));
+        //mResponse = mcc118_a_in_scan_buffer_size(mAddress, &bufferSize);
+        ui->lblBufferSize->setText(QString("%1").arg(bufferSize));
         if(mBackgroundScan) {
             mStatusTimerEnabled = true;
             tmrCheckStatus->start(500);

@@ -330,7 +330,7 @@ void MainWindow::changeTrigType()
         curChild->setTriggerType(mTriggerType);
 }
 
-void MainWindow::addDeviceToMenu(QString devName, uint8_t devAddress)
+void MainWindow::addDeviceToMenu(QString devName, uint8_t devAddress, uint16_t hatType)
 {
     QAction *newAction, *checkedAction;
     bool itemExists;
@@ -361,6 +361,7 @@ void MainWindow::addDeviceToMenu(QString devName, uint8_t devAddress)
     newAction->setChecked(true);
     connect(newAction, SIGNAL(triggered(bool)), this, SLOT(setSelectedDevice()));
     mHatList.insert(devAddress, devName);
+    mHatIDList.insert(devAddress, hatType);
 
 }
 
@@ -384,6 +385,7 @@ void MainWindow::removeDeviceFromMenu(uint8_t devAddress)
                 ui->menuBoards->actions().at(0)->setChecked(true);
     }
     mHatList.remove(devAddress);
+    mHatIDList.remove(devAddress);
 }
 
 void MainWindow::addFunction(QString funcString)

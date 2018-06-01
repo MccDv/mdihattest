@@ -192,10 +192,17 @@
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="spnCalChan"/>
+       <widget class="QSpinBox" name="spnCalChan">
+        <property name="toolTip">
+         <string>Cal channel</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QLineEdit" name="leSlope">
+        <property name="toolTip">
+         <string>Cal slope</string>
+        </property>
         <property name="text">
          <string>1.0</string>
         </property>
@@ -203,6 +210,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="leOffset">
+        <property name="toolTip">
+         <string>Cal offset</string>
+        </property>
         <property name="text">
          <string>0.0</string>
         </property>
@@ -222,6 +232,9 @@
           <width>30</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>Flash count</string>
         </property>
         <property name="text">
          <string>3</string>
@@ -279,7 +292,11 @@
        </spacer>
       </item>
       <item>
-       <widget class="QComboBox" name="cmbDevList"/>
+       <widget class="QComboBox" name="cmbDevList">
+        <property name="toolTip">
+         <string>Dev selected</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="cmdDevParams">
@@ -290,8 +307,11 @@
       </item>
       <item>
        <widget class="QPushButton" name="cmdFindHats">
+        <property name="toolTip">
+         <string>Update devices</string>
+        </property>
         <property name="text">
-         <string>Search</string>
+         <string>Refresh</string>
         </property>
        </widget>
       </item>

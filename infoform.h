@@ -28,17 +28,21 @@ private slots:
     void showBoardParameters();
     void showPlotWindow(bool showIt);
     void updateParameters();
+    void showQueueConfig();
     void readCal();
+    void writeCal();
     void flashLED();
 
 private:
     Ui::InfoForm *ui;
     QHash<uint8_t, QString> mHatList;
+    QHash<uint8_t, uint16_t> mHatIDList;
 
     int mNumHats;
     QString mDevName;
     int mResponse;
     uint8_t mAddress;
+    uint16_t mHatID;
 };
 
 #endif // INFOFORM_H

@@ -12,18 +12,18 @@ QString getOptionNames(uint32_t curOptions)
     QString optString;
 
     if (curOptions == 0)
-        optString = "Default";
+        optString = "DEFAULT";
     else {
         if (curOptions & OPTS_NOSCALEDATA)
-            optString += "Unscaled, ";
+            optString += "NOSCALEDATA, ";
         if (curOptions & OPTS_NOCALIBRATEDATA)
-            optString += "Uncalibrated, ";
+            optString += "NOCALIBRATEDATA, ";
         if (curOptions & OPTS_EXTCLOCK)
-            optString += "ExtClock, ";
+            optString += "EXTCLOCK, ";
         if (curOptions & OPTS_EXTTRIGGER)
-            optString += "ExtTrigger, ";
+            optString += "EXTTRIGGER, ";
         if (curOptions & OPTS_CONTINUOUS)
-            optString += "Continuous, ";
+            optString += "CONTINUOUS, ";
         optString = optString.left(optString.length() - 2);
     }
     return optString;

@@ -3,8 +3,10 @@
 
 #include <QWidget>
 #include <QTime>
-//#include "mainwindow.h"
+#include "hatinterface.h"
 #include "mcchats/mcchats.h"
+//to do: remove following when released
+#include "mcchats/mcc134.h"
 
 namespace Ui {
 class HatDiscovery;
@@ -22,6 +24,7 @@ private slots:
     void openCmdClicked();
     void closeCmdClicked();
     void updateParameters();
+    void showQueueConfig();
 
 public:
     explicit HatDiscovery(QWidget *parent = 0);
@@ -29,6 +32,7 @@ public:
 
 private:
     Ui::HatDiscovery *ui;
+    HatInterface *hatInterface;
 
     int mNumHats;
     int mDevIndex;

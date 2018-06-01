@@ -11,6 +11,7 @@ HatDiscovery::HatDiscovery(QWidget *parent) :
     ui(new Ui::HatDiscovery)
 {
     ui->setupUi(this);
+    hatInterface = new HatInterface;
     mMainWindowHd = getMainWindow();
     ui->textEdit->setFont(QFont ("Courier", 8));
     ui->textEdit->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
@@ -39,6 +40,11 @@ void HatDiscovery::readHatList()
 }
 
 void HatDiscovery::updateParameters()
+{
+
+}
+
+void HatDiscovery::showQueueConfig()
 {
 
 }
@@ -79,10 +85,15 @@ void HatDiscovery::showBoardParameters()
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
+    //int isOpen;
+    bool isOpen;
     uint8_t address;
     uint16_t version, boot;
+    uint16_t devId;
     char serNum[10];
 
+    version = 0;
+    boot = 0;
     ui->lblInfo->clear();
     ui->lblStatus->clear();
     ui->textEdit->clear();
@@ -92,18 +103,36 @@ void HatDiscovery::showBoardParameters()
     ui->textEdit->append(QString("ID: %1").arg(hatInfoList[mDevIndex].id));
     ui->textEdit->append(QString("Version: %1\n").arg(hatInfoList[mDevIndex].version));
 
-    nameOfFunc = "118: IsOpen";
-    funcArgs = "(address) = result\n";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_is_open(address);
-    //mResponse = mcc118_blink_led(address, 2);
+    devId = hatInfoList[mDevIndex].id;
+    isOpen = hatInterface->deviceIsOpen(devId, address);
+
+    /*funcArgs = "(address) = result\n";
+    switch (devId) {
+    case HAT_ID_MCC_118:
+        nameOfFunc = "118: IsOpen";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        isOpen = mcc118_is_open(address);
+        break;
+    case 323:
+        //to do: change to constant
+        nameOfFunc = "134: IsOpen";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        isOpen = mcc134_is_open(address);
+        break;
+    default:
+        return;
+        break;
+    }
+
     argVals = QStringLiteral("(%1) = %2")
-                .arg(address).arg(mResponse);
+                .arg(address).arg(isOpen);
     ui->lblInfo->setText(nameOfFunc + argVals);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     mMainWindowHd->addFunction(sStartTime + funcStr);
-    if (mResponse == 0) {
+    */
+
+    if (!isOpen) {
         ui->lblStatus->setText(QString("Device at address %1 is not open").arg(address));
         mAddress = -1;
         return;
@@ -111,10 +140,23 @@ void HatDiscovery::showBoardParameters()
         mAddress = address;
         ui->lblStatus->setText(QString("Device at address %1 is ready").arg(address));
 
-        nameOfFunc = "118: firmwareVer";
         funcArgs = "(mAddress, &version, &boot)\n";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_firmware_version(mAddress, &version, &boot);
+        switch (devId) {
+        case HAT_ID_MCC_118:
+            nameOfFunc = "118: firmwareVer";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc118_firmware_version(mAddress, &version, &boot);
+            break;
+        case 323:
+            //to do: change to constant
+            nameOfFunc = "134: firmwareVer ???**???";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            //mResponse = mcc134_firmware_version(mAddress, &version, &boot);
+            break;
+        default:
+            return;
+            break;
+        }
         argVals = QString("(%1, %2.%3, %4.%5)")
                 .arg(mAddress)
                 .arg(version >> 8, 1, 16)
@@ -131,14 +173,25 @@ void HatDiscovery::showBoardParameters()
             mMainWindowHd->addFunction(sStartTime + funcStr);
             ui->textEdit->append(QString("Version %1.%2").arg((version) >> 8, 1, 16).arg((uint8_t)version, 2, 16, QChar('0')));
             ui->textEdit->append(QString("Boot %1.%2").arg(boot >> 8, 1, 16, QChar('0')).arg((uint8_t)boot, 2, 16, QChar('0')));
-            //ui->textEdit->append(QString("Version %1").arg(version, 0, 16));
-            //ui->textEdit->append(QString("Boot %1").arg(boot, 0, 16));
         }
 
-        nameOfFunc = "118: serialNum";
         funcArgs = "(mAddress, serNum)\n";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_serial(mAddress, serNum);
+        switch (devId) {
+        case HAT_ID_MCC_118:
+            nameOfFunc = "118: serialNum";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc118_serial(mAddress, serNum);
+            break;
+        case 323:
+            //to do: change to constant
+            nameOfFunc = "134: serialNum";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc134_serial(mAddress, serNum);
+            break;
+        default:
+            return;
+            break;
+        }
         argVals = QStringLiteral("(%1, %2)")
                 .arg(mAddress)
                 .arg(serNum);
@@ -161,15 +214,41 @@ void HatDiscovery::showPlotWindow(bool showIt)
 
 void HatDiscovery::runOpenDevice(uint8_t address)
 {
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime, devName;
+    //QString nameOfFunc, funcArgs, argVals, sStartTime, funcStr;
+    //QTime t;
+    QString devName;
+    uint16_t devId;
 
-    nameOfFunc = "118: Open";
+    devId = hatInfoList[mDevIndex].id;
+    mResponse = hatInterface->openDevice(devId, address);
+    ui->lblInfo->setText(hatInterface->getStatus());
+
+    if (mResponse == RESULT_SUCCESS) {
+        mAddress = address;
+        devName = QString(hatInfoList[mDevIndex].product_name).left(7)
+                + QString(" [%1]").arg(mAddress);
+        mMainWindowHd->addDeviceToMenu(devName, mAddress, devId);
+        showBoardParameters();
+    }
+
+        /*
     funcArgs = "(mAddress)\n";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_open(address);
-    argVals = QStringLiteral("(%1)").arg(address);
+    switch (devId) {
+    case HAT_ID_MCC_118:
+        nameOfFunc = "118: Open";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_open(address);
+        break;
+    case 323:
+        //to do: change to constant HAT_ID_MCC_134
+        nameOfFunc = "134: Open";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_open(address);
+        break;
+    default:
+        break;
+    }
+    argVals = QString("(%1)").arg(address);
     ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
@@ -180,11 +259,12 @@ void HatDiscovery::runOpenDevice(uint8_t address)
     } else {
         mMainWindowHd->addFunction(sStartTime + funcStr);
         mAddress = address;
-        devName = QString(hatInfoList[0].product_name).left(7)
+        devName = QString(hatInfoList[mDevIndex].product_name).left(7)
                 + QString(" [%1]").arg(mAddress);
-        mMainWindowHd->addDeviceToMenu(devName, mAddress);
+        mMainWindowHd->addDeviceToMenu(devName, mAddress, devId);
         showBoardParameters();
     }
+    */
 }
 
 void HatDiscovery::runCloseDevice(uint8_t address)
@@ -192,13 +272,27 @@ void HatDiscovery::runCloseDevice(uint8_t address)
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
+    uint16_t devId;
 
-    nameOfFunc = "118: Close";
+    devId = hatInfoList[mDevIndex].id;
     funcArgs = "(mAddress)\n";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_close(address);
-    argVals = QStringLiteral("(%1)")
-                .arg(address);
+    switch (devId) {
+    case HAT_ID_MCC_118:
+        nameOfFunc = "118: Close";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_close(address);
+        break;
+    case 323:
+        //to do: change to constant
+        nameOfFunc = "134: Close";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_close(address);
+        break;
+    default:
+        break;
+    }
+
+    argVals = QString("(%1)").arg(address);
     ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;

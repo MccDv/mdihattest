@@ -35,7 +35,8 @@ SOURCES += \
     hatdevice.cpp \
     hatdiscovery.cpp \
     infoform.cpp \
-    queuedialog.cpp
+    queuedialog.cpp \
+    hatinterface.cpp
 
 HEADERS += \
     qcustomplot.h \
@@ -47,7 +48,8 @@ HEADERS += \
     hatdevice.h \
     hatdiscovery.h \
     infoform.h \
-    queuedialog.h
+    queuedialog.h \
+    hatinterface.h
 
 FORMS += \
     errordialog.ui \
