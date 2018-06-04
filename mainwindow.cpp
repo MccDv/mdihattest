@@ -119,6 +119,8 @@ void MainWindow::createChild(UtFunctionGroup utFuncGroup, int defaultFunction)
         mCurBoardName = mHatList.value(mCurAddress);
     }
     ui->lblAppStatus->setText("Device: " + mCurBoardName);
+    if(mHatIDList.contains(mCurAddress))
+        mCurID = mHatIDList.value(mCurAddress);
 
     ChildWindow *childWindow = new ChildWindow(ui->mdiArea, utFuncGroup);
     childWindow->setWindowState(Qt::WindowMaximized);
@@ -126,6 +128,7 @@ void MainWindow::createChild(UtFunctionGroup utFuncGroup, int defaultFunction)
     childWindow->show();
     childWindow->setDevAddress(mCurAddress);
     childWindow->setDevName(mCurBoardName);
+    childWindow->setDevId(mCurID);
     childWindow->setCurFunction(defaultFunction);
 }
 
@@ -235,8 +238,6 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
 void MainWindow::setSelectedDevice()
 {
     ChildWindow *mdiChild = activeMdiChild();
-
-    QString function, displayIDString;
 
     foreach (QAction *devAct, ui->menuBoards->actions()) {
         devAct->setChecked(false);
@@ -361,10 +362,10 @@ void MainWindow::addDeviceToMenu(QString devName, uint8_t devAddress, uint16_t h
     newAction->setCheckable(true);
     newAction->setData(devAddress);
     newAction->setChecked(true);
-    connect(newAction, SIGNAL(triggered(bool)), this, SLOT(setSelectedDevice()));
     mHatList.insert(devAddress, devName);
     mHatIDList.insert(devAddress, hatType);
-
+    mCurID = hatType;
+    connect(newAction, SIGNAL(triggered(bool)), this, SLOT(setSelectedDevice()));
 }
 
 void MainWindow::removeDeviceFromMenu(uint8_t devAddress)

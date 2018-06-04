@@ -28,6 +28,7 @@ public:
     int getNumAInChans(uint16_t devType);
     int readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double &slope, double &offset);
     int aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double &value);
+    int setTrigger(uint16_t devType, uint8_t address, TriggerMode trigType);
     int stopAInScan(uint16_t devType, uint8_t address);
     int aInScanCleanup(uint16_t devType, uint8_t address);
 

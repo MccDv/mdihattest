@@ -281,7 +281,7 @@ int HatInterface::readCalDate(uint16_t devType, uint8_t address, QString &calDat
         mResponse = RESULT_INVALID_DEVICE;
         break;
     }
-    argVals = QStringLiteral("(%1, %2)")
+    argVals = QString("(%1, %2)")
             .arg(address)
             .arg(dateReturned);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
@@ -338,7 +338,7 @@ int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan,
     QString sStartTime;
     double chanSlope, chanOffset;
 
-    funcArgs = "() = result\n";
+    funcArgs = "(address, chan, &slope, &offset)\n";
     switch (devType) {
     case HAT_ID_MCC_118:
         nameOfFunc = "118: readCalCoeffs";
@@ -355,6 +355,11 @@ int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan,
         mResponse = RESULT_INVALID_DEVICE;
         break;
     }
+    argVals = QString("(%1, %2, %3, %4)")
+            .arg(address)
+            .arg(chan)
+            .arg(chanSlope)
+            .arg(chanOffset);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
@@ -407,6 +412,37 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
         mMainWindow->addFunction(sStartTime + funcStr);
     }
     value = data;
+    return mResponse;
+}
+
+int HatInterface::setTrigger(uint16_t devType, uint8_t address, TriggerMode trigType)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+
+    funcArgs = "(mAddress, mTriggerType)\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        nameOfFunc = "118: TrigMode";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_trigger_mode(address, trigType);
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QString("(%1, %2)")
+            .arg(address)
+            .arg(trigType);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    if (mResponse!=RESULT_SUCCESS) {
+        mMainWindow->setError(mResponse, sStartTime + funcStr);
+    } else {
+        mMainWindow->addFunction(sStartTime + funcStr);
+    }
     return mResponse;
 }
 

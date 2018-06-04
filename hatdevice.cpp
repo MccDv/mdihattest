@@ -197,6 +197,8 @@ void HatDevice::stopCmdClicked()
 {
     stopScan();
     return;
+
+    /*
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
@@ -242,6 +244,7 @@ void HatDevice::stopCmdClicked()
     } else {
         mMainWindow->addFunction(sStartTime + funcStr);
     }
+    */
 }
 
 void HatDevice::runSelectedFunction()
@@ -265,36 +268,21 @@ void HatDevice::runSelectedFunction()
 
 void HatDevice::runSetTriggerFunc()
 {
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime, trigString;
+    QString trigString;
 
-    nameOfFunc = "118: TrigMode";
-    funcArgs = "(mAddress, mTriggerType)\n";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_trigger_mode(mAddress, mTriggerType);
-    argVals = QStringLiteral("(%1, %2)")
-                .arg(mAddress ).arg(mTriggerType);
+    mResponse = hatInterface->setTrigger(mHatID, mAddress, mTriggerType);
+    ui->lblStatus->setText(hatInterface->getStatus());
+
     trigString = getTrigText(mTriggerType);
     ui->lblInfo->setText("Trigger type: " + trigString);
 
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse != RESULT_SUCCESS) {
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
-        return;
-    } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
-    }
 }
 
 void HatDevice::runAinFunction()
 {
-    QString nameOfFunc, funcArgs, argVals, funcStr;
     uint8_t aInChan, aInLastChan;
     int curIndex;
     double data;
-    QTime t;
-    QString sStartTime;
 
     data = 0.0;
 
@@ -323,16 +311,11 @@ void HatDevice::runAinFunction()
     buffer = new double[bufSize];
     memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
 
-    nameOfFunc = "118: AInRead";
-    funcArgs = "(mAddress, curChan, mScanOptions, &data)\n";
-
     uint8_t curChan;
     curIndex = 0;
     mRunning = true;
     for (uint32_t sampleNum = 0; sampleNum < mSamplesPerChan; sampleNum++) {
         foreach(curChan, mChanList) {
-            //sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-            //mResponse = mcc118_a_in_read(mAddress, curChan, mScanOptions, &data);
             mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, mScanOptions, data);
             ui->lblInfo->setText(hatInterface->getStatus());
             if(mResponse == RESULT_SUCCESS) {
@@ -341,25 +324,6 @@ void HatDevice::runAinFunction()
             } else {
                 return;
             }
-            /*
-            argVals = QStringLiteral("(%1, %2, %3, %4)")
-                    .arg(mAddress)
-                    .arg(curChan)
-                    .arg(mScanOptions)
-                    .arg(data);
-            ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-            */
-
-
-            /*
-            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-            if (mResponse != RESULT_SUCCESS) {
-                mMainWindow->setError(mResponse, sStartTime + funcStr);
-                return;
-            } else {
-                mMainWindow->addFunction(sStartTime + funcStr);
-            }
-            */
         }
     }
 
