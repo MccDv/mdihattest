@@ -12,6 +12,7 @@ HatDevice::HatDevice(QWidget *parent) :
 {
     ui->setupUi(this);
     mMainWindow = getMainWindow();
+    hatInterface = new HatInterface;
 
     mHistListSize = 50;
 
@@ -198,69 +199,48 @@ void HatDevice::stopCmdClicked()
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
+    uint16_t status;
 
-    //mUseTimer = false;
-    //if (mUtFunction == UL_AINSCAN) {
-        uint16_t status;
-        //struct TransferStatus xferStatus;
-        //unsigned long long currentScanCount;
-        //unsigned long long currentTotalCount;
-        //long long currentIndex;
+    funcArgs = "(mAddress, &status, samplesPerChan, timeout, &buffer, bufferSize, samplesRead)\n";
+    mStatusTimerEnabled = false;
+    nameOfFunc = "118: AInScanRead";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, 0.0, NULL, 0, NULL);
 
-        //if(mUseGetStatus) {
-            funcArgs = "(mAddress, &status, samplesPerChan, timeout, &buffer, bufferSize, samplesRead)\n";
-            mStatusTimerEnabled = false;
-            nameOfFunc = "118: AInScanRead";
-            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-            //err = ulAInScanStatus(mDaqDeviceHandle, &status, &xferStatus);
-            mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, 0.0, NULL, 0, NULL);
+    argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+            .arg(mAddress)
+            .arg(status)
+            .arg("0")
+            .arg("0.0")
+            .arg("NULL")
+            .arg("0")
+            .arg("NULL");
+    mRunning = false; //((status && STATUS_RUNNING) == STATUS_RUNNING);
+    tmrCheckStatus->stop();
 
-            /*
-            currentScanCount = xferStatus.currentScanCount;
-            currentTotalCount = xferStatus.currentTotalCount;
-            currentIndex = xferStatus.currentIndex;
-            */
-            argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
-                    .arg(mAddress)
-                    .arg(status)
-                    .arg("0")
-                    .arg("0.0")
-                    .arg("NULL")
-                    .arg("0")
-                    .arg("NULL");
-            mRunning = false; //((status && STATUS_RUNNING) == STATUS_RUNNING);
-            tmrCheckStatus->stop();
-            /*
-            ui->lblStatus->setText(QStringLiteral("Idle at %1, (%2 perChan), %3")
-                                   .arg(currentTotalCount)
-                                   .arg(currentScanCount)
-                                   .arg(currentIndex));
-            */
-            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-            if (mResponse != RESULT_SUCCESS) {
-                mMainWindow->setError(mResponse, sStartTime + funcStr);
-            } else {
-                mMainWindow->addFunction(sStartTime + funcStr);
-            }
-        //}
-        //err = stopScan(currentScanCount, currentTotalCount, currentIndex);
-        nameOfFunc = "118_AInScanStop";
-        funcArgs = "(mAddress)\n";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_a_in_scan_stop(mAddress);
-        argVals = QStringLiteral("(%1)")
-                .arg(mAddress);
-        ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-        //ui->cmdStop->setEnabled(mRunning);
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    if (mResponse != RESULT_SUCCESS) {
+        mMainWindow->setError(mResponse, sStartTime + funcStr);
+    } else {
+        mMainWindow->addFunction(sStartTime + funcStr);
+    }
 
-        funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-        if (mResponse != RESULT_SUCCESS) {
-            mMainWindow->setError(mResponse, sStartTime + funcStr);
-            return;
-        } else {
-            mMainWindow->addFunction(sStartTime + funcStr);
-        }
-    //}
+    nameOfFunc = "118_AInScanStop";
+    funcArgs = "(mAddress)\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc118_a_in_scan_stop(mAddress);
+    argVals = QStringLiteral("(%1)")
+            .arg(mAddress);
+    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+    //ui->cmdStop->setEnabled(mRunning);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    if (mResponse != RESULT_SUCCESS) {
+        mMainWindow->setError(mResponse, sStartTime + funcStr);
+        return;
+    } else {
+        mMainWindow->addFunction(sStartTime + funcStr);
+    }
 }
 
 void HatDevice::runSelectedFunction()
@@ -644,7 +624,6 @@ void HatDevice::stopScan()
     QString sStartTime;
     QFont goFont = ui->cmdGo->font();
 
-    //long long finalBlockSize;
     tmrCheckStatus->stop();
     goFont.setBold(false);
     ui->cmdGo->setFont(goFont);
@@ -680,31 +659,6 @@ void HatDevice::stopScan()
         mMainWindow->addFunction(sStartTime + funcStr);
     }
 
-    /*
-    if(mUseGetStatus) {
-        ui->lblStatus->setText(QStringLiteral("IDLE Count = %1 (%2 perChan), index: %3")
-                               .arg(curCount)
-                               .arg(perChan)
-                               .arg(curIndex));
-        mRunning = false;
-        if (mChanCount != 0) {
-            finalBlockSize = (curCount - mPlotCount) / mChanCount;
-            if (finalBlockSize > 1) {
-                if (mPlot) {
-                    plotScan(mPlotCount, mPlotIndex, finalBlockSize);
-                } else {
-                    printData(mPlotCount, mPlotIndex, finalBlockSize);
-                }
-            }
-        }
-        mPlotCount = curCount;
-        mFinalCount = curCount;
-    } else {
-        mRunning = false;
-        ui->cmdStop->setEnabled(false);
-    }
-    return;
-    */
 }
 
 void HatDevice::runReadScanStatus()

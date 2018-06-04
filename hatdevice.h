@@ -9,6 +9,7 @@
 #include "unitest.h"
 #include "errordialog.h"
 #include "testutilities.h"
+#include "hatinterface.h"
 #include "mcchats/mcchats.h"
 
 namespace Ui {
@@ -39,6 +40,7 @@ private slots:
 
 private:
     Ui::HatDevice *ui;
+    HatInterface *hatInterface;
     QTimer *tmrCheckStatus;
     QRadioButton *rbPlotSel[8]={};
     QActionGroup *functionGroup;

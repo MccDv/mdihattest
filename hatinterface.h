@@ -14,8 +14,12 @@ public:
 
     QString getStatus() { return mStatusString; }
     int openDevice(uint16_t devType, uint8_t address);
+    int closeDevice(uint16_t devType, uint8_t address);
     bool deviceIsOpen(uint16_t devType, uint8_t address);
-    int getFirmwareVersion(uint16_t devType, uint8_t address, double *version, double *boot);
+    int getFirmwareVersion(uint16_t devType, uint8_t address, uint16_t &fwMain, uint16_t &fwBoot);
+    int getSerialNumber(uint16_t devType, uint8_t address, QString &serialNum);
+    int stopAInScan(uint16_t devType, uint8_t address);
+    int aInScanCleanup(uint16_t devType, uint8_t address);
 
 private:
     MainWindow *mMainWindow;
