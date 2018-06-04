@@ -3,15 +3,15 @@
 #include "mainwindow.h"
 #include "childwindow.h"
 
-MainWindow* getMainWindow();
-MainWindow *mMainWindowHd;
+//MainWindow* getMainWindow();
+//MainWindow *mMainWindowHd;
 
 HatDiscovery::HatDiscovery(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HatDiscovery)
 {
     ui->setupUi(this);
-    hatInterface = new HatInterface;
+    hatInterface = new HatInterface();
     //mMainWindowHd = getMainWindow();
     ui->textEdit->setFont(QFont ("Courier", 8));
     ui->textEdit->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
@@ -137,8 +137,6 @@ void HatDiscovery::showPlotWindow(bool showIt)
 
 void HatDiscovery::runOpenDevice(uint8_t address)
 {
-    //QString nameOfFunc, funcArgs, argVals, sStartTime, funcStr;
-    //QTime t;
     QString devName;
     uint16_t devId;
 
@@ -150,44 +148,9 @@ void HatDiscovery::runOpenDevice(uint8_t address)
         mAddress = address;
         devName = QString(hatInfoList[mDevIndex].product_name).left(7)
                 + QString(" [%1]").arg(mAddress);
-        mMainWindowHd->addDeviceToMenu(devName, mAddress, devId);
+        hatInterface->addToMenu(devId, mAddress, devName);
         showBoardParameters();
     }
-
-        /*
-    funcArgs = "(mAddress)\n";
-    switch (devId) {
-    case HAT_ID_MCC_118:
-        nameOfFunc = "118: Open";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_open(address);
-        break;
-    case 323:
-        //to do: change to constant HAT_ID_MCC_134
-        nameOfFunc = "134: Open";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc134_open(address);
-        break;
-    default:
-        break;
-    }
-    argVals = QString("(%1)").arg(address);
-    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse != RESULT_SUCCESS) {
-        mMainWindowHd->setError(mResponse, sStartTime + funcStr);
-        mAddress = 0;
-        return;
-    } else {
-        mMainWindowHd->addFunction(sStartTime + funcStr);
-        mAddress = address;
-        devName = QString(hatInfoList[mDevIndex].product_name).left(7)
-                + QString(" [%1]").arg(mAddress);
-        mMainWindowHd->addDeviceToMenu(devName, mAddress, devId);
-        showBoardParameters();
-    }
-    */
 }
 
 void HatDiscovery::runCloseDevice(uint8_t address)
@@ -198,7 +161,8 @@ void HatDiscovery::runCloseDevice(uint8_t address)
     mResponse = hatInterface->closeDevice(devId, address);
     ui->lblInfo->setText(hatInterface->getStatus());
 
-    if (mResponse == RESULT_SUCCESS)
+    if (mResponse == RESULT_SUCCESS) {
+        hatInterface->removeFromMenu(address);
         showBoardParameters();
-
+    }
 }

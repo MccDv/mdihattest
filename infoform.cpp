@@ -12,6 +12,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->setupUi(this);
 
     this->setWindowTitle("Information");
+    hatInterface = new HatInterface();
     mMainWindowInf = getMainWindow();
     ui->teShowValues->setFont(QFont ("Courier", 8));
     ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
@@ -48,8 +49,10 @@ void InfoForm::findHats()
     uint8_t hatAddress;
 
     ui->cmbDevList->clear();
-    mHatList = mMainWindowInf->hatList();
-    mHatIDList = mMainWindowInf->hatIDList();
+    mHatList = hatInterface->refreshHatList();
+    mHatIDList = hatInterface->refreshHatIDList();
+    //mHatList = mMainWindowInf->hatList();
+    //mHatIDList = mMainWindowInf->hatIDList();
     foreach (hatAddress, mHatList.keys()) {
         ui->cmbDevList->addItem(mHatList.value(hatAddress));
         ui->teShowValues->append(QString("Hat Name; %1  HatID: %2")
@@ -190,41 +193,12 @@ void InfoForm::showSysInfo()
 
 void InfoForm::flashLED()
 {
-    QString nameOfFunc, funcArgs, funcStr;
-    QString argVals;
-    QTime t;
-    QString sStartTime;
     uint8_t flashCount;
 
     flashCount = ui->leFlashCount->text().toUInt();
-    funcArgs = "(address, flashCount) = result\n";
-    switch (mHatID) {
-    case HAT_ID_MCC_118:
-        nameOfFunc = "118: BlinkLED";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_blink_led(mAddress, flashCount);
-        break;
-    case 323:
-        //to do: change to constant HAT_ID_MCC_134
-        nameOfFunc = "134: BlinkLED ???**???";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        //mResponse = mcc134_blink_led(mAddress, flashCount);
-        break;
-    default:
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2)")
-            .arg(mAddress)
-            .arg(flashCount);
-    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
 
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse!=RESULT_SUCCESS) {
-        mMainWindowInf->setError(mResponse, sStartTime + funcStr);
-        return;
-    } else {
-        mMainWindowInf->addFunction(sStartTime + funcStr);
-    }
+    hatInterface->blinkLED(mHatID, mAddress, flashCount);
+    ui->lblInfo->setText(hatInterface->getStatus());
 }
 
 void InfoForm::readCal()
@@ -236,57 +210,33 @@ void InfoForm::readCal()
     uint8_t chan, curChan;
     int numChans;
     double slope, offset;
-    char calDate[12];
+    QString calDate;
 
     curChan = ui->spnCalChan->value();
     ui->teShowValues->clear();
 
-    funcArgs = "(address, calDate) = result\n";
-    switch (mHatID) {
-    case HAT_ID_MCC_118:
-        nameOfFunc = "118: CalDate";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_calibration_date(mAddress, calDate);
-        break;
-    case 323:
-        //to do: change to constant HAT_ID_MCC_134
-        nameOfFunc = "134: BlinkLED ???**???";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc134_calibration_date(mAddress, calDate);
-        break;
-    default:
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2)")
-            .arg(mAddress)
-            .arg(calDate);
-    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+    mResponse = hatInterface->readCalDate(mHatID, mAddress, calDate);
+    ui->lblInfo->setText(hatInterface->getStatus());
 
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
-    if (mResponse!=RESULT_SUCCESS) {
-        mMainWindowInf->setError(mResponse, sStartTime + funcStr);
-        return;
-    } else {
-        mMainWindowInf->addFunction(sStartTime + funcStr);
-        dataText.append(QString("<td>Cal date: %1</td>").arg(calDate));
+    if(mResponse == RESULT_SUCCESS) {
+        dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
+        dataText.append(QString("<td>Cal date: %1</td></tr><tr>").arg(calDate));
         dataText.append("</tr><tr>");
     }
 
-    numChans = mcc118_a_in_num_channels();
-    nameOfFunc = "118: ReadCal";
-    funcArgs = "(address, chan, &slope, &offset) = result\n";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    dataText.append("</tr><tr>");
+    numChans = hatInterface->getNumAInChans(mHatID);
+
     for(chan = 0; chan < numChans; chan++) {
-        mResponse = mcc118_calibration_coefficient_read(mAddress, chan, &slope, &offset);
+        mResponse = hatInterface->readCalCoeffs(mHatID, mAddress, chan, slope, offset);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        /*mResponse = mcc118_calibration_coefficient_read(mAddress, chan, &slope, &offset);
         argVals = QStringLiteral("(%1, %2, %3, %4)")
                 .arg(mAddress)
                 .arg(chan)
                 .arg(slope)
                 .arg(offset);
         if(mResponse != RESULT_SUCCESS)
-            break;
+            break;*/
         dataText.append(QString("<td>Chan: %1</td><td>Slope:  %2</td><td>Offset: %3</td>")
                         .arg(chan).arg(slope).arg(offset));
         dataText.append("</tr><tr>");
@@ -297,14 +247,6 @@ void InfoForm::readCal()
     }
     ui->teShowValues->setHtml(dataText);
     ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse!=RESULT_SUCCESS) {
-        mMainWindowInf->setError(mResponse, sStartTime + funcStr);
-        return;
-    } else {
-        mMainWindowInf->addFunction(sStartTime + funcStr);
-    }
 }
 
 void InfoForm::writeCal()
@@ -349,13 +291,8 @@ void InfoForm::writeCal()
 
 void InfoForm::showBoardParameters()
 {
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    uint8_t address;
-    uint16_t version, boot;
-    int isOpen;
-    char serNum[10];
+    bool isOpen;
+    int numChans;
 
     ui->lblInfo->clear();
     ui->lblStatus->clear();
@@ -363,77 +300,15 @@ void InfoForm::showBoardParameters()
     ui->teShowValues->setText(QString("Device %1").arg(mDevName));
     ui->teShowValues->append(QString("Address: %1").arg(mAddress));
 
-    isOpen = 0;
-    funcArgs = "(address) = result\n";
-    switch (mHatID) {
-    case HAT_ID_MCC_118:
-        nameOfFunc = "118: IsOpen";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        isOpen = mcc118_is_open(mAddress);
-        break;
-    case 323:
-        //to do: change to constant HAT_ID_MCC_134
-        nameOfFunc = "134: IsOpen";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        isOpen = mcc134_is_open(mAddress);
-        break;
-    default:
-        break;
-    }
-    argVals = QStringLiteral("(%1) = %2")
-                .arg(address).arg(isOpen);
-    ui->lblInfo->setText(nameOfFunc + argVals);
+    isOpen = hatInterface->deviceIsOpen(mHatID, mAddress);
+    ui->lblStatus->setText(hatInterface->getStatus());
 
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    mMainWindowInf->addFunction(sStartTime + funcStr);
     if (isOpen) {
-        //mAddress = address;
-        ui->lblStatus->setText(QString("Device at address %1 is ready").arg(mAddress));
-
-        return;
-        nameOfFunc = "118: firmwareVer";
-        funcArgs = "(mAddress, &version, &boot)\n";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_firmware_version(mAddress, &version, &boot);
-        argVals = QString("(%1, %2.%3, %4.%5)")
-                .arg(mAddress)
-                .arg((uint8_t)version >> 8, 16)
-                .arg((uint8_t)version, 16)
-                .arg((uint8_t)boot >> 8, 16)
-                .arg((uint8_t)boot, 16);
-        ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-
-        funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-        if (mResponse!=RESULT_SUCCESS) {
-            mMainWindowInf->setError(mResponse, sStartTime + funcStr);
-            return;
-        } else {
-            mMainWindowInf->addFunction(sStartTime + funcStr);
-            ui->teShowValues->append(QString("Version %1.%2").arg((version) >> 8, 1, 16).arg((uint8_t)version, 2, 16));
-            ui->teShowValues->append(QString("Boot %1.%2").arg(boot >> 8, 1, 16, QChar('0')).arg((uint8_t)boot, 2, 16, QChar('0')));
-            //ui->textEdit->append(QString("Version %1").arg(version, 0, 16));
-            //ui->textEdit->append(QString("Boot %1").arg(boot, 0, 16));
-        }
-
-        nameOfFunc = "118: serialNum";
-        funcArgs = "(mAddress, serNum)\n";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_serial(mAddress, serNum);
-        argVals = QStringLiteral("(%1, %2)")
-                .arg(mAddress)
-                .arg(serNum);
-        ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-
-        if (mResponse!=RESULT_SUCCESS) {
-            mMainWindowInf->setError(mResponse, sStartTime + funcStr);
-            return;
-        } else {
-            mMainWindowInf->addFunction(sStartTime + funcStr);
-            ui->teShowValues->append(QString("Serial num:  %1").arg(serNum));
-        }
+        ui->lblInfo->setText(QString("Device at address %1 is ready").arg(mAddress));
+        numChans = hatInterface->getNumAInChans(mHatID);
+        ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
     } else {
-        ui->teShowValues->setText
-                (nameOfFunc + QString(" reports device at %1 is not open.\n\n").arg(address)
+        ui->teShowValues->setText(QString("Device at %1 is not open.\n\n").arg(mAddress)
                  + "Use Discover to open device.");
     }
 }

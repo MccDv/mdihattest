@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QTime>
 #include <QTextStream>
+#include "hatinterface.h"
 #include "mcchats/mcchats.h"
 
 namespace Ui {
@@ -35,6 +36,7 @@ private slots:
 
 private:
     Ui::InfoForm *ui;
+    HatInterface *hatInterface;
     QHash<uint8_t, QString> mHatList;
     QHash<uint8_t, uint16_t> mHatIDList;
 

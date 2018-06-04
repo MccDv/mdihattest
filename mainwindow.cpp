@@ -247,6 +247,7 @@ void MainWindow::setSelectedDevice()
     QVariant addressVar = actDevSelected->data();
     mCurAddress = addressVar.toUInt();
     mCurBoardName = mHatList.value(mCurAddress);
+    mCurID = mHatIDList.value(mCurAddress);
 //    for (int i = 0; i < MAX_NUMBER_HATS; i++) {
 //        if (hatList.v == mCurAddress) {
 //            descriptorIndex = i;
@@ -261,7 +262,8 @@ void MainWindow::setSelectedDevice()
         //function = mdiChild->currentFunction();
         mdiChild->setDevAddress(mCurAddress);
         mdiChild->setDevName(mCurBoardName);
-        ui->lblAppStatus->setText(curFunctionGroupName + ": " + mCurBoardName);
+        mdiChild->setDevId(mCurID);
+        ui->lblAppStatus->setText(curFunctionGroupName + ": " + mCurBoardName + QString(" {%1}").arg(mCurID));
 
         //mdiChild->refreshBoardParams();
     }

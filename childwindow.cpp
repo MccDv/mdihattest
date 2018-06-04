@@ -36,6 +36,7 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     this->setWidget(subwidget);
     connect(this, SIGNAL(devNameChanged(QString)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(devAddressChanged(uint8_t)), subwidget, SLOT(updateParameters()));
+    connect(this, SIGNAL(devIdChanged(uint16_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(curFunctionChanged(int)), subwidget, SLOT(functionChanged(int)));
     connect(this, SIGNAL(showPlotChanged(bool)), subwidget, SLOT(showPlotWindow(bool)));
     connect(this, SIGNAL(scanOptionsChanged(u_int32_t)), subwidget, SLOT(updateParameters()));

@@ -53,6 +53,7 @@ private:
     int mDevIndex;
     int mResponse;
     uint8_t mAddress;
+    uint16_t mHatID;
     QString mDevName;
 
     uint32_t mScanOptions;

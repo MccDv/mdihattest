@@ -77,6 +77,7 @@ private:
 
     QString mCurBoardName;
     uint8_t mCurAddress;
+    uint16_t mCurID;
     QString curFunctionGroupName;
 
     QStringList mFuncHistoryList;

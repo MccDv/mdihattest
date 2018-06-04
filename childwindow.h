@@ -19,6 +19,7 @@ class ChildWindow : public QMdiSubWindow
     Q_OBJECT
     Q_PROPERTY(QString devName READ devName WRITE setDevName NOTIFY devNameChanged)
     Q_PROPERTY(uint8_t devAddress READ devAddress WRITE setDevAddress NOTIFY devAddressChanged)
+    Q_PROPERTY(uint16_t devId READ devId WRITE setDevId NOTIFY devIdChanged)
     Q_PROPERTY(bool showPlot READ showPlot WRITE setShowPlot NOTIFY showPlotChanged)
     Q_PROPERTY(u_int32_t scanOptions READ scanOptions WRITE setScanOptions NOTIFY scanOptionsChanged)
     Q_PROPERTY(int curFunction READ curFunction WRITE setCurFunction NOTIFY curFunctionChanged)
@@ -39,6 +40,12 @@ public:
     {
         mDevAddress = devAddress;
         emit devAddressChanged(devAddress);
+    }
+
+    void setDevId(uint16_t devID)
+    {
+        mDevID = devID;
+        emit devIdChanged(devID);
     }
 
     void setCurFunction(int utFunction)
@@ -67,6 +74,7 @@ public:
 
     QString devName() { return mDevName; }
     uint8_t devAddress() { return mDevAddress; }
+    uint16_t devId() { return mDevID; }
     bool showPlot() { return mShowPlot; }
     u_int32_t scanOptions() { return mScanOptions; }
     int curFunction() { return mCurFunction; }
@@ -80,6 +88,7 @@ private:
 
     QString mDevName;
     uint8_t mDevAddress;
+    uint16_t mDevID;
     u_int32_t mScanOptions;
     TriggerMode mTriggerType;
     int mAiResolution;
@@ -94,6 +103,7 @@ private:
 signals:
     void devNameChanged(QString);
     void devAddressChanged(uint8_t);
+    void devIdChanged(uint16_t);
     void curFunctionChanged(int);
     void showPlotChanged(bool);
     void scanOptionsChanged(u_int32_t);
