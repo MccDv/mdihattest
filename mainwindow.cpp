@@ -19,8 +19,10 @@ MainWindow::MainWindow(QWidget *parent) :
     readWindowPosition();
 
     functionGroup = new QActionGroup(this);
+    createFuncMenus();
 
-    QAction *funcAction;
+    //QAction *funcAction;
+    /*
     funcAction = ui->menuFunction->addAction("AIn");
     funcAction->setCheckable(true);
     funcAction->setChecked(true);
@@ -30,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     funcAction->setCheckable(true);
     funcAction->setData(UL_AINSCAN);
     functionGroup->addAction(funcAction);
+    */
     //functionGroup->actions().clear();
 
     trigTypeGroup = new QActionGroup(this);
@@ -70,12 +73,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    int response;
+    //int response;
     uint8_t address;
 
     foreach (address, mHatList.keys()) {
         if(mcc118_is_open(address))
-            response = mcc118_close(address);
+            mcc118_close(address);
     }
     writeWindowPosition();
     event->accept();
@@ -97,7 +100,7 @@ void MainWindow::createDiscChild()
 void MainWindow::createInfoChild()
 {
     curFunctionGroupName = "Hat Info";
-    createChild(FUNC_GROUP_MISC, UL_GET_INFO);
+    createChild(FUNC_GROUP_MISC, UL_AI_INFO);
 }
 
 void MainWindow::createAiChild()
@@ -130,6 +133,197 @@ void MainWindow::createChild(UtFunctionGroup utFuncGroup, int defaultFunction)
     childWindow->setDevName(mCurBoardName);
     childWindow->setDevId(mCurID);
     childWindow->setCurFunction(defaultFunction);
+    createFuncMenus();
+}
+
+void MainWindow::createFuncMenus()
+{
+    QAction *funcAction;
+    ChildWindow *curChild;
+    bool optionVisible, trigVisible;
+    bool plotVisible;
+
+    functionGroup->actions().clear();
+    optionVisible = false;
+    trigVisible = true;
+    plotVisible = true;
+    curChild = activeMdiChild();
+
+    if (curChild) {
+        int funcGroup = curChild->curFunctionGroup();
+        ui->menuFunction->clear();
+
+        switch (funcGroup) {
+        case FUNC_GROUP_AIN:
+            optionVisible = true;
+            funcAction = ui->menuFunction->addAction("AIn");
+            funcAction->setCheckable(true);
+            funcAction->setChecked(true);
+            funcAction->setData(UL_AIN);
+            functionGroup->addAction(funcAction);
+            funcAction = ui->menuFunction->addAction("AInScan");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_AINSCAN);
+            functionGroup->addAction(funcAction);
+            funcAction = ui->menuFunction->addAction("TIn");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_TIN);
+            functionGroup->addAction(funcAction);
+            break;
+        /*
+        case FUNC_GROUP_AOUT:
+            rangeVisible = true;
+            optionVisible = true;
+            dataVisible = true;
+            funcAction = ui->menuFunction->addAction("ulAOut");
+            funcAction->setCheckable(true);
+            funcAction->setChecked(true);
+            funcAction->setData(UL_AOUT);
+            functionGroup->addAction(funcAction);
+            funcAction = ui->menuFunction->addAction("ulAOutScan");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_AOUT_SCAN);
+            functionGroup->addAction(funcAction);
+            funcAction = ui->menuFunction->addAction("ulDaqOutScan");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_DAQ_OUTSCAN);
+            functionGroup->addAction(funcAction);
+            ui->actionFF_DEFAULT->setData(AOUT_FF_DEFAULT);
+            ui->actionFF_NOCALIBRATEDATA->setData(AOUT_FF_NOCALIBRATEDATA);
+            ui->actionFF_NOSCALEDATA->setData(AOUT_FF_NOSCALEDATA);
+            break;
+        case FUNC_GROUP_DIN:
+            optionVisible = true;
+            flagsVisible = false;
+            funcAction = ui->menuFunction->addAction("ulDConfigPort");
+            funcAction->setCheckable(true);
+            funcAction->setChecked(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_CONFIG_PORT);
+            funcAction = ui->menuFunction->addAction("ulDConfigBit");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_CONFIG_BIT);
+            funcAction = ui->menuFunction->addAction("ulDIn");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_IN);
+            funcAction = ui->menuFunction->addAction("ulDBitIn");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_BIT_IN);
+            funcAction = ui->menuFunction->addAction("ulDInScan");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_INSCAN);
+            break;
+        case FUNC_GROUP_DOUT:
+            optionVisible = true;
+            flagsVisible = false;
+            dataVisible = true;
+            funcAction = ui->menuFunction->addAction("ulDConfigPort");
+            funcAction->setCheckable(true);
+            funcAction->setChecked(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_CONFIG_PORT);
+            funcAction = ui->menuFunction->addAction("ulDConfigBit");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_CONFIG_BIT);
+            funcAction = ui->menuFunction->addAction("ulDOut");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_OUT);
+            funcAction = ui->menuFunction->addAction("ulDBitOut");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_BIT_OUT);
+            funcAction = ui->menuFunction->addAction("ulDOutScan");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_OUTSCAN);
+            break;
+        case FUNC_GROUP_CTR:
+            optionVisible = true;
+            funcAction = ui->menuFunction->addAction("ulCLoad");
+            funcAction->setCheckable(true);
+            funcAction->setChecked(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_C_LOAD);
+            funcAction = ui->menuFunction->addAction("ulCIn");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_C_IN);
+            funcAction = ui->menuFunction->addAction("ulCClear");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_C_CLEAR);
+            funcAction = ui->menuFunction->addAction("ulCInScan");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_C_INSCAN);
+            funcAction = ui->menuFunction->addAction("ulTmrPulseOut");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_TMR_OUT);
+            funcAction = ui->menuFunction->addAction("ulCConfigScan");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_C_CONFIG_SCAN);
+            ui->actionFF_DEFAULT->setText("FF_DEFAULT");
+            ui->actionFF_NOCALIBRATEDATA->setText("FF_CTR16_BIT");
+            ui->actionFF_NOSCALEDATA->setText("FF_CTR32_BIT");
+            ui->actionFF_DEFAULT->setData(CINSCAN_FF_DEFAULT);
+            ui->actionFF_NOCALIBRATEDATA->setData(CINSCAN_FF_CTR16_BIT);
+            ui->actionFF_NOSCALEDATA->setData(CINSCAN_FF_CTR32_BIT);
+            ui->actionFF_CTR64_BIT->setData(CINSCAN_FF_CTR64_BIT);
+            ui->actionFF_CTR64_BIT->setVisible(true);
+            ui->actionFF_NOCLEAR->setData(CINSCAN_FF_NOCLEAR);
+            ui->actionFF_NOCLEAR->setVisible(true);
+            break;
+            */
+        case FUNC_GROUP_MISC:
+            trigVisible = false;
+            plotVisible = false;
+            funcAction = ui->menuFunction->addAction("Analog Input");
+            funcAction->setCheckable(true);
+            funcAction->setChecked(true);
+            funcAction->setData(UL_AI_INFO);
+            functionGroup->addAction(funcAction);
+            funcAction = ui->menuFunction->addAction("Temperature Input");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_TEMP_INFO);
+            functionGroup->addAction(funcAction);
+            break;
+        /*
+        case FUNC_GROUP_CONFIG:
+            flagsVisible = false;
+            trigVisible = false;
+            plotVisible = false;
+            funcAction = ui->menuFunction->addAction("ulGetInfo");
+            funcAction->setCheckable(true);
+            funcAction->setChecked(true);
+            funcAction->setData(UL_GET_INFO);
+            functionGroup->addAction(funcAction);
+            funcAction = ui->menuFunction->addAction("ulGetConfig");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_GET_CONFIG);
+            functionGroup->addAction(funcAction);
+            funcAction = ui->menuFunction->addAction("ulSetConfig");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_SET_CONFIG);
+            functionGroup->addAction(funcAction);
+            break;
+        default:
+            break;
+            */
+        }
+        disconnect(functionGroup);
+        connect(functionGroup, SIGNAL(triggered(QAction*)), this, SLOT(curFunctionChanged()));
+    }
+    ui->menuOptions->menuAction()->setVisible(optionVisible);
+    ui->menuTriggering->menuAction()->setVisible(trigVisible);
+    ui->menuPlot->menuAction()->setVisible(plotVisible);
 }
 
 void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
@@ -155,7 +349,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
         }
         curAddress = curChild->devAddress();
         //QString tempString;
-        //createFuncMenus();
+        createFuncMenus();
         foreach (QAction *boardAction, ui->menuBoards->actions()) {
             QString bdName = boardAction->text();
             if (bdName == curBoard) {
@@ -279,9 +473,7 @@ void MainWindow::curFunctionChanged()
     if (curChild) {
         curFunction = functionGroup->checkedAction()->data().toInt();
         curChild->setCurFunction(curFunction);
-        //curChild->setTmrEnabled(false);
     }
-    //mCurFunction = functionGroup->checkedAction()->data().toInt();
 }
 
 void MainWindow::curOptionChanged()
@@ -372,6 +564,7 @@ void MainWindow::removeDeviceFromMenu(uint8_t devAddress)
 {
     bool wasChecked;
 
+    wasChecked = false;
     foreach (QAction *boardMenu, ui->menuBoards->actions()) {
         QVariant dataVal = boardMenu->data();
         if (dataVal.toInt() == devAddress) {

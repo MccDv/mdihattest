@@ -52,12 +52,7 @@ int HatInterface::openDevice(uint16_t devType, uint8_t address)
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse != RESULT_SUCCESS) {
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
-    } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
-    }
-
+    reportResult(mResponse, sStartTime + funcStr);
     return mResponse;
 }
 
@@ -88,12 +83,7 @@ int HatInterface::closeDevice(uint16_t devType, uint8_t address)
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse != RESULT_SUCCESS) {
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
-    } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
-    }
-
+    reportResult(mResponse, sStartTime + funcStr);
     return mResponse;
 }
 
@@ -325,8 +315,7 @@ int HatInterface::getNumAInChans(uint16_t devType)
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(numChans);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(numChans);
-    mMainWindow->addFunction(sStartTime + funcStr);
-
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
     return numChans;
 }
 
@@ -363,13 +352,45 @@ int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan,
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse!=RESULT_SUCCESS) {
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
-    } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
-    }
+    reportResult(mResponse, sStartTime + funcStr);
     slope = chanSlope;
     offset = chanOffset;
+    return mResponse;
+}
+
+int HatInterface::writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double slope, double offset)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+
+    funcArgs = "(address, chan, slope, offset) = result\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        nameOfFunc = "118: WriteCal";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_calibration_coefficient_write(address, chan, slope, offset);
+        break;
+    case 323:
+        //to do: change to constant HAT_ID_MCC_134
+        nameOfFunc = "134: numAIChans";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_calibration_coefficient_write(address, chan, slope, offset);
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3, %4)")
+            .arg(address)
+            .arg(chan)
+            .arg(slope)
+            .arg(offset);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" [Error = %1]").arg(mResponse);
+    reportResult(mResponse, sStartTime + funcStr);
     return mResponse;
 }
 
@@ -412,6 +433,102 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
         mMainWindow->addFunction(sStartTime + funcStr);
     }
     value = data;
+    return mResponse;
+}
+
+int HatInterface::readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+    uint8_t typeOfTc;
+
+    funcArgs = "(address, chan, &tcType)\n";
+    switch (devType) {
+    case 323:
+        //to do: change to constant HAT_ID_MCC_134
+        nameOfFunc = "134: readTcTypes";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_tc_type_read(address, chan, &typeOfTc);
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QString("(%1, %2, %3)")
+            .arg(address)
+            .arg(chan)
+            .arg(typeOfTc);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    tcType = typeOfTc;
+    return mResponse;
+}
+
+int HatInterface::writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+
+    funcArgs = "(address, chan, tcType)\n";
+    switch (devType) {
+    case 323:
+        //to do: change to constant HAT_ID_MCC_134
+        nameOfFunc = "134: writeTcType";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_tc_type_write(address, chan, tcType);
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QString("(%1, %2, %3)")
+            .arg(address)
+            .arg(chan)
+            .arg(tcType);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
+}
+
+int HatInterface::tInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    double data;
+
+    funcArgs = "(mAddress, curChan, &data, NULL, NULL)\n";
+    switch (devType) {
+    case 323:
+        //to do: change to constant HAT_ID_MCC_134
+        nameOfFunc = "134: TInRead";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_t_in_read(address, chan, &data, NULL, NULL);
+        //mResponse = RESULT_INVALID_DEVICE;
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3, %4, %5)")
+            .arg(address)
+            .arg(chan)
+            .arg(data)
+            .arg("NULL")
+            .arg("NULL");
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    temp = data;
     return mResponse;
 }
 
@@ -510,4 +627,13 @@ void HatInterface::addToMenu(uint16_t devType, uint8_t address, QString devName)
 void HatInterface::removeFromMenu(uint8_t address)
 {
     mMainWindow->removeDeviceFromMenu(address);
+}
+
+void HatInterface::reportResult(int response, QString description)
+{
+    if (response != RESULT_SUCCESS) {
+        mMainWindow->setError(response, description);
+    } else {
+        mMainWindow->addFunction(description);
+    }
 }

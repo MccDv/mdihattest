@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Discover Hats</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -92,13 +92,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="cmdClose">
-           <property name="text">
-            <string>Close</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -110,6 +103,13 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="cmdClose">
+           <property name="text">
+            <string>Close</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>

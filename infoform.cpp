@@ -2,9 +2,6 @@
 #include "ui_infoform.h"
 #include "mainwindow.h"
 
-MainWindow* getMainWindow();
-MainWindow *mMainWindowInf;
-
 InfoForm::InfoForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::InfoForm)
@@ -13,19 +10,28 @@ InfoForm::InfoForm(QWidget *parent) :
 
     this->setWindowTitle("Information");
     hatInterface = new HatInterface();
-    mMainWindowInf = getMainWindow();
     ui->teShowValues->setFont(QFont ("Courier", 8));
     ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
     ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
+    mUtFunction = UL_AI_INFO;
+
+    ui->cmbTcType->addItem("TC_TYPE_J", TC_TYPE_J);
+    ui->cmbTcType->addItem("TC_TYPE_K", TC_TYPE_K);
+    ui->cmbTcType->addItem("TC_TYPE_T", TC_TYPE_T);
+    ui->cmbTcType->addItem("TC_TYPE_E", TC_TYPE_E);
+    ui->cmbTcType->addItem("TC_TYPE_R", TC_TYPE_R);
+    ui->cmbTcType->addItem("TC_TYPE_S", TC_TYPE_S);
+    ui->cmbTcType->addItem("TC_TYPE_B", TC_TYPE_B);
+    ui->cmbTcType->addItem("TC_TYPE_N", TC_TYPE_N);
 
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
     connect(ui->cmbDevList, SIGNAL(currentIndexChanged(QString)), this, SLOT(devSelectedChanged(QString)));
     connect(ui->cmdDevParams, SIGNAL(clicked(bool)), this, SLOT(showBoardParameters()));
     connect(ui->cmdFindHats, SIGNAL(clicked(bool)), this, SLOT(findHats()));
-    connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCal()));
-    connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLED()));
-    connect(ui->cmdLoadCal, SIGNAL(clicked(bool)), this, SLOT(writeCal()));
+    connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCalClicked()));
+    connect(ui->cmdLoadCal, SIGNAL(clicked(bool)), this, SLOT(loadCalClicked()));
+    connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLEDClicked()));
 }
 
 InfoForm::~InfoForm()
@@ -35,7 +41,9 @@ InfoForm::~InfoForm()
 
 void InfoForm::updateParameters()
 {
+    ChildWindow *parentWindow;
 
+    parentWindow = qobject_cast<ChildWindow *>(this->parent());
 }
 
 void InfoForm::showQueueConfig()
@@ -77,19 +85,103 @@ void InfoForm::devSelectedChanged(QString devName)
     this->setWindowTitle("Information " + devName);
 }
 
+void InfoForm::readCalClicked()
+{
+    switch (mUtFunction) {
+    case UL_AI_INFO:
+        mSelectedFunction = READ_CAL;
+        break;
+    case UL_TEMP_INFO:
+        mSelectedFunction = READ_TC_TYPES;
+        break;
+    default:
+        break;
+    }
+    runSelectedFunction();
+}
+
+void InfoForm::loadCalClicked()
+{
+    switch (mUtFunction) {
+    case UL_AI_INFO:
+        mSelectedFunction = WRITE_CAL;
+        break;
+    case UL_TEMP_INFO:
+        mSelectedFunction = WRITE_TC_TYPE;
+        break;
+    default:
+        break;
+    }
+    runSelectedFunction();
+}
+
+void InfoForm::flashLEDClicked()
+{
+    mSelectedFunction = FLASH_LED;
+    runSelectedFunction();
+}
+
 void InfoForm::runSelectedFunction()
 {
-
+    switch (mSelectedFunction) {
+    case READ_CAL:
+        readCal();
+        break;
+    case WRITE_CAL:
+        writeCal();
+        break;
+    case READ_TC_TYPES:
+        readTcTypes();
+        break;
+    case WRITE_TC_TYPE:
+        writeTcType();
+        break;
+    case FLASH_LED:
+        flashLED();
+        break;
+    default:
+        break;
+    }
 }
 
 void InfoForm::functionChanged(int utFunction)
 {
+    QString readCmdText;
+    QString writeCmdText;
+    QString spnToolTip;
+    bool calVisible;
+    bool tcTypeVisible;
 
+    mUtFunction = utFunction;
+    calVisible = true;
+    tcTypeVisible = false;
+    switch (mUtFunction) {
+    case UL_AI_INFO:
+        readCmdText = "Read Cal";
+        writeCmdText = "Load Cal";
+        spnToolTip = "Cal channel";
+        break;
+    case UL_TEMP_INFO:
+        readCmdText = "Read TC types";
+        writeCmdText = "Load TC type";
+        spnToolTip = "TC channel";
+        calVisible = false;
+        tcTypeVisible = true;
+        break;
+    default:
+        break;
+    }
+    ui->cmdReadCal->setText(readCmdText);
+    ui->cmdLoadCal->setText(writeCmdText);
+    ui->leOffset->setVisible(calVisible);
+    ui->leSlope->setVisible(calVisible);
+    ui->spnCalChan->setToolTip(spnToolTip);
+    ui->cmbTcType->setVisible(tcTypeVisible);
 }
 
 void InfoForm::showPlotWindow(bool showIt)
 {
-
+    mShowPlot = showIt;
 }
 
 void InfoForm::showSysInfo()
@@ -203,10 +295,7 @@ void InfoForm::flashLED()
 
 void InfoForm::readCal()
 {
-    QString nameOfFunc, funcArgs, funcStr;
-    QString argVals, dataText;
-    QTime t;
-    QString sStartTime;
+    QString dataText;
     uint8_t chan, curChan;
     int numChans;
     double slope, offset;
@@ -246,45 +335,57 @@ void InfoForm::readCal()
         }
     }
     ui->teShowValues->setHtml(dataText);
-    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void InfoForm::readTcTypes()
+{
+    QString dataText, typeName;
+    uint8_t chan, curChan;
+    int numChans;
+    uint8_t tcType;
+
+    curChan = ui->spnCalChan->value();
+    ui->teShowValues->clear();
+
+    numChans = hatInterface->getNumAInChans(mHatID);
+
+    for(chan = 0; chan < numChans; chan++) {
+        mResponse = hatInterface->readTcTypes(mHatID, mAddress, chan, tcType);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        typeName = getTcTypeName(tcType);
+        dataText.append(QString("<td>Chan: %1</td><td>TC Type:  %2 (%3)</td>")
+                        .arg(chan).arg(tcType).arg(typeName));
+        dataText.append("</tr><tr>");
+        if(chan == curChan)
+            ui->cmbTcType->setCurrentIndex(tcType);
+    }
+    ui->teShowValues->setHtml(dataText);
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void InfoForm::writeTcType()
+{
+    uint8_t chan, tcType;
+
+    chan = ui->spnCalChan->value();
+    tcType = ui->cmbTcType->currentData().toUInt();
+    ui->teShowValues->clear();
+    mResponse = hatInterface->writeTcType(mHatID, mAddress, chan, tcType);
+    delay(300);
+    readTcTypes();
 }
 
 void InfoForm::writeCal()
 {
-    QString nameOfFunc, funcArgs, funcStr;
-    QString argVals;
-    QTime t;
-    QString sStartTime;
     uint8_t chan;
     double slope, offset;
 
-    if(!mcc118_is_open(mAddress)) {
-        ui->teShowValues->setText
-                ("Device is not open.\n\nUse Discover to open device.");
-        return;
-    }
     chan = ui->spnCalChan->value();
     slope = ui->leSlope->text().toDouble();
     offset = ui->leOffset->text().toDouble();
     ui->teShowValues->clear();
-    nameOfFunc = "118: WriteCal";
-    funcArgs = "(address, chan, slope, offset) = result\n";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_calibration_coefficient_write(mAddress, chan, slope, offset);
-    argVals = QStringLiteral("(%1, %2, %3, %4)")
-            .arg(mAddress)
-            .arg(chan)
-            .arg(slope)
-            .arg(offset);
-    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse!=RESULT_SUCCESS) {
-        mMainWindowInf->setError(mResponse, sStartTime + funcStr);
-        return;
-    } else {
-        mMainWindowInf->addFunction(sStartTime + funcStr);
-    }
+    hatInterface->writeCalCoeffs(mHatID, mAddress, chan, slope, offset);
     delay(300);
     readCal();
 }

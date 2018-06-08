@@ -98,6 +98,7 @@ private:
     //void runCloseDevice(uint8_t address);
     void setUiForFunction();
     void runAinFunction();
+    void runTinFunction();
     void runAInScanFunc();
     void runSetTriggerFunc();
     void stopScan();

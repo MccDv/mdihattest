@@ -34,7 +34,8 @@ typedef enum
     UL_AINSCAN = 2,
     UL_AIN_LOAD_QUEUE = 3,
     UL_AIN_SET_TRIGGER = 4,
-    UL_DAQ_INSCAN = 5
+    UL_DAQ_INSCAN = 5,
+    UL_TIN = 6
 }UtAiFunctions;
 
 typedef enum
@@ -81,7 +82,12 @@ typedef enum
     UL_FLASH_LED = 1,
     UL_GET_ERR_MSG = 2,
     UL_GET_STATUS = 3,
-    UL_SCAN_STOP = 4
+    UL_SCAN_STOP = 4,
+    UL_AI_INFO = 5,
+    UL_AO_INFO = 6,
+    UL_DIO_INFO = 7,
+    UL_CTR_INFO = 8,
+    UL_TEMP_INFO = 9
 }UtMiscFunctions;
 
 #endif // UNITEST_H

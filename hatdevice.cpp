@@ -3,15 +3,11 @@
 #include "mainwindow.h"
 //#include "childwindow.h"
 
-MainWindow* getMainWindow();
-MainWindow *mMainWindow;
-
 HatDevice::HatDevice(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HatDevice)
 {
     ui->setupUi(this);
-    mMainWindow = getMainWindow();
     hatInterface = new HatInterface();
 
     mHistListSize = 50;
@@ -170,6 +166,10 @@ void HatDevice::setUiForFunction()
         mFuncName = "ulAIn";
         ui->leNumSamples->setText("10");
         break;
+    case UL_TIN:
+        mFuncName = "ulTIn";
+        ui->leNumSamples->setText("10");
+        break;
     case UL_AINSCAN:
         mFuncName = "ulAInScan";
         scanVisible = true;
@@ -261,6 +261,9 @@ void HatDevice::runSelectedFunction()
     case UL_AINSCAN:
         runAInScanFunc();
         break;
+    case UL_TIN:
+        runTinFunction();
+        break;
     default:
         break;
     }
@@ -334,6 +337,62 @@ void HatDevice::runAinFunction()
         printData(0, 0, mSamplesPerChan);
 }
 
+void HatDevice::runTinFunction()
+{
+    uint8_t aInChan, aInLastChan;
+    int curIndex;
+    double data;
+
+    data = 0.0;
+
+    if(!mQueueEnabled) {
+        mChanList.clear();
+        aInChan = ui->spnLowChan->value();
+        aInLastChan = ui->spnHighChan->value();
+        mChanCount = (aInLastChan - aInChan) + 1;
+        for(int chan = 0; chan < mChanCount; chan++)
+            mChanList[chan] = aInChan + chan;
+    }
+    if(mChanCount < 1) mChanCount = 1;
+
+    //if queue is enabled, mChanCount is set in setupQueue
+    mSamplesPerChan = ui->leNumSamples->text().toLong();
+    if(mPlot)
+        setupPlot(ui->AiPlot, mChanCount);
+
+    if (buffer) {
+        delete[] buffer;
+        buffer = NULL;
+    }
+
+    long long bufSize = mChanCount * mSamplesPerChan;
+    mBufSize = bufSize;
+    buffer = new double[bufSize];
+    memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+
+    uint8_t curChan;
+    curIndex = 0;
+    mRunning = true;
+    for (uint32_t sampleNum = 0; sampleNum < mSamplesPerChan; sampleNum++) {
+        foreach(curChan, mChanList) {
+            mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
+            ui->lblInfo->setText(hatInterface->getStatus());
+            if(mResponse == RESULT_SUCCESS) {
+                buffer[curIndex] = data;
+                curIndex++;
+            } else {
+                return;
+            }
+        }
+    }
+
+    mRunning = false;
+    if(mPlot)
+        plotScan(0, 0, mSamplesPerChan);
+    else
+        printData(0, 0, mSamplesPerChan);
+}
+
 void HatDevice::runAInScanFunc()
 {
     int lowChan, highChan;
@@ -344,6 +403,12 @@ void HatDevice::runAInScanFunc()
     QTime t;
     QString sStartTime, statString;
 
+    if(mHatID != HAT_ID_MCC_118) {
+        //so far, only compatible with 118
+        ui->lblStatus->setText("Syncronous scan not supported for this device");
+        ui->lblInfo->setText("Select a different device or function");
+        return;
+    }
     bufferSize = 0;
     if(mScanOptions & OPTS_EXTTRIGGER) {
         runSetTriggerFunc();
@@ -417,16 +482,14 @@ void HatDevice::runAInScanFunc()
                          mOptNames + QString("  [Error = %1]").arg(mResponse));
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    hatInterface->reportResult(mResponse, sStartTime + funcStr);
     if (mResponse!=RESULT_SUCCESS) {
-        //ulAInScanStop(mDaqDeviceHandle);
         mStatusTimerEnabled = false;
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
     } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
         mRunning = true;
         mResponse = mcc118_a_in_scan_actual_rate(mChanCount, rate, &rateRtn);
         ui->lblRateReturned->setText(QString("%1").arg(rateRtn, 1, 'f', 4, '0'));
-        //mResponse = mcc118_a_in_scan_buffer_size(mAddress, &bufferSize);
+        mResponse = mcc118_a_in_scan_buffer_size(mAddress, &bufferSize);
         ui->lblBufferSize->setText(QString("%1").arg(bufferSize));
         if(mBackgroundScan) {
             mStatusTimerEnabled = true;
@@ -456,11 +519,10 @@ void HatDevice::runAInScanFunc()
             ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
 
             funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            hatInterface->reportResult(mResponse, sStartTime + funcStr);
             if (mResponse!=RESULT_SUCCESS) {
-                mMainWindow->setError(mResponse, sStartTime + funcStr);
+                //mMainWindow->setError(mResponse, sStartTime + funcStr);
                 return;
-            } else {
-                mMainWindow->addFunction(sStartTime + funcStr);
             }
 
             sampsToRead = -1;
@@ -478,13 +540,11 @@ void HatDevice::runAInScanFunc()
             statString = getStatusText(status);
 
             funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            hatInterface->reportResult(mResponse, sStartTime + funcStr);
             if (mResponse!=RESULT_SUCCESS) {
-                mMainWindow->setError(mResponse, sStartTime + funcStr);
+                //mMainWindow->setError(mResponse, sStartTime + funcStr);
                 return;
-            } else {
-                mMainWindow->addFunction(sStartTime + funcStr);
             }
-
             if(sampsReadPerChan) {
                 ui->lblStatus->setText(QString("%1 samples read  Status: %2").arg(sampsReadPerChan).arg(statString));
                 if(mPlot)
@@ -506,6 +566,12 @@ void HatDevice::checkStatus()
     bool makeBold;
     bool trigWait, overrunDetected;
 
+    if(mHatID != HAT_ID_MCC_118) {
+        //so far, only compatible with 118
+        ui->lblStatus->setText("Syncronous scan not supported for this device");
+        ui->lblInfo->setText("Select a different device or function");
+        return;
+    }
     uint16_t status;
     double timeout;
     uint32_t samplesPerChanRead;
@@ -530,13 +596,12 @@ void HatDevice::checkStatus()
             ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
 
             funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            hatInterface->reportResult(mResponse, sStartTime + funcStr);
             if (mResponse!=RESULT_SUCCESS) {
-                mMainWindow->setError(mResponse, sStartTime + funcStr);
+                //mMainWindow->setError(mResponse, sStartTime + funcStr);
                 trigWait = false;
                 stopScan();
                 return;
-            } else {
-                mMainWindow->addFunction(sStartTime + funcStr);
             }
             delay(200);
         } while (trigWait);
@@ -560,15 +625,14 @@ void HatDevice::checkStatus()
                              mOptNames + QString(" [Error = %1]").arg(mResponse));
 
         funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+        hatInterface->reportResult(mResponse, sStartTime + funcStr);
         qApp->processEvents();
         if ((mResponse!=RESULT_SUCCESS) | overrunDetected) {
             mStatusTimerEnabled = false;
-            mMainWindow->setError(mResponse, sStartTime + funcStr);
+            //mMainWindow->setError(mResponse, sStartTime + funcStr);
             delay(200);
             stopScan();
             return;
-        } else {
-            mMainWindow->addFunction(sStartTime + funcStr);
         }
     }
 
@@ -597,27 +661,19 @@ void HatDevice::stopScan()
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
-    uint16_t devId;
 
-    devId = hatInfoList[mDevIndex].id;
+    if(mHatID != HAT_ID_MCC_118) {
+        //so far, only compatible with 118
+        ui->lblStatus->setText("Syncronous scan not supported for this device");
+        ui->lblInfo->setText("Select a different device or function");
+        return;
+    }
+
     QFont goFont = ui->cmdGo->font();
 
     tmrCheckStatus->stop();
     goFont.setBold(false);
     ui->cmdGo->setFont(goFont);
-
-    /*
-    mStatusTimerEnabled = false;
-    mResponse = hatInterface->stopAInScan(devId, mAddress);
-    return;
-
-    if (mResponse == RESULT_SUCCESS) {
-        delay(200);
-        runReadScanStatus();
-    }
-    */
-    //mResponse = hatInterface->aInScanCleanup(devId, mAddress);
-
 
     funcArgs = "(mAddress)\n";
     nameOfFunc = "118: AInScanStop";
@@ -627,11 +683,12 @@ void HatDevice::stopScan()
 
     mStatusTimerEnabled = false;
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    hatInterface->reportResult(mResponse, sStartTime + funcStr);
     if (mResponse!=RESULT_SUCCESS) {
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
+        //mMainWindow->setError(mResponse, sStartTime + funcStr);
         return;
     } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
+        //mMainWindow->addFunction(sStartTime + funcStr);
         delay(200);
         runReadScanStatus();
     }
@@ -643,13 +700,14 @@ void HatDevice::stopScan()
     argVals = QStringLiteral("(%1)").arg(mAddress);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse!=RESULT_SUCCESS) {
+    hatInterface->reportResult(mResponse, sStartTime + funcStr);
+    /*if (mResponse!=RESULT_SUCCESS) {
         mMainWindow->setError(mResponse, sStartTime + funcStr);
         return;
     } else {
         mMainWindow->addFunction(sStartTime + funcStr);
     }
-
+    */
 }
 
 void HatDevice::runReadScanStatus()
@@ -660,6 +718,12 @@ void HatDevice::runReadScanStatus()
     uint16_t status;
     double timeout;
 
+    if(mHatID != HAT_ID_MCC_118) {
+        //so far, only compatible with 118
+        ui->lblStatus->setText("Syncronous scan not supported for this device");
+        ui->lblInfo->setText("Select a different device or function");
+        return;
+    }
     timeout = 0.0;
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
     nameOfFunc = "118: AInScanRead";
@@ -675,12 +739,14 @@ void HatDevice::runReadScanStatus()
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     mRunning = (status & STATUS_RUNNING);
-    if (mResponse!=RESULT_SUCCESS) {
+    hatInterface->reportResult(mResponse, sStartTime + funcStr);
+    /*if (mResponse!=RESULT_SUCCESS) {
         mMainWindow->setError(mResponse, sStartTime + funcStr);
         return;
     } else {
         mMainWindow->addFunction(sStartTime + funcStr);
     }
+    */
 }
 
 void HatDevice::showPlotWindow(bool showIt)

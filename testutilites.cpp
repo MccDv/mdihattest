@@ -99,3 +99,35 @@ QString getTrigText(TriggerMode trigType)
     }
 }
 
+QString getTcTypeName(uint8_t tcType)
+{
+    switch (tcType) {
+    case TC_TYPE_J:
+        return "J";
+        break;
+    case TC_TYPE_K:
+        return "K";
+        break;
+    case TC_TYPE_T:
+        return "T";
+        break;
+    case TC_TYPE_E:
+        return "E";
+        break;
+    case TC_TYPE_R:
+        return "R";
+        break;
+    case TC_TYPE_S:
+        return "S";
+        break;
+    case TC_TYPE_B:
+        return "B";
+        break;
+    case TC_TYPE_N:
+        return "N";
+        break;
+    default:
+        return "unknown";
+        break;
+    }
+}

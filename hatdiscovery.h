@@ -39,6 +39,8 @@ private:
     int mResponse;
     uint8_t mAddress;
     struct HatInfo hatInfoList[MAX_NUMBER_HATS];
+    int mUtFunction;
+    bool mShowPlot;
 
     void showBoardParameters();
     void runOpenDevice(uint8_t address);

@@ -30,11 +30,17 @@ private slots:
     void showPlotWindow(bool showIt);
     void updateParameters();
     void showQueueConfig();
-    void readCal();
-    void writeCal();
-    void flashLED();
+    void readCalClicked();
+    void loadCalClicked();
+    void flashLEDClicked();
 
 private:
+#define READ_CAL        1
+#define WRITE_CAL       2
+#define READ_TC_TYPES   3
+#define WRITE_TC_TYPE   4
+#define FLASH_LED       5
+
     Ui::InfoForm *ui;
     HatInterface *hatInterface;
     QHash<uint8_t, QString> mHatList;
@@ -45,6 +51,17 @@ private:
     int mResponse;
     uint8_t mAddress;
     uint16_t mHatID;
+    int mUtFunction;
+    int mSelectedFunction;
+    bool mShowPlot;
+
+    void readCal();
+    void writeCal();
+    void writeTcType();
+    void readTcTypes();
+    void flashLED();
+
+
 };
 
 #endif // INFOFORM_H

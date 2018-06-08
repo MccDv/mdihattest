@@ -83,6 +83,7 @@ private:
     QStringList mFuncHistoryList;
     int mHistListSize;
 
+    void createFuncMenus();
     void readWindowPosition();
     void writeWindowPosition();
     uint32_t getSoMask(uint32_t optSelected);

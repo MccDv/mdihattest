@@ -16,20 +16,22 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     case FUNC_GROUP_AIN:
         subwidget = new HatDevice(this);
         windowName = "ainwindow";
+        mCurFunction = UL_AIN;
         break;
     case FUNC_GROUP_MISC:
         subwidget = new InfoForm(this);
         windowName = "infowindow";
+        mCurFunction = UL_AI_INFO;
         break;
     default:
         subwidget = new HatDiscovery(this);
         windowName = "dscvrwindow";
+        mCurFunction = UL_DISC;
         break;
     }
     mScanOptions = 0;
     mTriggerType = TRIG_RISING_EDGE;
     mAiResolution = 12;
-    mCurFunction = UL_AIN;
     mCurFunctionGroup = funcGroup;
 
     //MainWindow *mainParent = qobject_cast<MainWindow *>(parent);
@@ -44,7 +46,6 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     connect(this, SIGNAL(configQueue()), subwidget, SLOT(showQueueConfig()));
 
     readWindowPosition();
-
 }
 
 void ChildWindow::closeEvent(QCloseEvent *event)

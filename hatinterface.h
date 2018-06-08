@@ -27,13 +27,18 @@ public:
     int readCalDate(uint16_t devType, uint8_t address, QString &calDate);
     int getNumAInChans(uint16_t devType);
     int readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double &slope, double &offset);
+    int writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double slope, double offset);
+    int readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType);
+    int writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType);
     int aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double &value);
+    int tInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
     int setTrigger(uint16_t devType, uint8_t address, TriggerMode trigType);
     int stopAInScan(uint16_t devType, uint8_t address);
     int aInScanCleanup(uint16_t devType, uint8_t address);
 
     void addToMenu(uint16_t devType, uint8_t address, QString devName);
     void removeFromMenu(uint8_t address);
+    void reportResult(int response, QString description);
 
 private:
     MainWindow *mMainWindow;

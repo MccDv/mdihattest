@@ -51,7 +51,7 @@ void HatDiscovery::showQueueConfig()
 
 void HatDiscovery::functionChanged(int utFunction)
 {
-
+    mUtFunction = utFunction;
 }
 
 void HatDiscovery::devSelectedChanged()
@@ -132,7 +132,7 @@ void HatDiscovery::showBoardParameters()
 
 void HatDiscovery::showPlotWindow(bool showIt)
 {
-
+    mShowPlot = showIt;
 }
 
 void HatDiscovery::runOpenDevice(uint8_t address)
