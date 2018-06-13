@@ -394,6 +394,7 @@ void InfoForm::showBoardParameters()
 {
     bool isOpen;
     int numChans;
+    double temp;
 
     ui->lblInfo->clear();
     ui->lblStatus->clear();
@@ -408,6 +409,11 @@ void InfoForm::showBoardParameters()
         ui->lblInfo->setText(QString("Device at address %1 is ready").arg(mAddress));
         numChans = hatInterface->getNumAInChans(mHatID);
         ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
+        if(mHatID = HAT_ID_MCC_134) {
+            mResponse = hatInterface->boardTemp(mHatID, mAddress, temp);
+            ui->lblStatus->setText(hatInterface->getStatus());
+            ui->teShowValues->append(QString("Board temperature: %1").arg(temp));
+        }
     } else {
         ui->teShowValues->setText(QString("Device at %1 is not open.\n\n").arg(mAddress)
                  + "Use Discover to open device.");

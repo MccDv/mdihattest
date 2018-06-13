@@ -155,12 +155,13 @@ void HatDevice::setUiForFunction()
     //ChildWindow *parentWindow;
     //parentWindow = qobject_cast<ChildWindow *>(this->parent());
     //mRange = parentWindow->getCurrentRange();
-    bool scanVisible;
+    bool scanVisible, voltCheckVisible;
 
     //mChanList.clear();
     //mRangeList.clear();
     mPlot = false;
     scanVisible = false;
+    voltCheckVisible = false;
     switch (mCurFunction) {
     case UL_AIN:
         mFuncName = "ulAIn";
@@ -169,6 +170,7 @@ void HatDevice::setUiForFunction()
     case UL_TIN:
         mFuncName = "ulTIn";
         ui->leNumSamples->setText("10");
+        voltCheckVisible = true;
         break;
     case UL_AINSCAN:
         mFuncName = "ulAInScan";
@@ -182,6 +184,7 @@ void HatDevice::setUiForFunction()
         break;
     }
     ui->fraScan->setVisible(scanVisible);
+    ui->chkVolts->setVisible(voltCheckVisible);
     //ui->cmdStop->setEnabled(false);
     showPlotWindow(mPlot);
     this->setWindowTitle(mFuncName + ": " + mDevName);
@@ -342,8 +345,10 @@ void HatDevice::runTinFunction()
     uint8_t aInChan, aInLastChan;
     int curIndex;
     double data;
+    bool showVolts;
 
     data = 0.0;
+    showVolts = ui->chkVolts->isChecked();
 
     if(!mQueueEnabled) {
         mChanList.clear();
@@ -375,7 +380,10 @@ void HatDevice::runTinFunction()
     mRunning = true;
     for (uint32_t sampleNum = 0; sampleNum < mSamplesPerChan; sampleNum++) {
         foreach(curChan, mChanList) {
-            mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
+            if(showVolts)
+                mResponse = hatInterface->vInRead(mHatID, mAddress, curChan, data);
+            else
+                mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
             ui->lblInfo->setText(hatInterface->getStatus());
             if(mResponse == RESULT_SUCCESS) {
                 buffer[curIndex] = data;

@@ -32,6 +32,8 @@ public:
     int writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType);
     int aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double &value);
     int tInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
+    int vInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
+    int boardTemp(uint16_t devType, uint8_t address, double &temp);
     int setTrigger(uint16_t devType, uint8_t address, TriggerMode trigType);
     int stopAInScan(uint16_t devType, uint8_t address);
     int aInScanCleanup(uint16_t devType, uint8_t address);

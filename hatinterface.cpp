@@ -498,6 +498,42 @@ int HatInterface::writeTcType(uint16_t devType, uint8_t address, uint8_t chan, u
     return mResponse;
 }
 
+int HatInterface::boardTemp(uint16_t devType, uint8_t address, double &temp)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    double data;
+    uint8_t chan;
+
+    chan = 0;
+    funcArgs = "(mAddress, curChan, &data, NULL, NULL)\n";
+    switch (devType) {
+    case 323:
+        //to do: change to constant HAT_ID_MCC_134
+        nameOfFunc = "134: BoardTemp";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_t_in_read(address, chan, NULL, NULL, &data);
+        //mResponse = RESULT_INVALID_DEVICE;
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3, %4, %5)")
+            .arg(address)
+            .arg(chan)
+            .arg("NULL")
+            .arg("NULL")
+            .arg(data);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    temp = data;
+    return mResponse;
+}
+
 int HatInterface::tInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
@@ -529,6 +565,40 @@ int HatInterface::tInRead(uint16_t devType, uint8_t address, uint8_t chan, doubl
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
     temp = data;
+    return mResponse;
+}
+
+int HatInterface::vInRead(uint16_t devType, uint8_t address, uint8_t chan, double &volts)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    double data;
+
+    funcArgs = "(mAddress, curChan, &data, NULL, NULL)\n";
+    switch (devType) {
+    case 323:
+        //to do: change to constant HAT_ID_MCC_134
+        nameOfFunc = "134: VInRead";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_t_in_read(address, chan, NULL, &data, NULL);
+        //mResponse = RESULT_INVALID_DEVICE;
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3, %4, %5)")
+            .arg(address)
+            .arg(chan)
+            .arg("NULL")
+            .arg(data)
+            .arg("NULL");
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    volts = data;
     return mResponse;
 }
 

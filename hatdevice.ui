@@ -10,6 +10,11 @@
     <height>324</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -131,6 +136,13 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chkVolts">
+        <property name="text">
+         <string>Volts</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="cmdStop">
