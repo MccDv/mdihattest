@@ -4,9 +4,7 @@
 #include <QWidget>
 #include <QTime>
 #include "hatinterface.h"
-#include "mcchats/mcchats.h"
-//to do: remove following when released
-#include "mcchats/mcc134.h"
+#include "daqhats/daqhats.h"
 
 namespace Ui {
 class HatDiscovery;

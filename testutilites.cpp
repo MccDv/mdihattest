@@ -99,6 +99,7 @@ QString getTrigText(TriggerMode trigType)
     }
 }
 
+#ifdef HAT_03
 QString getTcTypeName(uint8_t tcType)
 {
     switch (tcType) {
@@ -131,3 +132,4 @@ QString getTcTypeName(uint8_t tcType)
         break;
     }
 }
+#endif

@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QMdiSubWindow>
 #include "unitest.h"
-#include "mcchats/mcchats.h"
+#include "daqhats/daqhats.h"
 //#include "mainwindow.h"
 //#include "hatdevice.h"
 //#include "hatdiscovery.h"

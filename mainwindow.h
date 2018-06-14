@@ -5,8 +5,6 @@
 #include <QMainWindow>
 #include <QActionGroup>
 #include <QMap>
-//#include "hatdevice.h"
-//#include "queuedialog.h"
 #include "unitest.h"
 #include "childwindow.h"
 

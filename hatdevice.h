@@ -10,7 +10,7 @@
 #include "errordialog.h"
 #include "testutilities.h"
 #include "hatinterface.h"
-#include "mcchats/mcchats.h"
+#include "daqhats/daqhats.h"
 
 namespace Ui {
 class HatDevice;

@@ -6,7 +6,7 @@
 #include <QTime>
 #include <QTextStream>
 #include "hatinterface.h"
-#include "mcchats/mcchats.h"
+#include "daqhats/daqhats.h"
 
 namespace Ui {
 class InfoForm;
@@ -40,6 +40,8 @@ private:
 #define READ_TC_TYPES   3
 #define WRITE_TC_TYPE   4
 #define FLASH_LED       5
+#define CLOCK_TEST      6
+#define NUM_SCAN_CHANS  7
 
     Ui::InfoForm *ui;
     HatInterface *hatInterface;
@@ -59,6 +61,8 @@ private:
     void writeCal();
     void writeTcType();
     void readTcTypes();
+    void readClkTrg();
+    void readNumScanChans();
     void flashLED();
 
 

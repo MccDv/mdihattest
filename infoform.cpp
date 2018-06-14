@@ -16,6 +16,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
     mUtFunction = UL_AI_INFO;
 
+#ifdef HAT_03
     ui->cmbTcType->addItem("TC_TYPE_J", TC_TYPE_J);
     ui->cmbTcType->addItem("TC_TYPE_K", TC_TYPE_K);
     ui->cmbTcType->addItem("TC_TYPE_T", TC_TYPE_T);
@@ -24,6 +25,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbTcType->addItem("TC_TYPE_S", TC_TYPE_S);
     ui->cmbTcType->addItem("TC_TYPE_B", TC_TYPE_B);
     ui->cmbTcType->addItem("TC_TYPE_N", TC_TYPE_N);
+#endif
 
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
     connect(ui->cmbDevList, SIGNAL(currentIndexChanged(QString)), this, SLOT(devSelectedChanged(QString)));
@@ -32,6 +34,7 @@ InfoForm::InfoForm(QWidget *parent) :
     connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCalClicked()));
     connect(ui->cmdLoadCal, SIGNAL(clicked(bool)), this, SLOT(loadCalClicked()));
     connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLEDClicked()));
+    findHats();
 }
 
 InfoForm::~InfoForm()
@@ -94,6 +97,9 @@ void InfoForm::readCalClicked()
     case UL_TEMP_INFO:
         mSelectedFunction = READ_TC_TYPES;
         break;
+    case UL_TEST:
+        mSelectedFunction = NUM_SCAN_CHANS;
+        break;
     default:
         break;
     }
@@ -108,6 +114,9 @@ void InfoForm::loadCalClicked()
         break;
     case UL_TEMP_INFO:
         mSelectedFunction = WRITE_TC_TYPE;
+        break;
+    case UL_TEST:
+        mSelectedFunction = CLOCK_TEST;
         break;
     default:
         break;
@@ -130,11 +139,19 @@ void InfoForm::runSelectedFunction()
     case WRITE_CAL:
         writeCal();
         break;
+#ifdef HAT_03
     case READ_TC_TYPES:
         readTcTypes();
         break;
     case WRITE_TC_TYPE:
         writeTcType();
+        break;
+#endif
+    case CLOCK_TEST:
+        readClkTrg();
+        break;
+    case NUM_SCAN_CHANS:
+        readNumScanChans();
         break;
     case FLASH_LED:
         flashLED();
@@ -149,11 +166,26 @@ void InfoForm::functionChanged(int utFunction)
     QString readCmdText;
     QString writeCmdText;
     QString spnToolTip;
-    bool calVisible;
-    bool tcTypeVisible;
+    bool calVisible, readVisible;
+    bool tcTypeVisible, spinVisible;
+
+    ui->cmbTcType->clear();
+
+#ifdef HAT_03
+    ui->cmbTcType->addItem("TC_TYPE_J", TC_TYPE_J);
+    ui->cmbTcType->addItem("TC_TYPE_K", TC_TYPE_K);
+    ui->cmbTcType->addItem("TC_TYPE_T", TC_TYPE_T);
+    ui->cmbTcType->addItem("TC_TYPE_E", TC_TYPE_E);
+    ui->cmbTcType->addItem("TC_TYPE_R", TC_TYPE_R);
+    ui->cmbTcType->addItem("TC_TYPE_S", TC_TYPE_S);
+    ui->cmbTcType->addItem("TC_TYPE_B", TC_TYPE_B);
+    ui->cmbTcType->addItem("TC_TYPE_N", TC_TYPE_N);
+#endif
 
     mUtFunction = utFunction;
     calVisible = true;
+    spinVisible = true;
+    readVisible = true;
     tcTypeVisible = false;
     switch (mUtFunction) {
     case UL_AI_INFO:
@@ -168,6 +200,17 @@ void InfoForm::functionChanged(int utFunction)
         calVisible = false;
         tcTypeVisible = true;
         break;
+    case UL_TEST:
+        writeCmdText = "Trig/Clock Test";
+        readCmdText = "Num Scan Chans";
+        calVisible = false;
+        tcTypeVisible = true;
+        spinVisible = false;
+        ui->cmbTcType->addItem("Clock In", 0);
+        ui->cmbTcType->addItem("Clock Low", 1);
+        ui->cmbTcType->addItem("Clock High", 2);
+        ui->cmbTcType->addItem("Clock 1kHz", 3);
+        break;
     default:
         break;
     }
@@ -176,6 +219,8 @@ void InfoForm::functionChanged(int utFunction)
     ui->leOffset->setVisible(calVisible);
     ui->leSlope->setVisible(calVisible);
     ui->spnCalChan->setToolTip(spnToolTip);
+    ui->spnCalChan->setVisible(spinVisible);
+    ui->cmdReadCal->setVisible(readVisible);
     ui->cmbTcType->setVisible(tcTypeVisible);
 }
 
@@ -293,6 +338,36 @@ void InfoForm::flashLED()
     ui->lblInfo->setText(hatInterface->getStatus());
 }
 
+void InfoForm::readClkTrg()
+{
+    uint8_t clockState, mode, trigState;
+
+    mode = ui->cmbTcType->currentData().toUInt();
+    mResponse = hatInterface->testClock(mHatID, mAddress, mode, clockState);
+    mResponse = hatInterface->testTrig(mHatID, mAddress, trigState);
+
+    ui->teShowValues->setText(QString("Device at address %1 clock test response:").arg(mAddress));
+    ui->teShowValues->append(QString("Mode: %1").arg(ui->cmbTcType->currentText()));
+    ui->teShowValues->append(QString("Clock state: %1").arg(clockState));
+    ui->teShowValues->append(QString("Trigger state: %1").arg(trigState));
+}
+
+void InfoForm::readNumScanChans()
+{
+    int numChans;
+
+    numChans = hatInterface->aInScanChanCount(mHatID, mAddress);
+    if(numChans)
+        ui->teShowValues->setText(QString("Device at address %1 has %2 chans in scan.")
+                              .arg(mAddress).arg(numChans));
+    else {
+        ui->teShowValues->setText(QString("Device at address %1 reports 0 chans in scan.")
+                              .arg(mAddress));
+        ui->teShowValues->append("Is scan thread active?");
+    }
+
+}
+
 void InfoForm::readCal()
 {
     QString dataText;
@@ -338,6 +413,7 @@ void InfoForm::readCal()
     ui->lblInfo->setText(hatInterface->getStatus());
 }
 
+#ifdef HAT_03
 void InfoForm::readTcTypes()
 {
     QString dataText, typeName;
@@ -363,7 +439,9 @@ void InfoForm::readTcTypes()
     ui->teShowValues->setHtml(dataText);
     ui->lblInfo->setText(hatInterface->getStatus());
 }
+#endif
 
+#ifdef HAT_03
 void InfoForm::writeTcType()
 {
     uint8_t chan, tcType;
@@ -375,6 +453,7 @@ void InfoForm::writeTcType()
     delay(300);
     readTcTypes();
 }
+#endif
 
 void InfoForm::writeCal()
 {
@@ -409,11 +488,13 @@ void InfoForm::showBoardParameters()
         ui->lblInfo->setText(QString("Device at address %1 is ready").arg(mAddress));
         numChans = hatInterface->getNumAInChans(mHatID);
         ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
+#ifdef HAT_03
         if(mHatID = HAT_ID_MCC_134) {
             mResponse = hatInterface->boardTemp(mHatID, mAddress, temp);
             ui->lblStatus->setText(hatInterface->getStatus());
             ui->teShowValues->append(QString("Board temperature: %1").arg(temp));
         }
+#endif
     } else {
         ui->teShowValues->setText(QString("Device at %1 is not open.\n\n").arg(mAddress)
                  + "Use Discover to open device.");

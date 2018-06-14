@@ -294,6 +294,10 @@ void MainWindow::createFuncMenus()
             funcAction->setCheckable(true);
             funcAction->setData(UL_TEMP_INFO);
             functionGroup->addAction(funcAction);
+            funcAction = ui->menuFunction->addAction("Test Device");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_TEST);
+            functionGroup->addAction(funcAction);
             break;
         /*
         case FUNC_GROUP_CONFIG:

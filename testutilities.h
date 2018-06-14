@@ -2,7 +2,7 @@
 #define TESTUTILITIES_H
 
 #include <QtCore>
-#include "mcchats/mcchats.h"
+#include "daqhats/daqhats.h"
 
 void delay(int milliSeconds);
 QString getOptionNames(uint32_t curOptions);

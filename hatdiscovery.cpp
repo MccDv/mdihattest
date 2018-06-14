@@ -87,6 +87,13 @@ void HatDiscovery::showBoardParameters()
     uint16_t version, boot;
     uint16_t devId;
     QString serNum;
+    bool hat134Support;
+
+    hat134Support = true;
+
+#ifndef HAT_03
+    hat134Support = false;
+#endif
 
     version = 0;
     boot = 0;
@@ -100,6 +107,16 @@ void HatDiscovery::showBoardParameters()
     ui->textEdit->append(QString("Version: %1\n").arg(hatInfoList[mDevIndex].version));
 
     devId = hatInfoList[mDevIndex].id;
+    switch (devId) {
+    case 323:
+        if(!hat134Support) {
+            ui->textEdit->append("This software version does not support this device");
+            return;
+        }
+        break;
+    default:
+        break;
+    }
     isOpen = hatInterface->deviceIsOpen(devId, address);
     ui->lblInfo->setText(hatInterface->getStatus());
 
