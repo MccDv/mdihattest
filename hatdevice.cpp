@@ -381,7 +381,7 @@ void HatDevice::runTinFunction()
     for (uint32_t sampleNum = 0; sampleNum < mSamplesPerChan; sampleNum++) {
         foreach(curChan, mChanList) {
             if(showVolts)
-                mResponse = hatInterface->vInRead(mHatID, mAddress, curChan, data);
+                mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, 0, data);
             else
                 mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
             ui->lblInfo->setText(hatInterface->getStatus());

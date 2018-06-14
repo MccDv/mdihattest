@@ -10,5 +10,5 @@ QString getErrorDescription(int response);
 QString getStatusText(uint16_t status);
 QString getTrigText(TriggerMode trigType);
 QString getTcTypeName(uint8_t tcType);
-
+QString getHatTypeName(uint16_t hatType);
 #endif // TESTUTILITIES_H

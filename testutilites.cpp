@@ -7,6 +7,24 @@ void delay(int milliSeconds)
         QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
 
+QString getHatTypeName(uint16_t hatType)
+{
+    //to do - not a great solution
+    switch (hatType) {
+    case HAT_ID_MCC_118:
+        return "MCC118";
+        break;
+    case HAT_ID_MCC_118 + 1:
+        return "MCC134";
+        break;
+    case HAT_ID_MCC_118 + 2:
+        return "MCC152";
+    default:
+        return "NO_ID";
+        break;
+    }
+}
+
 QString getOptionNames(uint32_t curOptions)
 {
     QString optString;

@@ -1,5 +1,5 @@
-## MCC Hat Test for Linux (hattest)
-**Info:** **mdihattest** uses the **daqhats** library to access and control **Mcc Hat** devices on the **Raspberry Pi** platform. **mdihattest** implements most of the **daqhats** library functions. It's designed to run on Raspian stretch arm platform (Raspberry Pi).
+## MCC DaqHat Test for Linux (mdihattest)
+**Info:** **mdihattest** uses the **daqhats** library to access and control **Mcc DaqHat** devices on the **Raspberry Pi** platform. **mdihattest** implements most of the **daqhats** library functions. It's designed to run on Raspian stretch arm platform (Raspberry Pi).
 
 **Author:** MccDv
 
