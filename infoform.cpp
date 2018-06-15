@@ -171,17 +171,6 @@ void InfoForm::functionChanged(int utFunction)
 
     ui->cmbTcType->clear();
 
-#ifdef HAT_03
-    ui->cmbTcType->addItem("TC_TYPE_J", TC_TYPE_J);
-    ui->cmbTcType->addItem("TC_TYPE_K", TC_TYPE_K);
-    ui->cmbTcType->addItem("TC_TYPE_T", TC_TYPE_T);
-    ui->cmbTcType->addItem("TC_TYPE_E", TC_TYPE_E);
-    ui->cmbTcType->addItem("TC_TYPE_R", TC_TYPE_R);
-    ui->cmbTcType->addItem("TC_TYPE_S", TC_TYPE_S);
-    ui->cmbTcType->addItem("TC_TYPE_B", TC_TYPE_B);
-    ui->cmbTcType->addItem("TC_TYPE_N", TC_TYPE_N);
-#endif
-
     mUtFunction = utFunction;
     calVisible = true;
     spinVisible = true;
@@ -193,13 +182,23 @@ void InfoForm::functionChanged(int utFunction)
         writeCmdText = "Load Cal";
         spnToolTip = "Cal channel";
         break;
+#ifdef HAT_03
     case UL_TEMP_INFO:
+        ui->cmbTcType->addItem("TC_TYPE_J", TC_TYPE_J);
+        ui->cmbTcType->addItem("TC_TYPE_K", TC_TYPE_K);
+        ui->cmbTcType->addItem("TC_TYPE_T", TC_TYPE_T);
+        ui->cmbTcType->addItem("TC_TYPE_E", TC_TYPE_E);
+        ui->cmbTcType->addItem("TC_TYPE_R", TC_TYPE_R);
+        ui->cmbTcType->addItem("TC_TYPE_S", TC_TYPE_S);
+        ui->cmbTcType->addItem("TC_TYPE_B", TC_TYPE_B);
+        ui->cmbTcType->addItem("TC_TYPE_N", TC_TYPE_N);
         readCmdText = "Read TC types";
         writeCmdText = "Load TC type";
         spnToolTip = "TC channel";
         calVisible = false;
         tcTypeVisible = true;
         break;
+#endif
     case UL_TEST:
         writeCmdText = "Trig/Clock Test";
         readCmdText = "Num Scan Chans";
@@ -488,8 +487,12 @@ void InfoForm::showBoardParameters()
         ui->lblInfo->setText(QString("Device at address %1 is ready").arg(mAddress));
         numChans = hatInterface->getNumAInChans(mHatID);
         ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
+        if(mHatID == HAT_ID_MCC_118) {
+            numChans = hatInterface->aInScanChanCount(mHatID, mAddress);
+            ui->teShowValues->append(QString("Scan channels: %1").arg(numChans));
+        }
 #ifdef HAT_03
-        if(mHatID = HAT_ID_MCC_134) {
+        if(mHatID == HAT_ID_MCC_134) {
             mResponse = hatInterface->boardTemp(mHatID, mAddress, temp);
             ui->lblStatus->setText(hatInterface->getStatus());
             ui->teShowValues->append(QString("CJC temperature: %1ᵒC").arg(temp));

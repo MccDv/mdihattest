@@ -659,6 +659,32 @@ int HatInterface::setTrigger(uint16_t devType, uint8_t address, TriggerMode trig
     return mResponse;
 }
 
+int HatInterface::readAInScanStatus(uint16_t devType, uint8_t address, uint16_t &status)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    uint16_t statReturned;
+    double timeout;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": AInScanRead");
+    funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
+    timeout = 0.0;
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc118_a_in_scan_read(address, &statReturned, 0, timeout, NULL, 0, NULL);
+    argVals = QString("(%1, %2, %3, %4, %5, %6, %7)")
+            .arg(address).arg(statReturned).arg("0")
+            .arg(timeout).arg("NULL").arg("0").arg("NULL");
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    status = statReturned;
+    return mResponse;
+}
+
 int HatInterface::stopAInScan(uint16_t devType, uint8_t address)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
@@ -725,15 +751,17 @@ int HatInterface::aInScanCleanup(uint16_t devType, uint8_t address)
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
+    QString hatName;
 
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": AInScanCleanup");
     funcArgs = "(address)\n";
     switch (devType) {
     case HAT_ID_MCC_118:
-        nameOfFunc = "118: AInScanCleanup";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc118_a_in_scan_cleanup(address);
+        break;
     default:
-        nameOfFunc = QString("%1: AInScanChanCount").arg(devType);
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
         break;

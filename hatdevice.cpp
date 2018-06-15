@@ -468,6 +468,7 @@ void HatDevice::runAInScanFunc()
     }
 
     if (buffer) {
+        mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
         delete[] buffer;
         buffer = NULL;
     }
@@ -683,48 +684,24 @@ void HatDevice::stopScan()
     goFont.setBold(false);
     ui->cmdGo->setFont(goFont);
 
-    funcArgs = "(mAddress)\n";
-    nameOfFunc = "118: AInScanStop";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_a_in_scan_stop(mAddress);
-    argVals = QStringLiteral("(%1)").arg(mAddress);
-
+    mResponse = hatInterface->stopAInScan(mHatID, mAddress);
     mStatusTimerEnabled = false;
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    hatInterface->reportResult(mResponse, sStartTime + funcStr);
-    if (mResponse!=RESULT_SUCCESS) {
-        //mMainWindow->setError(mResponse, sStartTime + funcStr);
-        return;
-    } else {
-        //mMainWindow->addFunction(sStartTime + funcStr);
+    if (mResponse == RESULT_SUCCESS) {
         delay(200);
         runReadScanStatus();
     }
-
-    funcArgs = "(mAddress)\n";
-    nameOfFunc = "118: AInScanCleanup";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_a_in_scan_cleanup(mAddress);
-    argVals = QStringLiteral("(%1)").arg(mAddress);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    hatInterface->reportResult(mResponse, sStartTime + funcStr);
-    /*if (mResponse!=RESULT_SUCCESS) {
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
-        return;
-    } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
-    }
-    */
 }
 
 void HatDevice::runReadScanStatus()
 {
+    /*
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime, statString;
-    uint16_t status;
     double timeout;
+    */
+    QString statString;
+    uint16_t status;
 
     if(mHatID != HAT_ID_MCC_118) {
         //so far, only compatible with 118
@@ -732,6 +709,14 @@ void HatDevice::runReadScanStatus()
         ui->lblInfo->setText("Select a different device or function");
         return;
     }
+
+    mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status);
+    ui->lblInfo->setText(hatInterface->getStatus());
+    statString = getStatusText(status);
+    ui->lblStatus->setText(QString("Total samples read: %1  Status: %2   [Current options: %3]")
+                           .arg(mTotalRead).arg(statString).arg(mOptNames));
+
+    /*
     timeout = 0.0;
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
     nameOfFunc = "118: AInScanRead";
@@ -740,14 +725,15 @@ void HatDevice::runReadScanStatus()
     statString = getStatusText(status);
     ui->lblStatus->setText(QString("Total samples read: %1  Status: %2   [Current options: %3]")
                            .arg(mTotalRead).arg(statString).arg(mOptNames));
-    argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+    argVals = QString("(%1, %2, %3, %4, %5, %6, %7)")
             .arg(mAddress).arg(status).arg("0")
             .arg(timeout).arg("NULL").arg("0").arg("NULL");
     ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    */
     mRunning = (status & STATUS_RUNNING);
-    hatInterface->reportResult(mResponse, sStartTime + funcStr);
+    //hatInterface->reportResult(mResponse, sStartTime + funcStr);
     /*if (mResponse!=RESULT_SUCCESS) {
         mMainWindow->setError(mResponse, sStartTime + funcStr);
         return;

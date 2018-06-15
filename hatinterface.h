@@ -36,6 +36,7 @@ public:
     int boardTemp(uint16_t devType, uint8_t address, double &temp);
     int setTrigger(uint16_t devType, uint8_t address, TriggerMode trigType);
     int stopAInScan(uint16_t devType, uint8_t address);
+    int readAInScanStatus(uint16_t devType, uint8_t address, uint16_t &status);
     int aInScanChanCount(uint16_t devType, uint8_t address);
     int aInScanCleanup(uint16_t devType, uint8_t address);
     int testClock(uint16_t devType, uint8_t address, uint8_t mode, uint8_t &value);
