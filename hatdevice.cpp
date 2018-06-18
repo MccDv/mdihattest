@@ -47,6 +47,7 @@ HatDevice::HatDevice(QWidget *parent) :
             ui->AiPlot->yAxis2, SLOT(setRange(QCPRange)));
     connect(ui->rbAutoScale, SIGNAL(clicked(bool)), this, SLOT(replot()));
     connect(ui->rbFullScale, SIGNAL(clicked(bool)), this, SLOT(replot()));
+
     rbPlotSel[0] = ui->rbPlot0;
     rbPlotSel[1] = ui->rbPlot1;
     rbPlotSel[2] = ui->rbPlot2;
@@ -87,19 +88,12 @@ void HatDevice::keyPressEvent(QKeyEvent *event)
 
 void HatDevice::closeEvent(QCloseEvent *event)
 {
-    uint8_t address;
-    for(int hat = 0; hat < mNumHats; hat++) {
-        address = hatInfoList[mDevIndex].address;
-        if(mcc118_is_open(address))
-            mResponse = mcc118_close(address);
-    }
     event->accept();
 }
 
 void HatDevice::updateParameters()
 {
     ChildWindow *parentWindow;
-    //bool showStop;
     QString trigString;
 
     parentWindow = qobject_cast<ChildWindow *>(this->parent());

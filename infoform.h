@@ -33,6 +33,7 @@ private slots:
     void readCalClicked();
     void loadCalClicked();
     void flashLEDClicked();
+    void cleanScanClicked();
 
 private:
 #define READ_CAL        1
@@ -42,6 +43,7 @@ private:
 #define FLASH_LED       5
 #define CLOCK_TEST      6
 #define NUM_SCAN_CHANS  7
+#define READ_STATUS     8
 
     Ui::InfoForm *ui;
     HatInterface *hatInterface;
@@ -64,6 +66,7 @@ private:
     void readClkTrg();
     void readNumScanChans();
     void flashLED();
+    void readStatus();
 
 
 };

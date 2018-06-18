@@ -34,6 +34,7 @@ InfoForm::InfoForm(QWidget *parent) :
     connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCalClicked()));
     connect(ui->cmdLoadCal, SIGNAL(clicked(bool)), this, SLOT(loadCalClicked()));
     connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLEDClicked()));
+    connect(ui->cmdCleanup, SIGNAL(clicked(bool)), this, SLOT(cleanScanClicked()));
     findHats();
 }
 
@@ -126,7 +127,19 @@ void InfoForm::loadCalClicked()
 
 void InfoForm::flashLEDClicked()
 {
-    mSelectedFunction = FLASH_LED;
+    switch (mUtFunction) {
+    case UL_AI_INFO:
+        mSelectedFunction = READ_STATUS;
+        break;
+    case UL_TEMP_INFO:
+        mSelectedFunction = READ_STATUS;
+        break;
+    case UL_TEST:
+        mSelectedFunction = FLASH_LED;
+        break;
+    default:
+        break;
+    }
     runSelectedFunction();
 }
 
@@ -156,6 +169,9 @@ void InfoForm::runSelectedFunction()
     case FLASH_LED:
         flashLED();
         break;
+    case READ_STATUS:
+        readStatus();
+        break;
     default:
         break;
     }
@@ -164,9 +180,9 @@ void InfoForm::runSelectedFunction()
 void InfoForm::functionChanged(int utFunction)
 {
     QString readCmdText;
-    QString writeCmdText;
+    QString writeCmdText, flashCmdText;
     QString spnToolTip;
-    bool calVisible, readVisible;
+    bool calVisible, readVisible, scanCleanVisible;
     bool tcTypeVisible, spinVisible;
 
     ui->cmbTcType->clear();
@@ -175,11 +191,13 @@ void InfoForm::functionChanged(int utFunction)
     calVisible = true;
     spinVisible = true;
     readVisible = true;
+    scanCleanVisible = true;
     tcTypeVisible = false;
     switch (mUtFunction) {
     case UL_AI_INFO:
         readCmdText = "Read Cal";
         writeCmdText = "Load Cal";
+        flashCmdText = "Scan Status";
         spnToolTip = "Cal channel";
         break;
 #ifdef HAT_03
@@ -195,6 +213,8 @@ void InfoForm::functionChanged(int utFunction)
         readCmdText = "Read TC types";
         writeCmdText = "Load TC type";
         spnToolTip = "TC channel";
+        flashCmdText = "Flash LED";
+        scanCleanVisible = false;
         calVisible = false;
         tcTypeVisible = true;
         break;
@@ -202,9 +222,11 @@ void InfoForm::functionChanged(int utFunction)
     case UL_TEST:
         writeCmdText = "Trig/Clock Test";
         readCmdText = "Num Scan Chans";
+        flashCmdText = "Flash LED";
         calVisible = false;
         tcTypeVisible = true;
         spinVisible = false;
+        scanCleanVisible = false;
         ui->cmbTcType->addItem("Clock In", 0);
         ui->cmbTcType->addItem("Clock Low", 1);
         ui->cmbTcType->addItem("Clock High", 2);
@@ -215,8 +237,10 @@ void InfoForm::functionChanged(int utFunction)
     }
     ui->cmdReadCal->setText(readCmdText);
     ui->cmdLoadCal->setText(writeCmdText);
+    ui->cmdFlashLED->setText(flashCmdText);
     ui->leOffset->setVisible(calVisible);
     ui->leSlope->setVisible(calVisible);
+    ui->cmdCleanup->setVisible(scanCleanVisible);
     ui->spnCalChan->setToolTip(spnToolTip);
     ui->spnCalChan->setVisible(spinVisible);
     ui->cmdReadCal->setVisible(readVisible);
@@ -337,6 +361,17 @@ void InfoForm::flashLED()
     ui->lblInfo->setText(hatInterface->getStatus());
 }
 
+void InfoForm::readStatus()
+{
+    uint16_t status;
+    QString statText;
+
+    mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status);
+    ui->lblStatus->setText(hatInterface->getStatus());
+    statText = getStatusText(status);
+    ui->teShowValues->setText("Scan status: " + statText);
+}
+
 void InfoForm::readClkTrg()
 {
     uint8_t clockState, mode, trigState;
@@ -365,6 +400,12 @@ void InfoForm::readNumScanChans()
         ui->teShowValues->append("Is scan thread active?");
     }
 
+}
+
+void InfoForm::cleanScanClicked()
+{
+    mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
+    ui->lblInfo->setText(hatInterface->getStatus());
 }
 
 void InfoForm::readCal()

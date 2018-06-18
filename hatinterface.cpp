@@ -667,6 +667,7 @@ int HatInterface::readAInScanStatus(uint16_t devType, uint8_t address, uint16_t 
     uint16_t statReturned;
     double timeout;
     QString hatName;
+    int response;
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": AInScanRead");
@@ -680,7 +681,11 @@ int HatInterface::readAInScanStatus(uint16_t devType, uint8_t address, uint16_t 
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
+    response = mResponse;
+    if(mResponse == RESULT_RESOURCE_UNAVAIL) {
+        response = RESULT_SUCCESS;
+    }
+    reportResult(response, sStartTime + funcStr);
     status = statReturned;
     return mResponse;
 }
@@ -767,6 +772,7 @@ int HatInterface::aInScanCleanup(uint16_t devType, uint8_t address)
         break;
     }
     argVals = QStringLiteral("(%1)").arg(address);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
