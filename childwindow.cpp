@@ -51,15 +51,6 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
 
 void ChildWindow::closeEvent(QCloseEvent *event)
 {
-    //int response;
-    HatInterface *hatInterface;
-    hatInterface = new HatInterface;
-
-    if(hatInterface->deviceIsOpen(mDevID, mDevAddress)) {
-        if(mDevID == HAT_ID_MCC_118)
-            hatInterface->aInScanCleanup(mDevID, mDevAddress);
-        hatInterface->closeDevice(mDevID, mDevAddress);
-    }
     writeWindowPosition();
     event->accept();
     this->deleteLater();

@@ -659,25 +659,27 @@ int HatInterface::setTrigger(uint16_t devType, uint8_t address, TriggerMode trig
     return mResponse;
 }
 
-int HatInterface::readAInScanStatus(uint16_t devType, uint8_t address, uint16_t &status)
+int HatInterface::readAInScanStatus(uint16_t devType, uint8_t address, uint16_t &status, uint32_t &sampsAvailable)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
     uint16_t statReturned;
+    uint32_t numRead;
     double timeout;
     QString hatName;
     int response;
 
     hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": AInScanRead");
-    funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
+    nameOfFunc = hatName.append(": AInScanStatus");
+    funcArgs = "(mAddress, status, samplesAvailable)\n";
     timeout = 0.0;
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_a_in_scan_read(address, &statReturned, 0, timeout, NULL, 0, NULL);
-    argVals = QString("(%1, %2, %3, %4, %5, %6, %7)")
-            .arg(address).arg(statReturned).arg("0")
-            .arg(timeout).arg("NULL").arg("0").arg("NULL");
+    mResponse = mcc118_a_in_scan_status(address, &statReturned, &numRead);
+    argVals = QString("(%1, %2, %3)")
+            .arg(address)
+            .arg(statReturned)
+            .arg(numRead);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
@@ -686,6 +688,7 @@ int HatInterface::readAInScanStatus(uint16_t devType, uint8_t address, uint16_t 
         response = RESULT_SUCCESS;
     }
     reportResult(response, sStartTime + funcStr);
+    sampsAvailable = numRead;
     status = statReturned;
     return mResponse;
 }
@@ -735,7 +738,7 @@ int HatInterface::aInScanChanCount(uint16_t devType, uint8_t address)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         chanCount = mcc118_a_in_scan_channel_count(address);
         break;
-    case HAT_ID_MCC_134:
+    case 323:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
         break;

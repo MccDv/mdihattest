@@ -365,8 +365,9 @@ void InfoForm::readStatus()
 {
     uint16_t status;
     QString statText;
+    uint32_t samplesAvailable;
 
-    mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status);
+    mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
     ui->lblStatus->setText(hatInterface->getStatus());
     statText = getStatusText(status);
     ui->teShowValues->setText("Scan status: " + statText);

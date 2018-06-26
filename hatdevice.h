@@ -59,6 +59,7 @@ private:
     uint32_t mScanOptions;
     TriggerMode mTriggerType;
     uint32_t mSamplesPerChan;
+    double mRateReturned;
     struct HatInfo hatInfoList[MAX_NUMBER_HATS];
     QString mOptNames;
     bool mBackgroundScan;
@@ -102,6 +103,7 @@ private:
     void runAInScanFunc();
     void runSetTriggerFunc();
     void stopScan();
+    void readBuffer();
 
     void setupPlot(QCustomPlot *dataPlot, int chanCount);
     void printData(unsigned long long currentCount, long long currentIndex, int blockSize);

@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "childwindow.h"
+#include "hatinterface.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -73,12 +74,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    //int response;
+    HatInterface *hatInterface;
+    hatInterface = new HatInterface;
     uint8_t address;
+    uint16_t devID;
 
     foreach (address, mHatList.keys()) {
-        if(mcc118_is_open(address))
-            mcc118_close(address);
+        devID = mHatIDList.value(address);
+        hatInterface->closeDevice(devID, address);
     }
     writeWindowPosition();
     event->accept();
