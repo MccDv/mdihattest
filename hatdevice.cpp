@@ -414,6 +414,13 @@ void HatDevice::runAInScanFunc()
         return;
     }
     bufferSize = 0;
+
+    if (buffer) {
+        mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
+        delete[] buffer;
+        buffer = NULL;
+    }
+
     if(mScanOptions & OPTS_EXTTRIGGER) {
         runSetTriggerFunc();
         mTriggered = false;
@@ -461,12 +468,6 @@ void HatDevice::runAInScanFunc()
             mMainWindow->addFunction(sStartTime + funcStr);
         }
   */
-    }
-
-    if (buffer) {
-        mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
-        delete[] buffer;
-        buffer = NULL;
     }
 
     mBufSize = bufSize;
