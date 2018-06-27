@@ -587,13 +587,8 @@ void HatDevice::checkStatus()
     loopStatus = (readTime > 0.2);
 
     //check if the scan is triggered - if not, wait here
-    //nameOfFunc = "118: AInScanStatus";
-    //funcArgs = "(mAddress, status, samplesAvailable)\n";
     if(loopStatus | ((mScanOptions & OPTS_EXTTRIGGER) && !mTriggered)) {
         do {
-            //sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-            //mResponse = mcc118_a_in_scan_status(mAddress, &status, &samplesPerChanRead);
-            //mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
             mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
             ui->lblInfo->setText(hatInterface->getStatus());
             statString = getStatusText(status);
@@ -601,7 +596,6 @@ void HatDevice::checkStatus()
                                    .arg(mTotalRead).arg(statString).arg(mOptNames));
 
             statString = getStatusText(status);
-            //ui->lblStatus->setText(QString("  Status: %1").arg(statString));
             mTriggered = (status & STATUS_TRIGGERED);
             if((status &
                 (STATUS_BUFFER_OVERRUN | STATUS_HW_OVERRUN)) != 0)
@@ -613,14 +607,6 @@ void HatDevice::checkStatus()
                     trigWait = true;
             } else
                 trigWait = false;
-            /*argVals = QStringLiteral("(%1, %2, %3)")
-                    .arg(mAddress).arg(status).arg("0")
-                    .arg(samplesPerChanRead);
-            ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-
-            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-            hatInterface->reportResult(mResponse, sStartTime + funcStr);
-            */
             if (mResponse!=RESULT_SUCCESS) {
                 //mMainWindow->setError(mResponse, sStartTime + funcStr);
                 trigWait = false;
@@ -629,7 +615,6 @@ void HatDevice::checkStatus()
             }
             delay(200);
         } while (trigWait);
-        //mTriggered = true;
     }
 
     if(mRunning) {
@@ -679,6 +664,7 @@ void HatDevice::checkStatus()
     if(!mRunning) {
         stopScan();
         goFont.setBold(false);
+        return;
     }
 
     makeBold = !ui->cmdGo->font().bold();
@@ -741,9 +727,12 @@ void HatDevice::runReadScanStatus()
 
 void HatDevice::readBuffer()
 {
-    QString statString;
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime, statString;
     uint16_t status;
-    uint32_t samplesAvailable;
+    uint32_t samplesAvailable, samplesPerChanRead;
+    double timeout = 0;
 
     ui->lblInfo->clear();
     ui->lblStatus->clear();
@@ -759,6 +748,30 @@ void HatDevice::readBuffer()
     statString = getStatusText(status);
     ui->lblStatus->setText(QString("Total samples read: %1  Status: %2   [Current options: %3]")
                            .arg(mTotalRead).arg(statString).arg(mOptNames));
+    if(samplesAvailable > 0) {
+        //checkStatus();
+        funcArgs = "(mAddress, &status, mBlockSize, timeout, buffer, mBufSize, &samplesPerChanRead)\n";
+        nameOfFunc = "118: AInScanRead";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_a_in_scan_read(mAddress, &status, mBlockSize,
+            timeout, buffer, mBufSize, &samplesPerChanRead);
+        argVals = QString("(%1, %2, %3, %4, %5, %6, %7)")
+                .arg(mAddress).arg(status).arg(mBlockSize).arg(timeout)
+                .arg("buffer").arg(mBufSize).arg(samplesPerChanRead);
+        ui->lblInfo->setText(nameOfFunc + argVals + "   " +
+                             mOptNames + QString(" [Error = %1]").arg(mResponse));
+
+        funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+        qApp->processEvents();
+        if(samplesPerChanRead) {
+            mPlotSize = samplesPerChanRead;
+            mTotalRead += samplesPerChanRead;
+            if(mPlot)
+                plotScan(0, 0, samplesPerChanRead);
+            else
+                printData(0, 0, samplesPerChanRead);
+        }
+    }
 }
 
 void HatDevice::showPlotWindow(bool showIt)

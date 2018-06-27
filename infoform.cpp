@@ -371,6 +371,9 @@ void InfoForm::readStatus()
     ui->lblStatus->setText(hatInterface->getStatus());
     statText = getStatusText(status);
     ui->teShowValues->setText("Scan status: " + statText);
+    ui->teShowValues->append(QString("Scan status: %1 with %2 samples to read")
+                             .arg(statText)
+                             .arg(samplesAvailable));
 }
 
 void InfoForm::readClkTrg()
