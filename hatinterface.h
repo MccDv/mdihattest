@@ -28,12 +28,7 @@ public:
     int getNumAInChans(uint16_t devType);
     int readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double &slope, double &offset);
     int writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double slope, double offset);
-    int readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType);
-    int writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType);
     int aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double &value);
-    int tInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
-    int vInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
-    int boardTemp(uint16_t devType, uint8_t address, double &temp);
     int setTrigger(uint16_t devType, uint8_t address, TriggerMode trigType);
     int stopAInScan(uint16_t devType, uint8_t address);
     int readAInScanStatus(uint16_t devType, uint8_t address, uint16_t &status, uint32_t &sampsAvailable);
@@ -42,9 +37,39 @@ public:
     int testClock(uint16_t devType, uint8_t address, uint8_t mode, uint8_t &value);
     int testTrig(uint16_t devType, uint8_t address, uint8_t &value);
 
+    int tInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
+    int boardTemp(uint16_t devType, uint8_t address, double &temp);
+    int readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType);
+    int writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType);
+
+    int getNumAOutChans(uint16_t devType);
+    int getNumDioChans(uint16_t devType);
+    int aOutWrite(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double value);
+    int aOutWriteAll(uint16_t devType, uint8_t address, uint32_t options, double &values);
+    int dioReset(uint16_t devType, uint8_t address);
+    int dioInputRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioOutputWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
+    int dioOutputRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioDirectionWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
+    int dioDirectionRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioPullConfigWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
+    int dioPullConfigRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioPullEnableWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
+    int dioPullEnableRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioInputInvertWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
+    int dioInputInvertRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioInputLatchWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
+    int dioInputLatchRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioOutputTypeWrite(uint16_t devType, uint8_t address, uint8_t value);
+    int dioOutputTypeRead(uint16_t devType, uint8_t address, uint8_t &value);
+    int dioInterruptMaskWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
+    int dioInterruptMaskRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioInterruptStatusRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+
     void addToMenu(uint16_t devType, uint8_t address, QString devName);
     void removeFromMenu(uint8_t address);
     void reportResult(int response, QString description);
+    void updateAppStatus(UtFunctionGroup funcGroup, QString statusText);
 
 private:
     MainWindow *mMainWindow;

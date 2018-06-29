@@ -18,6 +18,15 @@ HatDiscovery::HatDiscovery(QWidget *parent) :
     ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
 
+    ui->cmbFilter->addItem("All Hats", HAT_ID_ANY);
+    ui->cmbFilter->addItem("MCC118", HAT_ID_MCC_118);
+#ifdef HAT_03
+    ui->cmbFilter->addItem("MCC134", HAT_ID_MCC_134);
+#endif
+#ifdef HAT_04
+    ui->cmbFilter->addItem("MCC152", HAT_ID_MCC_152);
+#endif
+
     connect(ui->cmdDiscover, SIGNAL(clicked(bool)), this, SLOT(readHatList()));
     connect(ui->cmdOpen, SIGNAL(clicked(bool)), this, SLOT(openCmdClicked()));
     connect(ui->cmdClose, SIGNAL(clicked(bool)), this, SLOT(closeCmdClicked()));
@@ -31,9 +40,12 @@ HatDiscovery::~HatDiscovery()
 
 void HatDiscovery::readHatList()
 {
+    uint16_t hatFilter;
+
+    hatFilter = ui->cmbFilter->currentData().toUInt();
     ui->listWidget->clear();
 
-    mNumHats = hat_list(HAT_ID_ANY, hatInfoList);
+    mNumHats = hat_list(hatFilter, hatInfoList);
     for(int hatNum = 0; hatNum < mNumHats; hatNum++) {
         ui->listWidget->addItem(hatInfoList[hatNum].product_name);
     }
@@ -56,7 +68,16 @@ void HatDiscovery::functionChanged(int utFunction)
 
 void HatDiscovery::devSelectedChanged()
 {
+    QString devName;
+    ChildWindow *parentWindow;
+
+    parentWindow = qobject_cast<ChildWindow *>(this->parent());
     mDevIndex = ui->listWidget->currentIndex().row();
+    mAddress = hatInfoList[mDevIndex].address;
+    devName = QString(hatInfoList[mDevIndex].product_name).left(7)
+                + QString(" [%1]").arg(mAddress);
+    parentWindow->setDevName(devName);
+    hatInterface->updateAppStatus(FUNC_GROUP_DISC, devName);
     showBoardParameters();
 }
 
@@ -78,6 +99,11 @@ void HatDiscovery::closeCmdClicked()
         address = hatInfoList[mDevIndex].address;
         runCloseDevice(address);
     }
+}
+
+void HatDiscovery::runSelectedFunction()
+{
+
 }
 
 void HatDiscovery::showBoardParameters()

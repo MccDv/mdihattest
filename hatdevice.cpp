@@ -12,7 +12,7 @@ HatDevice::HatDevice(QWidget *parent) :
 
     mHistListSize = 50;
 
-    tmrCheckStatus = new QTimer(this);
+    tmrGoTimer = new QTimer(this);
     mUseGetStatus = true;
     mStopOnStart = false;
     functionGroup = new QActionGroup(this);
@@ -37,8 +37,8 @@ HatDevice::HatDevice(QWidget *parent) :
     ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
 
-    connect(tmrCheckStatus, SIGNAL(timeout()), this, SLOT(checkStatus()));
-    connect(ui->cmdGo, SIGNAL(clicked(bool)), this, SLOT(runSelectedFunction()));
+    connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(checkStatus()));
+    connect(ui->cmdGo, SIGNAL(clicked(bool)), this, SLOT(goCmdClicked()));
     connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(stopCmdClicked()));
 
     connect(ui->AiPlot->xAxis, SIGNAL(rangeChanged(QCPRange)),
@@ -82,7 +82,7 @@ void HatDevice::keyPressEvent(QKeyEvent *event)
     int keyCode = event->key();
     if (keyCode == Qt::Key_Escape) {
         //setTmrRunning(false);
-        stopScan();
+        stopCmdClicked();
     }
     if (keyCode == Qt::Key_F6)
         readBuffer();
@@ -104,6 +104,10 @@ void HatDevice::updateParameters()
     mHatID = parentWindow->devId();
     mScanOptions = parentWindow->scanOptions();
     mTriggerType = parentWindow->triggerType();
+
+    mUseTimer = parentWindow->tmrEnabled();
+    mStopOnStart = parentWindow->tmrStopOnStart();
+    mGoTmrIsRunning = parentWindow->tmrRunning();
 
     mOptNames = getOptionNames(mScanOptions);
     trigString = getTrigText(mTriggerType);
@@ -192,62 +196,31 @@ void HatDevice::functionChanged(int utFunction)
     this->setUiForFunction();
 }
 
+void HatDevice::goCmdClicked()
+{
+    ChildWindow *parentWindow;
+    parentWindow = qobject_cast<ChildWindow *>(this->parent());
+    bool tmrIsEnabled;
+
+    tmrIsEnabled = parentWindow->tmrEnabled();
+    mUseTimer = tmrIsEnabled;
+    runSelectedFunction();
+}
+
 void HatDevice::stopCmdClicked()
 {
-    stopScan();
-    return;
-
-    /*
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    uint16_t status;
-
-    funcArgs = "(mAddress, &status, samplesPerChan, timeout, &buffer, bufferSize, samplesRead)\n";
-    mStatusTimerEnabled = false;
-    nameOfFunc = "118: AInScanRead";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, 0.0, NULL, 0, NULL);
-
-    argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
-            .arg(mAddress)
-            .arg(status)
-            .arg("0")
-            .arg("0.0")
-            .arg("NULL")
-            .arg("0")
-            .arg("NULL");
-    mRunning = false; //((status && STATUS_RUNNING) == STATUS_RUNNING);
-    tmrCheckStatus->stop();
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse != RESULT_SUCCESS) {
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
-    } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
-    }
-
-    nameOfFunc = "118_AInScanStop";
-    funcArgs = "(mAddress)\n";
-    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_a_in_scan_stop(mAddress);
-    argVals = QStringLiteral("(%1)")
-            .arg(mAddress);
-    ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
-    //ui->cmdStop->setEnabled(mRunning);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    if (mResponse != RESULT_SUCCESS) {
-        mMainWindow->setError(mResponse, sStartTime + funcStr);
-        return;
-    } else {
-        mMainWindow->addFunction(sStartTime + funcStr);
-    }
-    */
+    if(mHatID == HAT_ID_MCC_118)
+        stopScan();
+    mUseTimer = false;
 }
 
 void HatDevice::runSelectedFunction()
 {
+    ChildWindow *parentWindow;
+    QFont goFont = ui->cmdGo->font();
+    bool makeBold, tmrIsEnabled, tmrIsRunning;
+
+    parentWindow = qobject_cast<ChildWindow *>(this->parent());
     if(mPlot && (ui->stackedWidget->currentIndex() == 0))
         showPlotWindow(mPlot);
     ui->lblInfo->clear();
@@ -265,6 +238,32 @@ void HatDevice::runSelectedFunction()
         break;
     default:
         break;
+    }
+
+    tmrIsEnabled = parentWindow->tmrEnabled();
+    tmrIsRunning = parentWindow->tmrRunning();
+
+    if (!tmrIsEnabled) {
+        if (tmrIsRunning)
+            parentWindow->setTmrRunning(false);
+        mUseTimer = false;
+        goFont.setBold(false);
+        ui->cmdGo->setFont(goFont);
+    } else {
+        if (mUseTimer) {
+            if (!tmrIsRunning) {
+                parentWindow->setTmrRunning(true);
+            }
+            makeBold = !ui->cmdGo->font().bold();
+            goFont.setBold(makeBold);
+            ui->cmdGo->setFont(goFont);
+        } else {
+            if (tmrIsRunning) {
+                parentWindow->setTmrRunning(false);
+            }
+            goFont.setBold(false);
+            ui->cmdGo->setFont(goFont);
+        }
     }
 }
 
@@ -499,7 +498,7 @@ void HatDevice::runAInScanFunc()
         ui->lblBufferSize->setText(QString("%1").arg(bufferSize));
         if(mBackgroundScan) {
             mStatusTimerEnabled = true;
-            tmrCheckStatus->start(500);
+            tmrGoTimer->start(500);
         } else {
             uint16_t status;
             double timeout;
@@ -674,10 +673,6 @@ void HatDevice::checkStatus()
 
 void HatDevice::stopScan()
 {
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-
     if(mHatID != HAT_ID_MCC_118) {
         //so far, only compatible with 118
         ui->lblStatus->setText("Syncronous scan not supported for this device");
@@ -687,7 +682,7 @@ void HatDevice::stopScan()
 
     QFont goFont = ui->cmdGo->font();
 
-    tmrCheckStatus->stop();
+    tmrGoTimer->stop();
     goFont.setBold(false);
     ui->cmdGo->setFont(goFont);
 
@@ -971,19 +966,16 @@ void HatDevice::updatePlot()
     for (int i = mChanCount; i<8; i++)
         rbPlotSel[i]->setVisible(false);
     autoScale = ui->rbAutoScale->isChecked();
-    if(autoScale)
-        ui->AiPlot->rescaleAxes();
-    else {
-        /*if (mRange == BIPPT078VOLTS) {
-            AiConfigItem configItem = AI_CFG_CHAN_TYPE;
-            unsigned int index = 0;
-            long long configValue;
-            UlError err = ulAIGetConfig(mDaqDeviceHandle,
-                                        configItem,  index, &configValue);
-            if ((err == ERR_NO_ERROR) && (configValue == 2))
-                setTCRange = true;
+    setTCRange == (mCurFunction = UL_TIN);
+    if(autoScale) {
+        /*if (setTCRange) {
+            for (int chan = 0; chan < mChanCount; chan++) {
+                curSample = buffer[curScan + chan];
+            }
         }*/
-        setTCRange = false;
+        ui->AiPlot->rescaleAxes();
+        //ui->AiPlot->yAxis->scaleRange(1.2, 1.0);
+    } else {
         if (setTCRange) {
             rangeBuf = 0;
             rangeUpper = 35;

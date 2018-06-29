@@ -28,6 +28,7 @@ public:
 
 private slots:
     void stopCmdClicked();
+    void goCmdClicked();
     void functionChanged(int utFunction);
     void runSelectedFunction();
     void checkStatus();
@@ -41,7 +42,7 @@ private slots:
 private:
     Ui::HatDevice *ui;
     HatInterface *hatInterface;
-    QTimer *tmrCheckStatus;
+    QTimer *tmrGoTimer;
     QRadioButton *rbPlotSel[8]={};
     QActionGroup *functionGroup;
     QActionGroup *optionGroup;
@@ -77,6 +78,8 @@ private:
     long long mPlotSize;
     QString mFuncName;
 
+    bool mUseTimer;
+    bool mGoTmrIsRunning;
     bool mStopOnStart;
     bool mPlot;
     bool mRunning;

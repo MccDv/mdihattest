@@ -168,10 +168,20 @@
      <x>0</x>
      <y>0</y>
      <width>905</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
    <widget class="QMenu" name="menuOptions">
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <property name="title">
      <string>Options</string>
     </property>
@@ -182,6 +192,7 @@
     <addaction name="actionCONTINUOUS"/>
     <addaction name="separator"/>
     <addaction name="actionBACKGROUND"/>
+    <addaction name="actionTmrloop"/>
    </widget>
    <widget class="QMenu" name="menuTriggering">
     <property name="title">
@@ -199,6 +210,11 @@
     <addaction name="actionVolts_vs_Time"/>
    </widget>
    <widget class="QMenu" name="menuFunction">
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <property name="title">
      <string>Function</string>
     </property>
@@ -214,8 +230,8 @@
     </property>
     <addaction name="actionLoad_Queue"/>
    </widget>
-   <addaction name="menuFunction"/>
    <addaction name="menuBoards"/>
+   <addaction name="menuFunction"/>
    <addaction name="menuOptions"/>
    <addaction name="menuRange"/>
    <addaction name="menuTriggering"/>
@@ -228,6 +244,11 @@
    <property name="text">
     <string>NOSCALEDATA</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
    </property>
@@ -239,6 +260,11 @@
    <property name="text">
     <string>NOCALIBRATEDATA</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="actionEXTCLOCK">
    <property name="checkable">
@@ -246,6 +272,11 @@
    </property>
    <property name="text">
     <string>EXTCLOCK</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
@@ -258,6 +289,11 @@
    <property name="text">
     <string>EXTTRIGGER</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
    </property>
@@ -268,6 +304,11 @@
    </property>
    <property name="text">
     <string>CONTINUOUS</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
@@ -291,6 +332,11 @@
    <property name="text">
     <string>BACKGROUND</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="actionRISING_EDGE">
    <property name="checkable">
@@ -302,6 +348,11 @@
    <property name="text">
     <string>RISING_EDGE</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="actionFALLING_EDGE">
    <property name="checkable">
@@ -309,6 +360,11 @@
    </property>
    <property name="text">
     <string>FALLING_EDGE</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionACTIVE_HIGH">
@@ -318,6 +374,11 @@
    <property name="text">
     <string>ACTIVE_HIGH</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="actionACTIVE_LOW">
    <property name="checkable">
@@ -325,6 +386,11 @@
    </property>
    <property name="text">
     <string>ACTIVE_LOW</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionVolts_vs_Time">
@@ -334,10 +400,33 @@
    <property name="text">
     <string>Volts vs Time</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="actionLoad_Queue">
    <property name="text">
     <string>Load Queue</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionTmrloop">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Timer loop</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
  </widget>

@@ -18,7 +18,8 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
-//DEFINES += HAT_03
+DEFINES += HAT_03
+//DEFINES += HAT_04
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -37,7 +38,8 @@ SOURCES += \
     hatdiscovery.cpp \
     infoform.cpp \
     queuedialog.cpp \
-    hatinterface.cpp
+    hatinterface.cpp \
+    tmrdialog.cpp
 
 HEADERS += \
     qcustomplot.h \
@@ -50,7 +52,8 @@ HEADERS += \
     hatdiscovery.h \
     infoform.h \
     queuedialog.h \
-    hatinterface.h
+    hatinterface.h \
+    tmrdialog.h
 
 FORMS += \
     errordialog.ui \
@@ -58,7 +61,8 @@ FORMS += \
     hatdevice.ui \
     hatdiscovery.ui \
     infoform.ui \
-    queuedialog.ui
+    queuedialog.ui \
+    tmrdialog.ui
 
 target.path = /home/pi
 INSTALLS += target

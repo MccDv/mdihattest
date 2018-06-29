@@ -25,6 +25,40 @@ QString getHatTypeName(uint16_t hatType)
     }
 }
 
+QString getFuncGroupName(UtFunctionGroup funcGroup)
+{
+    switch (funcGroup) {
+    case FUNC_GROUP_DISC:
+        return "Discovery Functions";
+        break;
+    case FUNC_GROUP_AIN:
+        return "Analog Input";
+        break;
+    case FUNC_GROUP_AOUT:
+        return "Analog Output";
+        break;
+    case FUNC_GROUP_DIN:
+        return "Digital Input";
+        break;
+    case FUNC_GROUP_DOUT:
+        return "Digital Output";
+        break;
+    case FUNC_GROUP_CTR:
+        return "Counter Functions";
+        break;
+    case FUNC_GROUP_MISC:
+        return "Miscellaneous Functions";
+        break;
+    case FUNC_GROUP_CONFIG:
+        return "Configuration";
+        break;
+    default:
+        return "Invalid function group";
+        break;
+    }
+
+}
+
 QString getOptionNames(uint32_t curOptions)
 {
     QString optString;

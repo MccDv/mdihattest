@@ -10,6 +10,11 @@
     <height>254</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Discover Hats</string>
   </property>
@@ -81,6 +86,13 @@
           <widget class="QPushButton" name="cmdDiscover">
            <property name="text">
             <string>Discover</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="cmbFilter">
+           <property name="toolTip">
+            <string>Device filter</string>
            </property>
           </widget>
          </item>

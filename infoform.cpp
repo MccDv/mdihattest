@@ -45,9 +45,7 @@ InfoForm::~InfoForm()
 
 void InfoForm::updateParameters()
 {
-    ChildWindow *parentWindow;
 
-    parentWindow = qobject_cast<ChildWindow *>(this->parent());
 }
 
 void InfoForm::showQueueConfig()
@@ -368,12 +366,14 @@ void InfoForm::readStatus()
     uint32_t samplesAvailable;
 
     mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
-    ui->lblStatus->setText(hatInterface->getStatus());
-    statText = getStatusText(status);
-    ui->teShowValues->setText("Scan status: " + statText);
-    ui->teShowValues->append(QString("Scan status: %1 with %2 samples to read")
-                             .arg(statText)
-                             .arg(samplesAvailable));
+    if(mResponse != RESULT_INVALID_DEVICE) {
+        ui->lblStatus->setText(hatInterface->getStatus());
+        statText = getStatusText(status);
+        ui->teShowValues->setText("Scan status: " + statText);
+        ui->teShowValues->append(QString("Scan status: %1 with %2 samples to read")
+                                 .arg(statText)
+                                 .arg(samplesAvailable));
+    }
 }
 
 void InfoForm::readClkTrg()
@@ -457,48 +457,6 @@ void InfoForm::readCal()
     ui->lblInfo->setText(hatInterface->getStatus());
 }
 
-#ifdef HAT_03
-void InfoForm::readTcTypes()
-{
-    QString dataText, typeName;
-    uint8_t chan, curChan;
-    int numChans;
-    uint8_t tcType;
-
-    curChan = ui->spnCalChan->value();
-    ui->teShowValues->clear();
-
-    numChans = hatInterface->getNumAInChans(mHatID);
-
-    for(chan = 0; chan < numChans; chan++) {
-        mResponse = hatInterface->readTcTypes(mHatID, mAddress, chan, tcType);
-        ui->lblInfo->setText(hatInterface->getStatus());
-        typeName = getTcTypeName(tcType);
-        dataText.append(QString("<td>Chan: %1</td><td>TC Type:  %2 (%3)</td>")
-                        .arg(chan).arg(tcType).arg(typeName));
-        dataText.append("</tr><tr>");
-        if(chan == curChan)
-            ui->cmbTcType->setCurrentIndex(tcType);
-    }
-    ui->teShowValues->setHtml(dataText);
-    ui->lblInfo->setText(hatInterface->getStatus());
-}
-#endif
-
-#ifdef HAT_03
-void InfoForm::writeTcType()
-{
-    uint8_t chan, tcType;
-
-    chan = ui->spnCalChan->value();
-    tcType = ui->cmbTcType->currentData().toUInt();
-    ui->teShowValues->clear();
-    mResponse = hatInterface->writeTcType(mHatID, mAddress, chan, tcType);
-    delay(300);
-    readTcTypes();
-}
-#endif
-
 void InfoForm::writeCal()
 {
     uint8_t chan;
@@ -548,3 +506,50 @@ void InfoForm::showBoardParameters()
                  + "Use Discover to open device.");
     }
 }
+
+#ifdef HAT_03
+
+void InfoForm::readTcTypes()
+{
+    QString dataText, typeName;
+    uint8_t chan, curChan;
+    int numChans;
+    uint8_t tcType;
+
+    curChan = ui->spnCalChan->value();
+    ui->teShowValues->clear();
+
+    numChans = hatInterface->getNumAInChans(mHatID);
+
+    for(chan = 0; chan < numChans; chan++) {
+        mResponse = hatInterface->readTcTypes(mHatID, mAddress, chan, tcType);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        typeName = getTcTypeName(tcType);
+        dataText.append(QString("<td>Chan: %1</td><td>TC Type:  %2 (%3)</td>")
+                        .arg(chan).arg(tcType).arg(typeName));
+        dataText.append("</tr><tr>");
+        if(chan == curChan)
+            ui->cmbTcType->setCurrentIndex(tcType);
+    }
+    ui->teShowValues->setHtml(dataText);
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void InfoForm::writeTcType()
+{
+    uint8_t chan, tcType;
+
+    chan = ui->spnCalChan->value();
+    tcType = ui->cmbTcType->currentData().toUInt();
+    ui->teShowValues->clear();
+    mResponse = hatInterface->writeTcType(mHatID, mAddress, chan, tcType);
+    delay(300);
+    readTcTypes();
+}
+
+#endif
+
+#ifdef HAT_04
+
+#endif
+

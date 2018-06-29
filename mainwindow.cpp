@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionVolts_vs_Time, SIGNAL(triggered(bool)), this, SLOT(showPlot(bool)));
     connect(ui->mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(setBoardMenuSelect(QMdiSubWindow*)));
     connect(ui->actionLoad_Queue, SIGNAL(triggered(bool)), this, SLOT(configureQueue()));
+    connect(ui->actionTmrloop, SIGNAL(triggered(bool)), this, SLOT(setTimer()));
 
     readWindowPosition();
 
@@ -92,6 +93,16 @@ ChildWindow *MainWindow::activeMdiChild() const
     if (QMdiSubWindow *activeSubWindow = ui->mdiArea->activeSubWindow())
         return qobject_cast<ChildWindow *>(activeSubWindow);
     return 0;
+}
+
+void MainWindow::setTimer()
+{
+    ChildWindow *curChild;
+
+    curChild = activeMdiChild();
+    if (curChild) {
+        curChild->setUpTimer();
+    }
 }
 
 void MainWindow::createDiscChild()
@@ -350,9 +361,13 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
     ui->lblAppStatus->clear();
     if (curChild) {
         curBoard = curChild->devName();
+        UtFunctionGroup functionGroup = curChild->curFunctionGroup();
+        curFunctionGroupName = getFuncGroupName(functionGroup);
         if (curBoard == "") {
             ui->lblAppStatus->setText(curFunctionGroupName + ": No device name obtained");
             return;
+        } else {
+            ui->lblAppStatus->setText(curFunctionGroupName + ": " + curBoard);
         }
         curAddress = curChild->devAddress();
         //QString tempString;
@@ -372,10 +387,10 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
         }
         UtFunctionGroup curFuncGroup = curChild->curFunctionGroup();
         curFunc = curChild->curFunction();
+        curFunctionGroupName = getFuncGroupName(curFuncGroup);
         mScanOptions = curChild->scanOptions();
         switch (curFuncGroup) {
         case FUNC_GROUP_AIN:
-            curFunctionGroupName = "Analog Input";
             optionVisible = true;
             switch (curFunc) {
             case UL_AIN:
@@ -390,7 +405,6 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
             }
             break;
         case FUNC_GROUP_MISC:
-            curFunctionGroupName = "Miscellaneous Functions";
             optionVisible = false;
             switch (curFunc) {
             default:
@@ -398,7 +412,6 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
             }
             break;
         case FUNC_GROUP_DISC:
-            curFunctionGroupName = "Discovery Functions";
             optionVisible = false;
             break;
         default:
@@ -450,24 +463,12 @@ void MainWindow::setSelectedDevice()
     mCurAddress = addressVar.toUInt();
     mCurBoardName = mHatList.value(mCurAddress);
     mCurID = mHatIDList.value(mCurAddress);
-//    for (int i = 0; i < MAX_NUMBER_HATS; i++) {
-//        if (hatList.v == mCurAddress) {
-//            descriptorIndex = i;
-//            break;
-//        }
-//    }
-    //devHandle = devList.value(curUniqueID); // deviceHandle.toInt();
-    //curBoardName = devDescriptors[descriptorIndex].productName;
-    //curUniqueID = devDescriptors[descriptorIndex].uniqueId;
 
     if(mdiChild) {
-        //function = mdiChild->currentFunction();
         mdiChild->setDevAddress(mCurAddress);
         mdiChild->setDevName(mCurBoardName);
         mdiChild->setDevId(mCurID);
         ui->lblAppStatus->setText(curFunctionGroupName + ": " + mCurBoardName + QString(" {%1}").arg(mCurID));
-
-        //mdiChild->refreshBoardParams();
     }
 }
 
@@ -596,6 +597,11 @@ void MainWindow::addFunction(QString funcString)
     mFuncHistoryList.append(funcString);
     if (mFuncHistoryList.size() > mHistListSize)
         mFuncHistoryList.removeFirst();
+}
+
+void MainWindow::setStatusLabel(QString statusText)
+{
+    ui->lblAppStatus->setText(statusText);
 }
 
 void MainWindow::setError(int curError, QString funcText)

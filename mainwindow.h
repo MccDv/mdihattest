@@ -42,6 +42,7 @@ public:
     void setError(int curError, QString funcText);
     void addDeviceToMenu(QString devName, uint8_t devAddress, uint16_t hatType);
     void removeDeviceFromMenu(uint8_t devAddress);
+    void setStatusLabel(QString statusText);
 
 private slots:
     void setBoardMenuSelect(QMdiSubWindow* childWind);
@@ -56,6 +57,7 @@ private slots:
     void showHistory();
     void showPlot(bool showIt);
     void configureQueue();
+    void setTimer();
 
 private:
     Ui::MainWindow *ui;

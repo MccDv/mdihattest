@@ -18,6 +18,7 @@ private slots:
     void readHatList();
     void devSelectedChanged();
     void functionChanged(int utFunction);
+    void runSelectedFunction();
     void showPlotWindow(bool showIt);
     void openCmdClicked();
     void closeCmdClicked();

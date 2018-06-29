@@ -5,10 +5,8 @@
 #include <QWidget>
 #include <QMdiSubWindow>
 #include "unitest.h"
+#include "tmrdialog.h"
 #include "daqhats/daqhats.h"
-//#include "mainwindow.h"
-//#include "hatdevice.h"
-//#include "hatdiscovery.h"
 
 namespace Ui {
     class ChildWindow;
@@ -24,6 +22,11 @@ class ChildWindow : public QMdiSubWindow
     Q_PROPERTY(u_int32_t scanOptions READ scanOptions WRITE setScanOptions NOTIFY scanOptionsChanged)
     Q_PROPERTY(int curFunction READ curFunction WRITE setCurFunction NOTIFY curFunctionChanged)
     Q_PROPERTY(TriggerMode triggerType READ triggerType WRITE setTriggerType NOTIFY triggerTypeChanged)
+
+    Q_PROPERTY(bool tmrEnabled READ tmrEnabled WRITE setTmrEnabled NOTIFY tmrEnabledChanged)
+    Q_PROPERTY(int tmrInterval READ tmrInterval WRITE setTmrInterval NOTIFY tmrIntervalChanged)
+    Q_PROPERTY(bool tmrStopOnStart READ tmrStopOnStart WRITE setTmrStopOnStart NOTIFY tmrStopOnStartChanged)
+    Q_PROPERTY(bool tmrRunning READ tmrRunning WRITE setTmrRunning NOTIFY tmrRunningChanged)
 
 public:
     explicit ChildWindow(QWidget *parent = 0, UtFunctionGroup funcGroup = FUNC_GROUP_DISC);
@@ -72,19 +75,56 @@ public:
         emit triggerTypeChanged(trigType);
     }
 
+    void setTmrEnabled(bool tmrEnabled)
+    {
+        mTmrEnabled = tmrEnabled;
+        emit tmrEnabledChanged(tmrEnabled);
+    }
+
+    void setTmrInterval(int tmrInterval)
+    {
+        mTmrInterval = tmrInterval;
+        emit tmrIntervalChanged(tmrInterval);
+    }
+
+    void setTmrRunning(bool runTimer)
+    {
+        mTmrRunning = runTimer;
+        emit tmrRunningChanged(runTimer);
+    }
+
+    void setTmrStopOnStart(bool stopOnStart)
+    {
+        mStopOnStart = stopOnStart;
+        emit tmrStopOnStartChanged(stopOnStart);
+    }
+
     QString devName() { return mDevName; }
     uint8_t devAddress() { return mDevAddress; }
     uint16_t devId() { return mDevID; }
+
+    bool tmrEnabled() { return mTmrEnabled; }
+    int tmrInterval() { return mTmrInterval; }
+    bool tmrRunning() { return mTmrRunning; }
+    bool tmrStopOnStart() { return mStopOnStart; }
     bool showPlot() { return mShowPlot; }
+
     u_int32_t scanOptions() { return mScanOptions; }
     int curFunction() { return mCurFunction; }
     TriggerMode triggerType() { return mTriggerType; }
     UtFunctionGroup curFunctionGroup() { return mCurFunctionGroup; }
     void showQueueConfig() { emit configQueue(); }
+    void setUpTimer();
+
+private slots:
+    void goTimerRun(bool enable);
+    void tmrDialogResponse();
 
 private:
     QWidget *subwidget;
     QString windowName;
+    QTimer *tmrRunFunc;
+    TmrDialog *tmrDialog;
 
     QString mDevName;
     uint8_t mDevAddress;
@@ -95,6 +135,12 @@ private:
 
     bool mShowPlot;
     int mCurFunction;
+
+    bool mTmrEnabled = false;
+    bool mStopOnStart = false;
+    int mTmrInterval;
+    bool mTmrRunning = false;
+
     UtFunctionGroup mCurFunctionGroup;
 
     void readWindowPosition();
@@ -110,6 +156,10 @@ signals:
     void triggerTypeChanged(TriggerMode);
     void configQueue();
 
+    void tmrEnabledChanged(bool);
+    void tmrIntervalChanged(int);
+    void tmrRunningChanged(bool);
+    void tmrStopOnStartChanged(bool);
 };
 
 #endif // CHILDWINDOW_H

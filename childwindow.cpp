@@ -30,10 +30,14 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
         mCurFunction = UL_DISC;
         break;
     }
+
     mScanOptions = 0;
     mTriggerType = TRIG_RISING_EDGE;
     mAiResolution = 12;
     mCurFunctionGroup = funcGroup;
+    tmrRunFunc = new QTimer(this);
+    mTmrEnabled = false;
+    mTmrInterval = 0;
 
     //MainWindow *mainParent = qobject_cast<MainWindow *>(parent);
     this->setWidget(subwidget);
@@ -45,6 +49,8 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     connect(this, SIGNAL(scanOptionsChanged(u_int32_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(triggerTypeChanged(TriggerMode)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(configQueue()), subwidget, SLOT(showQueueConfig()));
+    connect(tmrRunFunc, SIGNAL(timeout()), subwidget, SLOT(runSelectedFunction()));
+    connect(this, SIGNAL(tmrRunningChanged(bool)), this, SLOT(goTimerRun(bool)));
 
     readWindowPosition();
 }
@@ -61,12 +67,43 @@ ChildWindow::~ChildWindow()
     subwidget->~QWidget();
 }
 
+void ChildWindow::goTimerRun(bool enable)
+{
+    if (enable) {
+        tmrRunFunc->start(mTmrInterval);
+    } else {
+        tmrRunFunc->stop();
+    }
+    emit tmrEnabledChanged(true);
+}
+
 MainWindow* getMainWindow()
 {
     foreach (QWidget *w, QApplication::topLevelWidgets())
         if (QMainWindow* mainWin = qobject_cast<QMainWindow*>(w))
             return qobject_cast<MainWindow *>(mainWin);
     return nullptr;
+}
+
+void ChildWindow::setUpTimer()
+{
+    tmrDialog = new TmrDialog(this);
+    connect(tmrDialog, SIGNAL(accepted()), this, SLOT(tmrDialogResponse()));
+    if (mTmrInterval == 0)
+        mTmrInterval = 1000;
+    tmrDialog->setEnabled(mTmrEnabled);
+    tmrDialog->setInterval(mTmrInterval);
+    tmrDialog->setStopOnStart(mStopOnStart);
+    tmrDialog->exec();
+}
+
+void ChildWindow::tmrDialogResponse()
+{
+    mTmrEnabled = tmrDialog->enabled();
+    mTmrInterval = tmrDialog->interval();
+    mStopOnStart = tmrDialog->stopOnStart();
+    disconnect(tmrDialog);
+    delete tmrDialog;
 }
 
 void ChildWindow::readWindowPosition()
