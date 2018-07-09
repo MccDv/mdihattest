@@ -12,20 +12,21 @@ Building the **mdihattest** program requires C/C++ compilers and qmake tool (if 
   
   - Update Raspbian installation packages
   
-  ```
+  ```sh
      $ sudo apt-get update
      $ sudo apt-get install git
-
   ```
+  
   - Install Qt base packages
   
-  ```
+  ```sh
      $ sudo apt install qtbase5-dev
      $ sudo apt install qt5-default
   ```
+  
   - May also need spi package
   
-  ```
+  ```sh
      $ sudo apt-get install at-spi2-core
   ``` 
 
@@ -35,5 +36,3 @@ Building the **mdihattest** program requires C/C++ compilers and qmake tool (if 
 It's possible to build this on Rpi, but that would be a fairly long process. It's better to use a cross-compiler and build on a desktop, then deploy to Rpi. Additional dependancies would likely be needed. Installing Qt (version 5.7.1 has been tested).
 
 If you want to just run the binary, install the prerequisites above on the Rpi, and download the binary from **release**.
-
-
