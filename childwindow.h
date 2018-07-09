@@ -25,6 +25,7 @@ class ChildWindow : public QMdiSubWindow
 
     Q_PROPERTY(bool tmrEnabled READ tmrEnabled WRITE setTmrEnabled NOTIFY tmrEnabledChanged)
     Q_PROPERTY(int tmrInterval READ tmrInterval WRITE setTmrInterval NOTIFY tmrIntervalChanged)
+    Q_PROPERTY(bool tmrSampPerInterval READ tmrSampPerInterval WRITE setTmrSampPerInterval NOTIFY tmrSampPerIntervalChanged)
     Q_PROPERTY(bool tmrStopOnStart READ tmrStopOnStart WRITE setTmrStopOnStart NOTIFY tmrStopOnStartChanged)
     Q_PROPERTY(bool tmrRunning READ tmrRunning WRITE setTmrRunning NOTIFY tmrRunningChanged)
 
@@ -87,6 +88,12 @@ public:
         emit tmrIntervalChanged(tmrInterval);
     }
 
+    void setTmrSampPerInterval(bool sampPerInterval)
+    {
+        mOneSamplePer = sampPerInterval;
+        emit tmrSampPerIntervalChanged(sampPerInterval);
+    }
+
     void setTmrRunning(bool runTimer)
     {
         mTmrRunning = runTimer;
@@ -105,6 +112,7 @@ public:
 
     bool tmrEnabled() { return mTmrEnabled; }
     int tmrInterval() { return mTmrInterval; }
+    bool tmrSampPerInterval() { return mOneSamplePer; }
     bool tmrRunning() { return mTmrRunning; }
     bool tmrStopOnStart() { return mStopOnStart; }
     bool showPlot() { return mShowPlot; }
@@ -139,6 +147,7 @@ private:
     bool mTmrEnabled = false;
     bool mStopOnStart = false;
     int mTmrInterval;
+    bool mOneSamplePer;
     bool mTmrRunning = false;
 
     UtFunctionGroup mCurFunctionGroup;
@@ -159,6 +168,7 @@ signals:
     void tmrEnabledChanged(bool);
     void tmrIntervalChanged(int);
     void tmrRunningChanged(bool);
+    void tmrSampPerIntervalChanged(bool);
     void tmrStopOnStartChanged(bool);
 };
 

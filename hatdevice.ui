@@ -138,6 +138,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QCheckBox" name="chkCJC">
+        <property name="text">
+         <string>CJC</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="chkVolts">
         <property name="text">
          <string>Volts</string>

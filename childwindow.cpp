@@ -38,6 +38,7 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     tmrRunFunc = new QTimer(this);
     mTmrEnabled = false;
     mTmrInterval = 0;
+    mOneSamplePer = false;
 
     //MainWindow *mainParent = qobject_cast<MainWindow *>(parent);
     this->setWidget(subwidget);
@@ -51,6 +52,7 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     connect(this, SIGNAL(configQueue()), subwidget, SLOT(showQueueConfig()));
     connect(tmrRunFunc, SIGNAL(timeout()), subwidget, SLOT(runSelectedFunction()));
     connect(this, SIGNAL(tmrRunningChanged(bool)), this, SLOT(goTimerRun(bool)));
+    connect(this, SIGNAL(tmrIntervalChanged(int)), subwidget, SLOT(updateParameters()));
 
     readWindowPosition();
 }
@@ -93,6 +95,7 @@ void ChildWindow::setUpTimer()
         mTmrInterval = 1000;
     tmrDialog->setEnabled(mTmrEnabled);
     tmrDialog->setInterval(mTmrInterval);
+    tmrDialog->setOnePerInterval(mOneSamplePer);
     tmrDialog->setStopOnStart(mStopOnStart);
     tmrDialog->exec();
 }
@@ -102,8 +105,10 @@ void ChildWindow::tmrDialogResponse()
     mTmrEnabled = tmrDialog->enabled();
     mTmrInterval = tmrDialog->interval();
     mStopOnStart = tmrDialog->stopOnStart();
+    mOneSamplePer = tmrDialog->onePerInterval();
     disconnect(tmrDialog);
     delete tmrDialog;
+    emit tmrIntervalChanged(mTmrInterval);
 }
 
 void ChildWindow::readWindowPosition()

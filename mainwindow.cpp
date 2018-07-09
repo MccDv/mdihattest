@@ -299,6 +299,10 @@ void MainWindow::createFuncMenus()
         case FUNC_GROUP_MISC:
             trigVisible = false;
             plotVisible = false;
+            funcAction = ui->menuFunction->addAction("Utilities");
+            funcAction->setCheckable(true);
+            funcAction->setData(UL_GET_ERR_MSG);
+            functionGroup->addAction(funcAction);
             funcAction = ui->menuFunction->addAction("Analog Input");
             funcAction->setCheckable(true);
             funcAction->setChecked(true);

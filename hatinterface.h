@@ -18,6 +18,7 @@ public:
     QHash<uint8_t, QString> refreshHatList();
     QHash<uint8_t, uint16_t> refreshHatIDList();
     QString getStatus() { return mStatusString; }
+    QString getErrorMessage(int result);
     int openDevice(uint16_t devType, uint8_t address);
     int closeDevice(uint16_t devType, uint8_t address);
     bool deviceIsOpen(uint16_t devType, uint8_t address);

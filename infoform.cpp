@@ -108,6 +108,9 @@ void InfoForm::readCalClicked()
 void InfoForm::loadCalClicked()
 {
     switch (mUtFunction) {
+    case UL_GET_ERR_MSG:
+        mSelectedFunction = READ_ERROR;
+        break;
     case UL_AI_INFO:
         mSelectedFunction = WRITE_CAL;
         break;
@@ -170,6 +173,9 @@ void InfoForm::runSelectedFunction()
     case READ_STATUS:
         readStatus();
         break;
+    case READ_ERROR:
+        showErrorMessage();
+        break;
     default:
         break;
     }
@@ -180,8 +186,10 @@ void InfoForm::functionChanged(int utFunction)
     QString readCmdText;
     QString writeCmdText, flashCmdText;
     QString spnToolTip;
+    int lowLimit;
     bool calVisible, readVisible, scanCleanVisible;
     bool tcTypeVisible, spinVisible;
+    bool flashVisible;
 
     ui->cmbTcType->clear();
 
@@ -189,9 +197,20 @@ void InfoForm::functionChanged(int utFunction)
     calVisible = true;
     spinVisible = true;
     readVisible = true;
+    flashVisible = true;
     scanCleanVisible = true;
     tcTypeVisible = false;
+    lowLimit = 0;
+
     switch (mUtFunction) {
+    case UL_GET_ERR_MSG:
+        writeCmdText = "Get Err Msg";
+        spnToolTip = "Result code";
+        calVisible = false;
+        readVisible = false;
+        flashVisible = false;
+        lowLimit = -12;
+        break;
     case UL_AI_INFO:
         readCmdText = "Read Cal";
         writeCmdText = "Load Cal";
@@ -243,6 +262,9 @@ void InfoForm::functionChanged(int utFunction)
     ui->spnCalChan->setVisible(spinVisible);
     ui->cmdReadCal->setVisible(readVisible);
     ui->cmbTcType->setVisible(tcTypeVisible);
+    ui->cmdFlashLED->setVisible(flashVisible);
+    ui->leFlashCount->setVisible(flashVisible);
+    ui->spnCalChan->setMinimum(lowLimit);
 }
 
 void InfoForm::showPlotWindow(bool showIt)
@@ -347,6 +369,16 @@ void InfoForm::showSysInfo()
         sysFile.close();
     }
     ui->teShowValues->append(fileText);
+}
+
+void InfoForm::showErrorMessage()
+{
+    QString message;
+    int result;
+
+    result = ui->spnCalChan->value();
+    message = hatInterface->getErrorMessage(result);
+    ui->teShowValues->setText(message);
 }
 
 void InfoForm::flashLED()

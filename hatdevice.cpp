@@ -1,3 +1,4 @@
+
 #include "hatdevice.h"
 #include "ui_hatdevice.h"
 #include "mainwindow.h"
@@ -27,6 +28,8 @@ HatDevice::HatDevice(QWidget *parent) :
     mTriggered = false;
     mBackgroundScan = true;
     mQueueEnabled = false;
+    mOneSampPerForTotalSamps = false;
+    mTotalRead = 0;
 
     ui->teShowValues->setFont(QFont ("Courier", 8));
     ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
@@ -108,6 +111,8 @@ void HatDevice::updateParameters()
     mUseTimer = parentWindow->tmrEnabled();
     mStopOnStart = parentWindow->tmrStopOnStart();
     mGoTmrIsRunning = parentWindow->tmrRunning();
+    mTmrInterval = parentWindow->tmrInterval();
+    mOneSampPerForTotalSamps = parentWindow->tmrSampPerInterval();
 
     mOptNames = getOptionNames(mScanOptions);
     trigString = getTrigText(mTriggerType);
@@ -156,12 +161,14 @@ void HatDevice::setUiForFunction()
     //parentWindow = qobject_cast<ChildWindow *>(this->parent());
     //mRange = parentWindow->getCurrentRange();
     bool scanVisible, voltCheckVisible;
+    bool cjcCheckVisible;
 
     //mChanList.clear();
     //mRangeList.clear();
     mPlot = false;
     scanVisible = false;
     voltCheckVisible = false;
+    cjcCheckVisible = false;
     switch (mCurFunction) {
     case UL_AIN:
         mFuncName = "ulAIn";
@@ -171,6 +178,7 @@ void HatDevice::setUiForFunction()
         mFuncName = "ulTIn";
         ui->leNumSamples->setText("10");
         voltCheckVisible = true;
+        cjcCheckVisible = true;
         break;
     case UL_AINSCAN:
         mFuncName = "ulAInScan";
@@ -185,6 +193,7 @@ void HatDevice::setUiForFunction()
     }
     ui->fraScan->setVisible(scanVisible);
     ui->chkVolts->setVisible(voltCheckVisible);
+    ui->chkCJC->setVisible(cjcCheckVisible);
     //ui->cmdStop->setEnabled(false);
     showPlotWindow(mPlot);
     this->setWindowTitle(mFuncName + ": " + mDevName);
@@ -202,6 +211,7 @@ void HatDevice::goCmdClicked()
     parentWindow = qobject_cast<ChildWindow *>(this->parent());
     bool tmrIsEnabled;
 
+    mTotalRead = 0;
     tmrIsEnabled = parentWindow->tmrEnabled();
     mUseTimer = tmrIsEnabled;
     runSelectedFunction();
@@ -282,6 +292,7 @@ void HatDevice::runSetTriggerFunc()
 void HatDevice::runAinFunction()
 {
     uint8_t aInChan, aInLastChan;
+    uint32_t samplesToRead;
     int curIndex;
     double data;
 
@@ -302,20 +313,29 @@ void HatDevice::runAinFunction()
     if(mPlot)
         setupPlot(ui->AiPlot, mChanCount);
 
-    if (buffer) {
-        delete[] buffer;
-        buffer = NULL;
+    samplesToRead = mSamplesPerChan;
+    curIndex = 0;
+    if(mOneSampPerForTotalSamps) {
+        samplesToRead = 1;
+        curIndex = mTotalRead * mChanCount;
     }
 
-    long long bufSize = mChanCount * mSamplesPerChan;
-    mBufSize = bufSize;
-    buffer = new double[bufSize];
-    memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+    if((!mOneSampPerForTotalSamps) | (mTotalRead == 0)) {
+        if (buffer) {
+            delete[] buffer;
+            buffer = NULL;
+        }
+
+        long long bufSize = mChanCount * mSamplesPerChan;
+        mBufSize = bufSize;
+        buffer = new double[bufSize];
+        memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+    }
 
     uint8_t curChan;
     curIndex = 0;
     mRunning = true;
-    for (uint32_t sampleNum = 0; sampleNum < mSamplesPerChan; sampleNum++) {
+    for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
         foreach(curChan, mChanList) {
             mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, mScanOptions, data);
             ui->lblInfo->setText(hatInterface->getStatus());
@@ -326,23 +346,38 @@ void HatDevice::runAinFunction()
                 return;
             }
         }
+        mTotalRead += 1;
+    }
+    if(mOneSampPerForTotalSamps) {
+        QString timerRate = ".";
+        if(mUseTimer)
+            timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
+        ui->lblStatus->setText(QString("%1 samples read%2")
+                               .arg(mTotalRead).arg(timerRate));
     }
 
     mRunning = false;
     if(mPlot)
-        plotScan(0, 0, mSamplesPerChan);
+        plotScan(0, 0, mTotalRead);
     else
-        printData(0, 0, mSamplesPerChan);
+        printData(0, 0, mTotalRead);
+    if(mTotalRead == mSamplesPerChan) {
+        mUseTimer = false;
+    }
 }
 
 void HatDevice::runTinFunction()
 {
     uint8_t aInChan, aInLastChan;
-    int curIndex;
+    uint32_t samplesToRead;
+    int curIndex, addChan;
     double data;
     bool showVolts;
 
     data = 0.0;
+    addChan = 0;
+    if(ui->chkCJC->isChecked())
+        addChan = 1;
     showVolts = ui->chkVolts->isChecked();
 
     if(!mQueueEnabled) {
@@ -352,6 +387,7 @@ void HatDevice::runTinFunction()
         mChanCount = (aInLastChan - aInChan) + 1;
         for(int chan = 0; chan < mChanCount; chan++)
             mChanList[chan] = aInChan + chan;
+        mChanCount += addChan;
     }
     if(mChanCount < 1) mChanCount = 1;
 
@@ -360,20 +396,28 @@ void HatDevice::runTinFunction()
     if(mPlot)
         setupPlot(ui->AiPlot, mChanCount);
 
-    if (buffer) {
-        delete[] buffer;
-        buffer = NULL;
+    samplesToRead = mSamplesPerChan;
+    curIndex = 0;
+    if(mOneSampPerForTotalSamps) {
+        samplesToRead = 1;
+        curIndex = mTotalRead * mChanCount;
     }
 
-    long long bufSize = mChanCount * mSamplesPerChan;
-    mBufSize = bufSize;
-    buffer = new double[bufSize];
-    memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+    if((!mOneSampPerForTotalSamps) | (mTotalRead == 0)) {
+        if (buffer) {
+            delete[] buffer;
+            buffer = NULL;
+        }
+
+        long long bufSize = (mChanCount) * mSamplesPerChan;
+        mBufSize = bufSize;
+        buffer = new double[bufSize];
+        memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+    }
 
     uint8_t curChan;
-    curIndex = 0;
     mRunning = true;
-    for (uint32_t sampleNum = 0; sampleNum < mSamplesPerChan; sampleNum++) {
+    for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
         foreach(curChan, mChanList) {
             if(showVolts)
                 mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, 0, data);
@@ -387,13 +431,29 @@ void HatDevice::runTinFunction()
                 return;
             }
         }
+        if(addChan != 0) {
+            mResponse = hatInterface->boardTemp(mHatID, mAddress, data);
+            buffer[curIndex] = data;
+            curIndex++;
+        }
+        mTotalRead += 1;
+    }
+    if(mOneSampPerForTotalSamps) {
+        QString timerRate = ".";
+        if(mUseTimer)
+            timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
+        ui->lblStatus->setText(QString("%1 samples read%2")
+                               .arg(mTotalRead).arg(timerRate));
     }
 
     mRunning = false;
     if(mPlot)
-        plotScan(0, 0, mSamplesPerChan);
+        plotScan(0, 0, mTotalRead);
     else
-        printData(0, 0, mSamplesPerChan);
+        printData(0, 0, mTotalRead);
+    if(mTotalRead == mSamplesPerChan) {
+        mUseTimer = false;
+    }
 }
 
 void HatDevice::runAInScanFunc()
@@ -785,6 +845,12 @@ void HatDevice::showPlotWindow(bool showIt)
     }
     ui->stackedWidget->setFrameShape(frameShape);
     ui->stackedWidget->setCurrentIndex(curIndex);
+    if(buffer) {
+        if(mPlot)
+            plotScan(0, 0, mTotalRead);
+        else
+            printData(0, 0, mTotalRead);
+    }
 }
 
 void HatDevice::setupPlot(QCustomPlot *dataPlot, int chanCount)
@@ -966,20 +1032,16 @@ void HatDevice::updatePlot()
     for (int i = mChanCount; i<8; i++)
         rbPlotSel[i]->setVisible(false);
     autoScale = ui->rbAutoScale->isChecked();
-    setTCRange == (mCurFunction = UL_TIN);
+    setTCRange = (mCurFunction == UL_TIN);
     if(autoScale) {
-        /*if (setTCRange) {
-            for (int chan = 0; chan < mChanCount; chan++) {
-                curSample = buffer[curScan + chan];
-            }
-        }*/
         ui->AiPlot->rescaleAxes();
-        //ui->AiPlot->yAxis->scaleRange(1.2, 1.0);
+        double center = ui->AiPlot->yAxis->range().center();
+        ui->AiPlot->yAxis->scaleRange(1.2, center);
     } else {
         if (setTCRange) {
             rangeBuf = 0;
-            rangeUpper = 35;
-            rangeLower = 15;
+            rangeUpper = 50;
+            rangeLower = 10;
         } else {
             if (mScanOptions & OPTS_NOSCALEDATA) {
                 long fsCount = qPow(2, mAiResolution);
@@ -1012,6 +1074,8 @@ void HatDevice::plotSelect()
         mPlotList[i] = rbPlotSel[i]->isChecked();
 
     int plotSize = ui->leBlockSize->text().toInt();
+    if(mOneSampPerForTotalSamps)
+        plotSize = mTotalRead;
     if (!mRunning)
         plotScan(0, 0, plotSize);
 }

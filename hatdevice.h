@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include <QTimer>
-//#include "mainwindow.h"
 #include "qcustomplot.h"
 #include "queuedialog.h"
 #include "unitest.h"
@@ -81,6 +80,9 @@ private:
     bool mUseTimer;
     bool mGoTmrIsRunning;
     bool mStopOnStart;
+    bool mOneSampPerForTotalSamps;
+    int mTmrInterval;
+
     bool mPlot;
     bool mRunning;
     bool mTriggered;
