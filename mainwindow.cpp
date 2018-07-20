@@ -63,9 +63,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionNOCALIBRATEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
     connect(ui->actionNOSCALEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
 
-    //for(int i = 0; i < MAX_NUMBER_HATS; i++)
-    //    mHatList[i] = "";
     mHatList.clear();
+
+#ifdef HAT_04
+    this->setWindowTitle("MCC HAT Test [0.4]");
+#elif HAT_03
+    this->setWindowTitle("MCC HAT Test [0.3]");
+#else
+    this->setWindowTitle("MCC HAT Test [0.2]");
+#endif
 }
 
 MainWindow::~MainWindow()

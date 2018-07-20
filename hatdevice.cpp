@@ -244,7 +244,9 @@ void HatDevice::runSelectedFunction()
         runAInScanFunc();
         break;
     case UL_TIN:
+#ifdef HAT_03
         runTinFunction();
+#endif
         break;
     default:
         break;
@@ -345,96 +347,6 @@ void HatDevice::runAinFunction()
             } else {
                 return;
             }
-        }
-        mTotalRead += 1;
-    }
-    if(mOneSampPerForTotalSamps) {
-        QString timerRate = ".";
-        if(mUseTimer)
-            timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
-        ui->lblStatus->setText(QString("%1 samples read%2")
-                               .arg(mTotalRead).arg(timerRate));
-    }
-
-    mRunning = false;
-    if(mPlot)
-        plotScan(0, 0, mTotalRead);
-    else
-        printData(0, 0, mTotalRead);
-    if(mTotalRead == mSamplesPerChan) {
-        mUseTimer = false;
-    }
-}
-
-void HatDevice::runTinFunction()
-{
-    uint8_t aInChan, aInLastChan;
-    uint32_t samplesToRead;
-    int curIndex, addChan;
-    double data;
-    bool showVolts;
-
-    data = 0.0;
-    addChan = 0;
-    if(ui->chkCJC->isChecked())
-        addChan = 1;
-    showVolts = ui->chkVolts->isChecked();
-
-    if(!mQueueEnabled) {
-        mChanList.clear();
-        aInChan = ui->spnLowChan->value();
-        aInLastChan = ui->spnHighChan->value();
-        mChanCount = (aInLastChan - aInChan) + 1;
-        for(int chan = 0; chan < mChanCount; chan++)
-            mChanList[chan] = aInChan + chan;
-        mChanCount += addChan;
-    }
-    if(mChanCount < 1) mChanCount = 1;
-
-    //if queue is enabled, mChanCount is set in setupQueue
-    mSamplesPerChan = ui->leNumSamples->text().toLong();
-    if(mPlot)
-        setupPlot(ui->AiPlot, mChanCount);
-
-    samplesToRead = mSamplesPerChan;
-    curIndex = 0;
-    if(mOneSampPerForTotalSamps) {
-        samplesToRead = 1;
-        curIndex = mTotalRead * mChanCount;
-    }
-
-    if((!mOneSampPerForTotalSamps) | (mTotalRead == 0)) {
-        if (buffer) {
-            delete[] buffer;
-            buffer = NULL;
-        }
-
-        long long bufSize = (mChanCount) * mSamplesPerChan;
-        mBufSize = bufSize;
-        buffer = new double[bufSize];
-        memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
-    }
-
-    uint8_t curChan;
-    mRunning = true;
-    for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
-        foreach(curChan, mChanList) {
-            if(showVolts)
-                mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, 0, data);
-            else
-                mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
-            ui->lblInfo->setText(hatInterface->getStatus());
-            if(mResponse == RESULT_SUCCESS) {
-                buffer[curIndex] = data;
-                curIndex++;
-            } else {
-                return;
-            }
-        }
-        if(addChan != 0) {
-            mResponse = hatInterface->boardTemp(mHatID, mAddress, data);
-            buffer[curIndex] = data;
-            curIndex++;
         }
         mTotalRead += 1;
     }
@@ -1079,3 +991,96 @@ void HatDevice::plotSelect()
     if (!mRunning)
         plotScan(0, 0, plotSize);
 }
+
+#ifdef HAT_03
+void HatDevice::runTinFunction()
+{
+    uint8_t aInChan, aInLastChan;
+    uint32_t samplesToRead;
+    int curIndex, addChan;
+    double data;
+    bool showVolts;
+
+    data = 0.0;
+    addChan = 0;
+    if(ui->chkCJC->isChecked())
+        addChan = 1;
+    showVolts = ui->chkVolts->isChecked();
+
+    if(!mQueueEnabled) {
+        mChanList.clear();
+        aInChan = ui->spnLowChan->value();
+        aInLastChan = ui->spnHighChan->value();
+        mChanCount = (aInLastChan - aInChan) + 1;
+        for(int chan = 0; chan < mChanCount; chan++)
+            mChanList[chan] = aInChan + chan;
+        mChanCount += addChan;
+    }
+    if(mChanCount < 1) mChanCount = 1;
+
+    //if queue is enabled, mChanCount is set in setupQueue
+    mSamplesPerChan = ui->leNumSamples->text().toLong();
+    if(mPlot)
+        setupPlot(ui->AiPlot, mChanCount);
+
+    samplesToRead = mSamplesPerChan;
+    curIndex = 0;
+    if(mOneSampPerForTotalSamps) {
+        samplesToRead = 1;
+        curIndex = mTotalRead * mChanCount;
+    }
+
+    if((!mOneSampPerForTotalSamps) | (mTotalRead == 0)) {
+        if (buffer) {
+            delete[] buffer;
+            buffer = NULL;
+        }
+
+        long long bufSize = (mChanCount) * mSamplesPerChan;
+        mBufSize = bufSize;
+        buffer = new double[bufSize];
+        memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+    }
+
+    uint8_t curChan;
+    mRunning = true;
+    for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
+        foreach(curChan, mChanList) {
+            if(showVolts)
+                mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, 0, data);
+            else
+                mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
+            ui->lblInfo->setText(hatInterface->getStatus());
+            if(mResponse == RESULT_SUCCESS) {
+                buffer[curIndex] = data;
+                curIndex++;
+            } else {
+                return;
+            }
+        }
+        if(addChan != 0) {
+            mResponse = hatInterface->boardTemp(mHatID, mAddress, data);
+            buffer[curIndex] = data;
+            curIndex++;
+        }
+        mTotalRead += 1;
+    }
+    if(mOneSampPerForTotalSamps) {
+        QString timerRate = ".";
+        if(mUseTimer)
+            timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
+        ui->lblStatus->setText(QString("%1 samples read%2")
+                               .arg(mTotalRead).arg(timerRate));
+    }
+
+    mRunning = false;
+    if(mPlot)
+        plotScan(0, 0, mTotalRead);
+    else
+        printData(0, 0, mTotalRead);
+    if(mTotalRead == mSamplesPerChan) {
+        mUseTimer = false;
+    }
+}
+
+#endif
