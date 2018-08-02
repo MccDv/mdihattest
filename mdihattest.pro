@@ -39,7 +39,9 @@ SOURCES += \
     infoform.cpp \
     queuedialog.cpp \
     hatinterface.cpp \
-    tmrdialog.cpp
+    tmrdialog.cpp \
+    aout.cpp \
+    dioform.cpp
 
 HEADERS += \
     qcustomplot.h \
@@ -53,7 +55,9 @@ HEADERS += \
     infoform.h \
     queuedialog.h \
     hatinterface.h \
-    tmrdialog.h
+    tmrdialog.h \
+    aout.h \
+    dioform.h
 
 FORMS += \
     errordialog.ui \
@@ -62,7 +66,9 @@ FORMS += \
     hatdiscovery.ui \
     infoform.ui \
     queuedialog.ui \
-    tmrdialog.ui
+    tmrdialog.ui \
+    aout.ui \
+    dioform.ui
 
 target.path = /home/pi
 INSTALLS += target

@@ -28,7 +28,7 @@ InfoForm::InfoForm(QWidget *parent) :
 #endif
 
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
-    connect(ui->cmbDevList, SIGNAL(currentIndexChanged(QString)), this, SLOT(devSelectedChanged(QString)));
+    connect(ui->cmbDevList, SIGNAL(currentIndexChanged(int)), this, SLOT(devSelectedChanged()));
     connect(ui->cmdDevParams, SIGNAL(clicked(bool)), this, SLOT(showBoardParameters()));
     connect(ui->cmdFindHats, SIGNAL(clicked(bool)), this, SLOT(findHats()));
     connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCalClicked()));
@@ -59,6 +59,8 @@ void InfoForm::findHats()
     uint8_t hatAddress;
 
     ui->cmbDevList->clear();
+    mHatList.clear();
+    mHatIDList.clear();
     mHatList = hatInterface->refreshHatList();
     mHatIDList = hatInterface->refreshHatIDList();
     //mHatList = mMainWindowInf->hatList();
@@ -69,22 +71,28 @@ void InfoForm::findHats()
                                  .arg(mHatList.value(hatAddress))
                                  .arg(mHatIDList.value(hatAddress)));
     }
+    ui->cmbDevList->addItem("MCC118");
+    ui->cmbDevList->addItem("MCC132");
+    ui->cmbDevList->addItem("MCC152");
     delay(200);
-    devName = ui->cmbDevList->currentText();
-    devSelectedChanged(devName);
+    devSelectedChanged();
 }
 
-void InfoForm::devSelectedChanged(QString devName)
+void InfoForm::devSelectedChanged()
 {
-    foreach (uint8_t keyVal, mHatList.keys()) {
-        if(mHatList.value(keyVal) == devName) {
-            mAddress = keyVal;
-            mDevName = devName;
-            break;
+    mAddress = -1;
+    mDevName = ui->cmbDevList->currentText();
+    if(mDevName.contains("[")) {
+        foreach (uint8_t keyVal, mHatList.keys()) {
+            if(mHatList.value(keyVal) == mDevName) {
+                mAddress = keyVal;
+                break;
+            }
         }
-    }
-    mHatID = mHatIDList.value(mAddress);
-    this->setWindowTitle("Information " + devName);
+        mHatID = mHatIDList.value(mAddress);
+    } else
+        mHatID = getHatIdFromName(mDevName);
+    this->setWindowTitle("Information " + mDevName);
 }
 
 void InfoForm::readCalClicked()
@@ -507,35 +515,57 @@ void InfoForm::showBoardParameters()
 {
     bool isOpen;
     int numChans;
-    double temp;
 
     ui->lblInfo->clear();
     ui->lblStatus->clear();
     ui->teShowValues->clear();
+    if(mHatID == 0) {
+        ui->teShowValues->setText(QString("%1 device is not supported in this software version.")
+                                  .arg(mDevName));
+        return;
+    }
     ui->teShowValues->setText(QString("Device %1").arg(mDevName));
     ui->teShowValues->append(QString("Address: %1").arg(mAddress));
 
     isOpen = hatInterface->deviceIsOpen(mHatID, mAddress);
     ui->lblStatus->setText(hatInterface->getStatus());
+    if(!isOpen) {
+        ui->teShowValues->setText(QString("%1 device is not open.\n").arg(mDevName)
+             + "Use Discover to open device.\n");
+    }
+    numChans = hatInterface->getNumAInChans(mHatID);
+    ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
+#ifdef HAT_04
+    numChans = hatInterface->getNumAOutChans(mHatID);
+    ui->teShowValues->append(QString("AOut chans: %1").arg(numChans));
+    int lowCount = hatInterface->getAOutCodeMin(mHatID);
+    int highCount = hatInterface->getAOutCodeMax(mHatID);
+    ui->teShowValues->append(QString("AOut code range: %1 to %2")
+                             .arg(lowCount)
+                             .arg(highCount));
+    double lowVolts = hatInterface->getAOutVoltsMin(mHatID);
+    double highVolts = hatInterface->getAOutVoltsMax(mHatID);
+    ui->teShowValues->append(QString("AOut voltage range: %1 to %2")
+                             .arg(lowVolts)
+                             .arg(highVolts));
+    int numDioChans = hatInterface->getNumDioChans(mHatID);
+    ui->teShowValues->append(QString("Dio chans: %1").arg(numDioChans));
+#endif
 
     if (isOpen) {
         ui->lblInfo->setText(QString("Device at address %1 is ready").arg(mAddress));
-        numChans = hatInterface->getNumAInChans(mHatID);
-        ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
         if(mHatID == HAT_ID_MCC_118) {
             numChans = hatInterface->aInScanChanCount(mHatID, mAddress);
             ui->teShowValues->append(QString("Scan channels: %1").arg(numChans));
         }
 #ifdef HAT_03
+        double temp;
         if(mHatID == HAT_ID_MCC_134) {
             mResponse = hatInterface->boardTemp(mHatID, mAddress, temp);
             ui->lblStatus->setText(hatInterface->getStatus());
             ui->teShowValues->append(QString("CJC temperature: %1ᵒC").arg(temp));
         }
 #endif
-    } else {
-        ui->teShowValues->setText(QString("Device at %1 is not open.\n\n").arg(mAddress)
-                 + "Use Discover to open device.");
     }
 }
 

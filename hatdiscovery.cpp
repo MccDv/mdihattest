@@ -49,6 +49,7 @@ void HatDiscovery::readHatList()
     for(int hatNum = 0; hatNum < mNumHats; hatNum++) {
         ui->listWidget->addItem(hatInfoList[hatNum].product_name);
     }
+    ui->lblStatus->setText(QString("Number of Hats found: %1").arg(mNumHats));
 }
 
 void HatDiscovery::updateParameters()

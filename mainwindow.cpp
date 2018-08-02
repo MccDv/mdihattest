@@ -12,6 +12,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->cmdDiscover, SIGNAL(clicked(bool)), this, SLOT(createDiscChild()));
     connect(ui->cmdConfig, SIGNAL(clicked(bool)), this, SLOT(createInfoChild()));
     connect(ui->cmdAIn, SIGNAL(clicked(bool)), this, SLOT(createAiChild()));
+    connect(ui->cmdAOut, SIGNAL(clicked(bool)), this, SLOT(createAoChild()));
+    connect(ui->cmdDIn, SIGNAL(clicked(bool)), this, SLOT(createDinChild()));
+    connect(ui->cmdDOut, SIGNAL(clicked(bool)), this, SLOT(createDOutChild()));
     connect(ui->cmdHistory, SIGNAL(clicked(bool)), this, SLOT(showHistory()));
     connect(ui->actionVolts_vs_Time, SIGNAL(triggered(bool)), this, SLOT(showPlot(bool)));
     connect(ui->mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(setBoardMenuSelect(QMdiSubWindow*)));
@@ -67,6 +70,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #ifdef HAT_04
     this->setWindowTitle("MCC HAT Test [0.4]");
+    ui->cmdAOut->setEnabled(true);
+    ui->cmdDIn->setEnabled(true);
+    ui->cmdDOut->setEnabled(true);
 #elif HAT_03
     this->setWindowTitle("MCC HAT Test [0.3]");
 #else
@@ -91,6 +97,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         hatInterface->closeDevice(devID, address);
     }
     writeWindowPosition();
+    hatInterface = NULL;
     event->accept();
 }
 
@@ -127,6 +134,24 @@ void MainWindow::createAiChild()
 {
     curFunctionGroupName = "Analog Input";
     createChild(FUNC_GROUP_AIN, UL_AIN);
+}
+
+void MainWindow::createAoChild()
+{
+    curFunctionGroupName = "Analog Output";
+    createChild(FUNC_GROUP_AOUT, UL_AOUT);
+}
+
+void MainWindow::createDinChild()
+{
+    curFunctionGroupName = "Digital Input";
+    createChild(FUNC_GROUP_DIN, UL_D_CONFIG_PORT);
+}
+
+void MainWindow::createDOutChild()
+{
+    curFunctionGroupName = "Digital Output";
+    createChild(FUNC_GROUP_DOUT, UL_D_CONFIG_PORT);
 }
 
 void MainWindow::createChild(UtFunctionGroup utFuncGroup, int defaultFunction)
@@ -190,11 +215,9 @@ void MainWindow::createFuncMenus()
             funcAction->setData(UL_TIN);
             functionGroup->addAction(funcAction);
             break;
-        /*
         case FUNC_GROUP_AOUT:
-            rangeVisible = true;
             optionVisible = true;
-            dataVisible = true;
+            //dataVisible = true;
             funcAction = ui->menuFunction->addAction("ulAOut");
             funcAction->setCheckable(true);
             funcAction->setChecked(true);
@@ -204,17 +227,10 @@ void MainWindow::createFuncMenus()
             funcAction->setCheckable(true);
             funcAction->setData(UL_AOUT_SCAN);
             functionGroup->addAction(funcAction);
-            funcAction = ui->menuFunction->addAction("ulDaqOutScan");
-            funcAction->setCheckable(true);
-            funcAction->setData(UL_DAQ_OUTSCAN);
-            functionGroup->addAction(funcAction);
-            ui->actionFF_DEFAULT->setData(AOUT_FF_DEFAULT);
-            ui->actionFF_NOCALIBRATEDATA->setData(AOUT_FF_NOCALIBRATEDATA);
-            ui->actionFF_NOSCALEDATA->setData(AOUT_FF_NOSCALEDATA);
             break;
         case FUNC_GROUP_DIN:
             optionVisible = true;
-            flagsVisible = false;
+            //flagsVisible = false;
             funcAction = ui->menuFunction->addAction("ulDConfigPort");
             funcAction->setCheckable(true);
             funcAction->setChecked(true);
@@ -232,15 +248,15 @@ void MainWindow::createFuncMenus()
             funcAction->setCheckable(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_BIT_IN);
-            funcAction = ui->menuFunction->addAction("ulDInScan");
-            funcAction->setCheckable(true);
-            functionGroup->addAction(funcAction);
-            funcAction->setData(UL_D_INSCAN);
+            //funcAction = ui->menuFunction->addAction("ulDInScan");
+            //funcAction->setCheckable(true);
+            //functionGroup->addAction(funcAction);
+            //funcAction->setData(UL_D_INSCAN);
             break;
         case FUNC_GROUP_DOUT:
             optionVisible = true;
-            flagsVisible = false;
-            dataVisible = true;
+            //flagsVisible = false;
+            //dataVisible = true;
             funcAction = ui->menuFunction->addAction("ulDConfigPort");
             funcAction->setCheckable(true);
             funcAction->setChecked(true);
@@ -258,11 +274,12 @@ void MainWindow::createFuncMenus()
             funcAction->setCheckable(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_BIT_OUT);
-            funcAction = ui->menuFunction->addAction("ulDOutScan");
-            funcAction->setCheckable(true);
-            functionGroup->addAction(funcAction);
-            funcAction->setData(UL_D_OUTSCAN);
+            //funcAction = ui->menuFunction->addAction("ulDOutScan");
+            //funcAction->setCheckable(true);
+            //functionGroup->addAction(funcAction);
+            //funcAction->setData(UL_D_OUTSCAN);
             break;
+        /*
         case FUNC_GROUP_CTR:
             optionVisible = true;
             funcAction = ui->menuFunction->addAction("ulCLoad");
@@ -411,6 +428,58 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
                 break;
             default:
                 actionName = "AIn";
+                break;
+            }
+            break;
+        case FUNC_GROUP_AOUT:
+            optionVisible = true;
+            switch (curFunc) {
+            case UL_AOUT:
+                actionName = "AOut";
+                break;
+            case UL_AOUT_SCAN:
+                actionName = "AOutScan";
+                break;
+            default:
+                actionName = "AOut";
+                break;
+            }
+            break;
+        case FUNC_GROUP_DIN:
+            switch (curFunc) {
+            case UL_D_CONFIG_PORT:
+                actionName = "PortConfig";
+                break;
+            case UL_D_CONFIG_BIT:
+                actionName = "BitConfig";
+                break;
+            case UL_D_IN:
+                actionName = "DIn";
+                break;
+            case UL_D_BIT_IN:
+                actionName = "DBitIn";
+                break;
+            default:
+                actionName = "PortConfig";
+                break;
+            }
+            break;
+        case FUNC_GROUP_DOUT:
+            switch (curFunc) {
+            case UL_D_CONFIG_PORT:
+                actionName = "PortConfig";
+                break;
+            case UL_D_CONFIG_BIT:
+                actionName = "BitConfig";
+                break;
+            case UL_D_OUT:
+                actionName = "DOut";
+                break;
+            case UL_D_BIT_OUT:
+                actionName = "DBitOut";
+                break;
+            default:
+                actionName = "PortConfig";
                 break;
             }
             break;
@@ -576,6 +645,7 @@ void MainWindow::addDeviceToMenu(QString devName, uint8_t devAddress, uint16_t h
     mHatIDList.insert(devAddress, hatType);
     mCurID = hatType;
     connect(newAction, SIGNAL(triggered(bool)), this, SLOT(setSelectedDevice()));
+    ui->lblAppStatus->setText(QString("Hatlist size: %1").arg(mHatList.count()));
 }
 
 void MainWindow::removeDeviceFromMenu(uint8_t devAddress)

@@ -7,6 +7,32 @@ void delay(int milliSeconds)
         QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
 
+double getVoltsFromResolution(int resolution, double rangeVoltsMin, double rangeVoltsMax, int counts)
+{
+    double LSB, bipOffset, calcVolts;
+
+    bipOffset = 0;
+    double FSR = rangeVoltsMax - rangeVoltsMin;
+    LSB = FSR / qPow(2, resolution);
+    if (rangeVoltsMin != 0)
+        bipOffset = rangeVoltsMax / 2;
+    calcVolts = counts * LSB;
+    return calcVolts - bipOffset;
+}
+
+double getVoltsFromCounts(int maxCode, double voltsMin, double voltsMax, int counts)
+{
+    double LSB, bipOffset, calcVolts;
+
+    bipOffset = 0;
+    double FSR = voltsMax - voltsMin;
+    LSB = FSR / maxCode;
+    if (voltsMin != 0)
+        bipOffset = voltsMax / 2;
+    calcVolts = counts * LSB;
+    return calcVolts - bipOffset;
+}
+
 QString getHatTypeName(uint16_t hatType)
 {
     //to do - not a great solution
@@ -19,10 +45,26 @@ QString getHatTypeName(uint16_t hatType)
         break;
     case HAT_ID_MCC_118 + 2:
         return "MCC152";
+        break;
     default:
         return "NO_ID";
         break;
     }
+}
+
+uint16_t getHatIdFromName(QString hatName)
+{
+    if(hatName == "MCC118")
+        return HAT_ID_MCC_118;
+#ifdef HAT_03
+    if(hatName == "MCC134")
+        return HAT_ID_MCC_134;
+#endif
+#ifdef HAT_04
+    if(hatName == "MCC152")
+        return HAT_ID_MCC_152;
+#endif
+    return 0;
 }
 
 QString getFuncGroupName(UtFunctionGroup funcGroup)

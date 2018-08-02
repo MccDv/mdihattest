@@ -23,7 +23,7 @@ public:
 private slots:
     void showSysInfo();
     void findHats();
-    void devSelectedChanged(QString);
+    void devSelectedChanged();
     void functionChanged(int utFunction);
     void runSelectedFunction();
     void showBoardParameters();

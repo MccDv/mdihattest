@@ -3,6 +3,8 @@
 #include <QMdiSubWindow>
 #include "childwindow.h"
 #include "hatdevice.h"
+#include "aout.h"
+#include "dioform.h"
 #include "hatdiscovery.h"
 #include "infoform.h"
 #include "mainwindow.h"
@@ -18,6 +20,19 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
         subwidget = new HatDevice(this);
         windowName = "ainwindow";
         mCurFunction = UL_AIN;
+        break;
+    case FUNC_GROUP_AOUT:
+        subwidget = new AOut(this);
+        windowName = "aoutwindow";
+        mCurFunction = UL_AOUT;
+        break;
+    case FUNC_GROUP_DIN:
+        subwidget = new DioForm(this);
+        windowName = "dinwindow";
+        break;
+    case FUNC_GROUP_DOUT:
+        subwidget = new DioForm(this);
+        windowName = "doutwindow";
         break;
     case FUNC_GROUP_MISC:
         subwidget = new InfoForm(this);

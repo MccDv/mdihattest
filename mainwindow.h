@@ -49,6 +49,9 @@ private slots:
     void createDiscChild();
     void createInfoChild();
     void createAiChild();
+    void createAoChild();
+    void createDinChild();
+    void createDOutChild();
     void createChild(UtFunctionGroup utFuncGroup, int defaultFunction);
     void changeTrigType();
     void curFunctionChanged();

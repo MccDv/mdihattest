@@ -43,14 +43,21 @@ public:
     int readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType);
     int writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType);
 
+    double getAOutVoltsMax(uint16_t devType);
+    double getAOutVoltsMin(uint16_t devType);
+    int getAOutCodeMax(uint16_t devType);
+    int getAOutCodeMin(uint16_t devType);
     int getNumAOutChans(uint16_t devType);
     int getNumDioChans(uint16_t devType);
     int aOutWrite(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double value);
     int aOutWriteAll(uint16_t devType, uint8_t address, uint32_t options, double &values);
     int dioReset(uint16_t devType, uint8_t address);
     int dioInputRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioInPortRead(uint16_t devType, uint8_t address, uint8_t &value);
     int dioOutputWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
+    int dioOutPortWrite(uint16_t devType, uint8_t address, uint8_t value);
     int dioOutputRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
+    int dioOutPortRead(uint16_t devType, uint8_t address, uint8_t &value);
     int dioDirectionWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
     int dioDirectionRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
     int dioPullConfigWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value);
