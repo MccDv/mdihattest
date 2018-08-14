@@ -35,15 +35,14 @@ double getVoltsFromCounts(int maxCode, double voltsMin, double voltsMax, int cou
 
 QString getHatTypeName(uint16_t hatType)
 {
-    //to do - not a great solution
     switch (hatType) {
     case HAT_ID_MCC_118:
         return "MCC118";
         break;
-    case HAT_ID_MCC_118 + 1:
+    case HAT_ID_MCC_134:
         return "MCC134";
         break;
-    case HAT_ID_MCC_118 + 2:
+    case HAT_ID_MCC_152:
         return "MCC152";
         break;
     default:
@@ -195,7 +194,6 @@ QString getTrigText(TriggerMode trigType)
     }
 }
 
-#ifdef HAT_03
 QString getTcTypeName(uint8_t tcType)
 {
     switch (tcType) {
@@ -228,4 +226,37 @@ QString getTcTypeName(uint8_t tcType)
         break;
     }
 }
+
+#ifdef HAT_04
+
+QString getConfigItemName(uint8_t configItem)
+{
+    switch (configItem) {
+    case DIO_DIRECTION:
+        return "DIRECTION";
+        break;
+    case DIO_PULL_CONFIG:
+        return "PULL_CONFIG";
+        break;
+    case DIO_PULL_ENABLE:
+        return "PULL_ENABLE";
+        break;
+    case DIO_INPUT_INVERT:
+        return "INPUT_INVERT";
+        break;
+    case DIO_INPUT_LATCH:
+        return "INPUT_LATCH";
+        break;
+    case DIO_OUTPUT_TYPE:
+        return "OUTPUT_TYPE";
+        break;
+    case DIO_INT_MASK:
+        return "INT_MASK";
+        break;
+    default:
+        return "INVALID";
+        break;
+    }
+}
+
 #endif

@@ -64,6 +64,8 @@ private:
     uint8_t mChanCount;
     int mAoResolution;
     int mCurFunction;
+    double mMaxVolts, mMinVolts;
+    int mMaxCode;
 
     long long mTotalRead;
     QString mFuncName;

@@ -77,22 +77,24 @@ void AOut::updateParameters()
 
 void AOut::initDeviceParams()
 {
-    int maxCode, value;
+    int value;
     int loopCount;
 
 
     mNumAoChans = hatInterface->getNumAOutChans(mHatID);
-    maxCode = hatInterface->getAOutCodeMax(mHatID);
+    mMaxCode = hatInterface->getAOutCodeMax(mHatID);
+    mMaxVolts = hatInterface->getAOutVoltsMax(mHatID);
+    mMinVolts = hatInterface->getAOutVoltsMin(mHatID);
 
     loopCount = 0;
-    if(maxCode == 0)
-        maxCode = 4095;
+    if(mMaxCode == 0)
+        mMaxCode = 4095;
     do {
         value = qPow(2, loopCount);
         loopCount++;
-    } while (value < maxCode);
+    } while (value < mMaxCode);
     mAoResolution = loopCount - 1;
-    ui->hSldAoutVal->setMaximum(maxCode);
+    ui->hSldAoutVal->setMaximum(mMaxCode);
 }
 
 void AOut::showQueueConfig()
@@ -148,21 +150,21 @@ void AOut::setUiForFunction()
 
 void AOut::updateValueBox()
 {
-    double maxVolts, minVolts;
-    int maxCode;
+    //double maxVolts, minVolts;
+    //int maxCode;
 
-    maxCode = hatInterface->getAOutCodeMax(mHatID);
-    maxVolts = hatInterface->getAOutVoltsMax(mHatID);
-    minVolts = hatInterface->getAOutVoltsMin(mHatID);
-    if(maxVolts == 0)
-        maxVolts = 4.99878;
-    if(maxCode == 0)
-        maxCode = 4095;
+    //maxCode = hatInterface->getAOutCodeMax(mHatID);
+    //maxVolts = hatInterface->getAOutVoltsMax(mHatID);
+    //minVolts = hatInterface->getAOutVoltsMin(mHatID);
+    if(mMaxVolts == 0)
+        mMaxVolts = 4.99878;
+    if(mMaxCode == 0)
+        mMaxCode = 4095;
     int sliderOut = ui->hSldAoutVal->value();
     if(mScanOptions & OPTS_NOSCALEDATA)
         ui->leAoutVal->setText(QString("%1").arg(sliderOut));
     else {
-        double vOutVal = getVoltsFromCounts(maxCode, minVolts, maxVolts, sliderOut);
+        double vOutVal = getVoltsFromCounts(mMaxCode, mMinVolts, mMaxVolts, sliderOut);
         //double vOutVal = getVoltsFromResolution(mAoResolution, minVolts, maxVolts, sliderOut);
         ui->leAoutVal->setText(QString("%1").arg(vOutVal));
     }

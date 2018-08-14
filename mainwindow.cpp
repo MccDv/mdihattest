@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->cmdAOut, SIGNAL(clicked(bool)), this, SLOT(createAoChild()));
     connect(ui->cmdDIn, SIGNAL(clicked(bool)), this, SLOT(createDinChild()));
     connect(ui->cmdDOut, SIGNAL(clicked(bool)), this, SLOT(createDOutChild()));
+    connect(ui->cmdMisc, SIGNAL(clicked(bool)), this, SLOT(createMiscChild()));
     connect(ui->cmdHistory, SIGNAL(clicked(bool)), this, SLOT(showHistory()));
     connect(ui->actionVolts_vs_Time, SIGNAL(triggered(bool)), this, SLOT(showPlot(bool)));
     connect(ui->mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(setBoardMenuSelect(QMdiSubWindow*)));
@@ -73,11 +74,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->cmdAOut->setEnabled(true);
     ui->cmdDIn->setEnabled(true);
     ui->cmdDOut->setEnabled(true);
+    ui->cmdMisc->setEnabled(true);
 #elif HAT_03
     this->setWindowTitle("MCC HAT Test [0.3]");
 #else
     this->setWindowTitle("MCC HAT Test [0.2]");
 #endif
+
+    if(ui->chkAutoDetect->isChecked())
+        readHatList();
 }
 
 MainWindow::~MainWindow()
@@ -118,6 +123,32 @@ void MainWindow::setTimer()
     }
 }
 
+void MainWindow::readHatList()
+{
+    HatInterface *hatInterface;
+    hatInterface = new HatInterface;
+    uint16_t hatFilter;
+    uint16_t devId;
+    uint8_t address;
+    int numHats, hatIndex, response;
+    QString devName;
+
+    hatFilter = HAT_ID_ANY;
+    numHats = hat_list(hatFilter, hatInfoList);
+
+    for(hatIndex = 0; hatIndex < numHats; hatIndex++) {
+        address = hatInfoList[hatIndex].address;
+        devId = hatInfoList[hatIndex].id;
+        response = hatInterface->openDevice(devId, address);
+        if (response == RESULT_SUCCESS) {
+            devName = QString(hatInfoList[hatIndex].product_name).left(7)
+                    + QString(" [%1]").arg(address);
+            addDeviceToMenu(devName, address, devId);
+        }
+    }
+
+}
+
 void MainWindow::createDiscChild()
 {
     curFunctionGroupName = "Discovery Functions";
@@ -154,6 +185,12 @@ void MainWindow::createDOutChild()
     createChild(FUNC_GROUP_DOUT, UL_D_CONFIG_PORT);
 }
 
+void MainWindow::createMiscChild()
+{
+    curFunctionGroupName = "Status";
+    createChild(FUNC_GROUP_STATUS, UL_GET_STATUS);
+}
+
 void MainWindow::createChild(UtFunctionGroup utFuncGroup, int defaultFunction)
 {
     foreach (QAction *devAct, ui->menuBoards->actions()) {
@@ -186,10 +223,11 @@ void MainWindow::createFuncMenus()
     QAction *funcAction;
     ChildWindow *curChild;
     bool optionVisible, trigVisible;
-    bool plotVisible;
+    bool plotVisible, rangeVisible;
 
     functionGroup->actions().clear();
     optionVisible = false;
+    rangeVisible = true;
     trigVisible = true;
     plotVisible = true;
     curChild = activeMdiChild();
@@ -217,6 +255,8 @@ void MainWindow::createFuncMenus()
             break;
         case FUNC_GROUP_AOUT:
             optionVisible = true;
+            trigVisible = false;
+            plotVisible = false;
             //dataVisible = true;
             funcAction = ui->menuFunction->addAction("ulAOut");
             funcAction->setCheckable(true);
@@ -230,47 +270,61 @@ void MainWindow::createFuncMenus()
             break;
         case FUNC_GROUP_DIN:
             optionVisible = true;
+            rangeVisible = false;
+            trigVisible = false;
+            plotVisible = false;
             //flagsVisible = false;
-            funcAction = ui->menuFunction->addAction("ulDConfigPort");
+            funcAction = ui->menuFunction->addAction("Configure Port");
             funcAction->setCheckable(true);
             funcAction->setChecked(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_CONFIG_PORT);
-            funcAction = ui->menuFunction->addAction("ulDConfigBit");
+            funcAction = ui->menuFunction->addAction("Configure Bits");
             funcAction->setCheckable(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_CONFIG_BIT);
-            funcAction = ui->menuFunction->addAction("ulDIn");
+            funcAction = ui->menuFunction->addAction("Read Port");
             funcAction->setCheckable(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_IN);
-            funcAction = ui->menuFunction->addAction("ulDBitIn");
+            funcAction = ui->menuFunction->addAction("Read Bits");
             funcAction->setCheckable(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_BIT_IN);
-            //funcAction = ui->menuFunction->addAction("ulDInScan");
-            //funcAction->setCheckable(true);
-            //functionGroup->addAction(funcAction);
-            //funcAction->setData(UL_D_INSCAN);
+            funcAction = ui->menuFunction->addAction("Interrupt Port Read");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_INT_PORT);
+            funcAction = ui->menuFunction->addAction("Interrupt Bit Read");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_INT_BIT);
+            funcAction = ui->menuFunction->addAction("Interrupt Wait");
+            funcAction->setCheckable(true);
+            functionGroup->addAction(funcAction);
+            funcAction->setData(UL_D_INT_WAIT);
             break;
         case FUNC_GROUP_DOUT:
             optionVisible = true;
+            rangeVisible = false;
+            trigVisible = false;
+            plotVisible = false;
             //flagsVisible = false;
             //dataVisible = true;
-            funcAction = ui->menuFunction->addAction("ulDConfigPort");
+            funcAction = ui->menuFunction->addAction("Configure Port");
             funcAction->setCheckable(true);
             funcAction->setChecked(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_CONFIG_PORT);
-            funcAction = ui->menuFunction->addAction("ulDConfigBit");
+            funcAction = ui->menuFunction->addAction("Configure Bits");
             funcAction->setCheckable(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_CONFIG_BIT);
-            funcAction = ui->menuFunction->addAction("ulDOut");
+            funcAction = ui->menuFunction->addAction("Write Port");
             funcAction->setCheckable(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_OUT);
-            funcAction = ui->menuFunction->addAction("ulDBitOut");
+            funcAction = ui->menuFunction->addAction("Write Bits");
             funcAction->setCheckable(true);
             functionGroup->addAction(funcAction);
             funcAction->setData(UL_D_BIT_OUT);
@@ -339,6 +393,14 @@ void MainWindow::createFuncMenus()
             funcAction->setCheckable(true);
             funcAction->setData(UL_TEST);
             functionGroup->addAction(funcAction);
+            trigVisible = false;
+            plotVisible = false;
+            break;
+        case FUNC_GROUP_STATUS:
+            optionVisible = true;
+            rangeVisible = false;
+            trigVisible = false;
+            plotVisible = false;
             break;
         /*
         case FUNC_GROUP_CONFIG:
@@ -369,20 +431,24 @@ void MainWindow::createFuncMenus()
     ui->menuOptions->menuAction()->setVisible(optionVisible);
     ui->menuTriggering->menuAction()->setVisible(trigVisible);
     ui->menuPlot->menuAction()->setVisible(plotVisible);
+    ui->menuRange->menuAction()->setVisible(rangeVisible);
 }
 
 void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
 {
-    bool optionVisible;
-    bool plotShowing;
+    bool optionVisible, rangeVisible, trigVisible;
+    bool plotShowing, plotVisible;
     int curFunc;
     QString curBoard;
     uint8_t curAddress;
     QString actionName;
     ChildWindow *curChild;
 
+    trigVisible = true;
+    plotVisible = true;
     optionVisible = false;
     plotShowing = false;
+    rangeVisible = false;
     //curChild = activeMdiChild();
     curChild = qobject_cast<ChildWindow *>(childWind);
     ui->lblAppStatus->clear();
@@ -419,6 +485,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
         switch (curFuncGroup) {
         case FUNC_GROUP_AIN:
             optionVisible = true;
+            rangeVisible = true;
             switch (curFunc) {
             case UL_AIN:
                 actionName = "AIn";
@@ -426,6 +493,8 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
             case UL_AINSCAN:
                 actionName = "AInScan";
                 break;
+            case UL_TIN:
+                actionName = "TIn";
             default:
                 actionName = "AIn";
                 break;
@@ -433,6 +502,9 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
             break;
         case FUNC_GROUP_AOUT:
             optionVisible = true;
+            rangeVisible = true;
+            trigVisible = false;
+            plotVisible = false;
             switch (curFunc) {
             case UL_AOUT:
                 actionName = "AOut";
@@ -446,6 +518,71 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
             }
             break;
         case FUNC_GROUP_DIN:
+            optionVisible = true;
+            trigVisible = false;
+            plotVisible = false;
+            switch (curFunc) {
+            case UL_D_CONFIG_PORT:
+                actionName = "Configure Port";
+                break;
+            case UL_D_CONFIG_BIT:
+                actionName = "Configure Bits";
+                break;
+            case UL_D_IN:
+                actionName = "Read Port";
+                break;
+            case UL_D_BIT_IN:
+                actionName = "Read Bits";
+                break;
+            case UL_D_INT_PORT:
+                actionName = "Interrupt Port Read";
+                break;
+            case UL_D_INT_BIT:
+                actionName = "Interrupt Bit Read";
+                break;
+            case UL_D_INT_WAIT:
+                actionName = "Interrupt Wait";
+                break;
+            default:
+                actionName = "PortConfig";
+                break;
+            }
+            break;
+        case FUNC_GROUP_DOUT:
+            optionVisible = true;
+            trigVisible = false;
+            plotVisible = false;
+            switch (curFunc) {
+            case UL_D_CONFIG_PORT:
+                actionName = "Configure Port";
+                break;
+            case UL_D_CONFIG_BIT:
+                actionName = "Configure Bits";
+                break;
+            case UL_D_OUT:
+                actionName = "Write Port";
+                break;
+            case UL_D_BIT_OUT:
+                actionName = "Write Bits";
+                break;
+            default:
+                actionName = "Configure Port";
+                break;
+            }
+            break;
+        case FUNC_GROUP_MISC:
+            optionVisible = false;
+            trigVisible = false;
+            plotVisible = false;
+            switch (curFunc) {
+            default:
+                break;
+            }
+            break;
+        case FUNC_GROUP_CONFIG:
+            optionVisible = true;
+            trigVisible = false;
+            plotVisible = false;
             switch (curFunc) {
             case UL_D_CONFIG_PORT:
                 actionName = "PortConfig";
@@ -464,35 +601,11 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
                 break;
             }
             break;
-        case FUNC_GROUP_DOUT:
-            switch (curFunc) {
-            case UL_D_CONFIG_PORT:
-                actionName = "PortConfig";
-                break;
-            case UL_D_CONFIG_BIT:
-                actionName = "BitConfig";
-                break;
-            case UL_D_OUT:
-                actionName = "DOut";
-                break;
-            case UL_D_BIT_OUT:
-                actionName = "DBitOut";
-                break;
-            default:
-                actionName = "PortConfig";
-                break;
-            }
-            break;
-        case FUNC_GROUP_MISC:
-            optionVisible = false;
-            switch (curFunc) {
-            default:
-                break;
-            }
-            break;
         case FUNC_GROUP_DISC:
             optionVisible = false;
             break;
+        case FUNC_GROUP_STATUS:
+            optionVisible = true;
         default:
             break;
         }
@@ -521,11 +634,13 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
             if(curMenuTrig == childTrig)
                 trigMode->setChecked(true);
         }
-
         plotShowing = curChild->showPlot();
     }
     ui->actionVolts_vs_Time->setChecked(plotShowing);
     ui->menuOptions->menuAction()->setVisible(optionVisible);
+    ui->menuRange->menuAction()->setVisible(rangeVisible);
+    ui->menuTriggering->menuAction()->setVisible(trigVisible);
+    ui->menuPlot->menuAction()->setVisible(plotVisible);
 }
 
 void MainWindow::setSelectedDevice()
@@ -719,11 +834,11 @@ void MainWindow::showHistory()
 void MainWindow::readWindowPosition()
 {
     QSettings windowSettings("Measurement Computing", "Qt Hat Test Linux");
-    //QVariant autoConnect;
+    QVariant autoConnect;
 
     windowSettings.beginGroup("mainwindow");
 
-    //autoConnect = windowSettings.value("autoconnect", true);
+    autoConnect = windowSettings.value("autoconnect", true);
     restoreGeometry(windowSettings.value("geometry", saveGeometry()).toByteArray());
     restoreState(windowSettings.value("savestate", saveState()).toByteArray());
     move(windowSettings.value("pos", pos()).toPoint());
@@ -732,17 +847,18 @@ void MainWindow::readWindowPosition()
         showMaximized();
 
     windowSettings.endGroup();
-    //mAutoConnect = autoConnect.toBool();
+    mAutoConnect = autoConnect.toBool();
+    ui->chkAutoDetect->setChecked(mAutoConnect);
 }
 
 void MainWindow::writeWindowPosition()
 {
     QSettings windowSettings("Measurement Computing", "Qt Hat Test Linux");
 
-    //mAutoConnect = ui->chkAutoDetect->isChecked();
+    mAutoConnect = ui->chkAutoDetect->isChecked();
     windowSettings.beginGroup("mainwindow");
 
-    //windowSettings.setValue("autoconnect", mAutoConnect);
+    windowSettings.setValue("autoconnect", mAutoConnect);
     windowSettings.setValue("geometry", saveGeometry());
     windowSettings.setValue("savestate", saveState());
     windowSettings.setValue("maximized", isMaximized());

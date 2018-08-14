@@ -46,6 +46,7 @@ private:
 #define NUM_SCAN_CHANS  7
 #define READ_STATUS     8
 #define READ_ERROR      9
+#define READ_INT_STAT   10
 
     Ui::InfoForm *ui;
     HatInterface *hatInterface;
@@ -69,6 +70,7 @@ private:
     void readNumScanChans();
     void flashLED();
     void readStatus();
+    void readIntStatus();
 
 
 };

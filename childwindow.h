@@ -130,7 +130,7 @@ private slots:
 
 private:
     QWidget *subwidget;
-    QString windowName;
+    QString mWindowName;
     QTimer *tmrRunFunc;
     TmrDialog *tmrDialog;
 

@@ -18,8 +18,12 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+# MCC 152 development: HAT_04
+# MCC 134 development: HAT_03
+
 //DEFINES += HAT_03
-//DEFINES += HAT_04
+DEFINES += HAT_04
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -41,7 +45,8 @@ SOURCES += \
     hatinterface.cpp \
     tmrdialog.cpp \
     aout.cpp \
-    dioform.cpp
+    dioform.cpp \
+    miscform.cpp
 
 HEADERS += \
     qcustomplot.h \
@@ -57,7 +62,8 @@ HEADERS += \
     hatinterface.h \
     tmrdialog.h \
     aout.h \
-    dioform.h
+    dioform.h \
+    miscform.h
 
 FORMS += \
     errordialog.ui \
@@ -68,7 +74,8 @@ FORMS += \
     queuedialog.ui \
     tmrdialog.ui \
     aout.ui \
-    dioform.ui
+    dioform.ui \
+    miscform.ui
 
 target.path = /home/pi
 INSTALLS += target

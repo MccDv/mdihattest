@@ -52,6 +52,7 @@ private slots:
     void createAoChild();
     void createDinChild();
     void createDOutChild();
+    void createMiscChild();
     void createChild(UtFunctionGroup utFuncGroup, int defaultFunction);
     void changeTrigType();
     void curFunctionChanged();
@@ -72,6 +73,7 @@ private:
 
     QHash<uint8_t, QString> mHatList;
     QHash<uint8_t, uint16_t> mHatIDList;
+    struct HatInfo hatInfoList[MAX_NUMBER_HATS];
 
     int mCurFunction;
     TriggerMode mTriggerType;
@@ -85,10 +87,12 @@ private:
 
     QStringList mFuncHistoryList;
     int mHistListSize;
+    bool mAutoConnect;
 
     void createFuncMenus();
     void readWindowPosition();
     void writeWindowPosition();
+    void readHatList();
     uint32_t getSoMask(uint32_t optSelected);
 
 signals:

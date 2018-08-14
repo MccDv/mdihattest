@@ -25,7 +25,8 @@ typedef enum
     FUNC_GROUP_CTR = 5,
     FUNC_GROUP_MISC = 6,
     FUNC_GROUP_CONFIG = 7,
-    FUNC_GROUP_DAQSCAN = 8
+    FUNC_GROUP_DAQSCAN = 8,
+    FUNC_GROUP_STATUS = 9
 }UtFunctionGroup;
 
 typedef enum
@@ -54,8 +55,9 @@ typedef enum
     UL_D_OUT = 4,
     UL_D_BIT_IN = 5,
     UL_D_BIT_OUT = 6,
-    UL_D_INSCAN = 7,
-    UL_D_OUTSCAN = 8
+    UL_D_INT_PORT = 7,
+    UL_D_INT_BIT = 8,
+    UL_D_INT_WAIT = 9
 }UtDioFunctions;
 
 typedef enum

@@ -1,4 +1,3 @@
-
 #include "hatdevice.h"
 #include "ui_hatdevice.h"
 #include "mainwindow.h"
@@ -992,7 +991,6 @@ void HatDevice::plotSelect()
         plotScan(0, 0, plotSize);
 }
 
-#ifdef HAT_03
 void HatDevice::runTinFunction()
 {
     uint8_t aInChan, aInLastChan;
@@ -1082,5 +1080,3 @@ void HatDevice::runTinFunction()
         mUseTimer = false;
     }
 }
-
-#endif

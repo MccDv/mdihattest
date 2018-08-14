@@ -2,6 +2,7 @@
 #define DIOFORM_H
 
 #include <QWidget>
+#include <QTimer>
 #include "qcustomplot.h"
 #include "queuedialog.h"
 #include "unitest.h"
@@ -21,6 +22,8 @@ class DioForm : public QWidget
 public:
     explicit DioForm(QWidget *parent = 0);
     ~DioForm();
+    void closeEvent(QCloseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
 
 private slots:
     void initDeviceParams();
@@ -31,16 +34,20 @@ private slots:
     void bitToggled(int bitNumber);
     void onClickCmdGo();
     void onClickCmdStop();
-    void configureInputs();
-    void configureOutputs();
+    void readOutputs();
+    void writeConfiguration();
     void runSelectedFunction();
-    void stopGoTimer();
+    void toggleGoTimer(bool enableTimer);
     void showPlotWindow(bool showIt);
     void showQueueConfig();
+    void readConfig();
+    void configItemChanged();
+    void runDioReset();
 
 private:
     Ui::DioForm *ui;
     HatInterface *hatInterface;
+    QTimer *tmrGoTimer;
     ErrorDialog errDlg;
     int numBitCheckboxes = 8;
     QCheckBox *chkBit[8]={};
@@ -48,7 +55,6 @@ private:
     QString mFuncName;
     int mUtFunction;
     int mCurGroup;
-    bool mUseTimer;
 
     int mNumHats;
     int mDevIndex;
@@ -57,17 +63,36 @@ private:
     uint16_t mHatID;
     QString mDevName;
 
-    bool mPlot;
+    bool mUseTimer;
+    bool mGoTmrIsRunning;
+    bool mStopOnStart;
+    bool mOneSampPerForTotalSamps;
+    int mTmrInterval;
 
+    bool mPlot;
+    uint8_t mConfigItem;
+
+    int mNumBits;
     int mDioResolution;
+    int mHistListSize;
 
     void setUiForGroup();
     void setUiForFunction();
     void createBitBoxes();
+    void readPort();
+    void readBits();
     void runDInFunc();
-    void runDBitInFunc(uint8_t value, uint8_t bit);
-    void runDBitOutFunc(uint8_t value, uint8_t bit);
+    void runIntPortFunc();
+    void runDBitInFunc();
+    void runIntBitFunc();
+    void waitForInterupt();
+    void writePort();
+    void writeBit();
     void runDOutFunc();
+    void runDBitOutFunc(uint8_t bit, uint8_t value);
+    void runDBitConfigFunc(uint8_t bit, uint8_t value);
+    void disableCheckboxInput(bool disableMouse);
+    void setDefaultBits(uint8_t portType);
     //void runDBitOutFunc(DigitalPortType portType, int bitNum, unsigned int bitValue);
 };
 

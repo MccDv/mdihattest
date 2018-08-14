@@ -137,6 +137,9 @@ void InfoForm::loadCalClicked()
 void InfoForm::flashLEDClicked()
 {
     switch (mUtFunction) {
+    case UL_GET_ERR_MSG:
+        mSelectedFunction = READ_INT_STAT;
+        break;
     case UL_AI_INFO:
         mSelectedFunction = READ_STATUS;
         break;
@@ -161,14 +164,12 @@ void InfoForm::runSelectedFunction()
     case WRITE_CAL:
         writeCal();
         break;
-#ifdef HAT_03
     case READ_TC_TYPES:
         readTcTypes();
         break;
     case WRITE_TC_TYPE:
         writeTcType();
         break;
-#endif
     case CLOCK_TEST:
         readClkTrg();
         break;
@@ -184,6 +185,9 @@ void InfoForm::runSelectedFunction()
     case READ_ERROR:
         showErrorMessage();
         break;
+    case READ_INT_STAT:
+        readIntStatus();
+        break;
     default:
         break;
     }
@@ -191,7 +195,7 @@ void InfoForm::runSelectedFunction()
 
 void InfoForm::functionChanged(int utFunction)
 {
-    QString readCmdText;
+    QString readCmdText, flashText;
     QString writeCmdText, flashCmdText;
     QString spnToolTip;
     int lowLimit;
@@ -209,14 +213,16 @@ void InfoForm::functionChanged(int utFunction)
     scanCleanVisible = true;
     tcTypeVisible = false;
     lowLimit = 0;
+    flashText = "Flash LED";
 
     switch (mUtFunction) {
     case UL_GET_ERR_MSG:
         writeCmdText = "Get Err Msg";
+        flashText = "Interrupt State";
         spnToolTip = "Result code";
         calVisible = false;
         readVisible = false;
-        flashVisible = false;
+        flashVisible = true;
         lowLimit = -12;
         break;
     case UL_AI_INFO:
@@ -273,6 +279,7 @@ void InfoForm::functionChanged(int utFunction)
     ui->cmdFlashLED->setVisible(flashVisible);
     ui->leFlashCount->setVisible(flashVisible);
     ui->spnCalChan->setMinimum(lowLimit);
+    ui->cmdFlashLED->setText(flashText);
 }
 
 void InfoForm::showPlotWindow(bool showIt)
@@ -416,6 +423,15 @@ void InfoForm::readStatus()
     }
 }
 
+void InfoForm::readIntStatus()
+{
+    int intState;
+
+    intState = hatInterface->getInterruptState();
+    ui->lblInfo->setText(hatInterface->getStatus());
+    ui->teShowValues->setText(QString("Interrupt state: %1").arg(intState));
+}
+
 void InfoForm::readClkTrg()
 {
     uint8_t clockState, mode, trigState;
@@ -515,6 +531,9 @@ void InfoForm::showBoardParameters()
 {
     bool isOpen;
     int numChans;
+    uint16_t aInMinCode, aInMaxCode;
+    double aInMaxVolts, aInMinVolts;
+    double aInMaxRange, aInMinRange;
 
     ui->lblInfo->clear();
     ui->lblStatus->clear();
@@ -535,6 +554,24 @@ void InfoForm::showBoardParameters()
     }
     numChans = hatInterface->getNumAInChans(mHatID);
     ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
+    if(mHatID == HAT_ID_MCC_118) {
+        aInMinCode = hatInterface->getAInCodeMin(mHatID);
+        aInMaxCode = hatInterface->getAInCodeMax(mHatID);
+        ui->teShowValues->append(QString("Code range: %1 to %2")
+                                 .arg(aInMinCode)
+                                 .arg(aInMaxCode));
+        aInMinRange = hatInterface->getAInRangeMin(mHatID);
+        aInMaxRange = hatInterface->getAInRangeMax(mHatID);
+        ui->teShowValues->append(QString("Range: %1 to %2")
+                                 .arg(aInMinRange)
+                                 .arg(aInMaxRange));
+        aInMinVolts = hatInterface->getAInVoltsMin(mHatID);
+        aInMaxVolts = hatInterface->getAInVoltsMax(mHatID);
+        ui->teShowValues->append(QString("Volts: %1 to %2")
+                                 .arg(aInMinVolts)
+                                 .arg(aInMaxVolts));
+    }
+
 #ifdef HAT_04
     numChans = hatInterface->getNumAOutChans(mHatID);
     ui->teShowValues->append(QString("AOut chans: %1").arg(numChans));
@@ -568,8 +605,6 @@ void InfoForm::showBoardParameters()
 #endif
     }
 }
-
-#ifdef HAT_03
 
 void InfoForm::readTcTypes()
 {
@@ -609,9 +644,4 @@ void InfoForm::writeTcType()
     readTcTypes();
 }
 
-#endif
-
-#ifdef HAT_04
-
-#endif
 

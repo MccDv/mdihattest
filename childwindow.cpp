@@ -7,6 +7,7 @@
 #include "dioform.h"
 #include "hatdiscovery.h"
 #include "infoform.h"
+#include "miscform.h"
 #include "mainwindow.h"
 #include "hatinterface.h"
 
@@ -18,30 +19,35 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     switch (funcGroup) {
     case FUNC_GROUP_AIN:
         subwidget = new HatDevice(this);
-        windowName = "ainwindow";
+        mWindowName = "ainwindow";
         mCurFunction = UL_AIN;
         break;
     case FUNC_GROUP_AOUT:
         subwidget = new AOut(this);
-        windowName = "aoutwindow";
+        mWindowName = "aoutwindow";
         mCurFunction = UL_AOUT;
         break;
     case FUNC_GROUP_DIN:
         subwidget = new DioForm(this);
-        windowName = "dinwindow";
+        mWindowName = "dinwindow";
         break;
     case FUNC_GROUP_DOUT:
         subwidget = new DioForm(this);
-        windowName = "doutwindow";
+        mWindowName = "doutwindow";
         break;
     case FUNC_GROUP_MISC:
         subwidget = new InfoForm(this);
-        windowName = "infowindow";
+        mWindowName = "infowindow";
         mCurFunction = UL_AI_INFO;
+        break;
+    case FUNC_GROUP_STATUS:
+        subwidget = new MiscForm(this);
+        mWindowName = "miscform";
+        mCurFunction = UL_GET_STATUS;
         break;
     default:
         subwidget = new HatDiscovery(this);
-        windowName = "dscvrwindow";
+        mWindowName = "dscvrwindow";
         mCurFunction = UL_DISC;
         break;
     }
@@ -130,7 +136,7 @@ void ChildWindow::readWindowPosition()
 {
     QSettings windowSettings("Measurement Computing", "Qt Hat Test Linux");
 
-    windowSettings.beginGroup(windowName);
+    windowSettings.beginGroup(mWindowName);
 
     restoreGeometry(windowSettings.value("geometry", saveGeometry()).toByteArray());
     //restoreState(windowSettings.value("savestate", saveState()).toByteArray());
@@ -146,7 +152,7 @@ void ChildWindow::writeWindowPosition()
 {
     QSettings windowSettings("Measurement Computing", "Qt Hat Test Linux");
 
-    windowSettings.beginGroup(windowName);
+    windowSettings.beginGroup(mWindowName);
 
     windowSettings.setValue("geometry", saveGeometry());
     //windowSettings.setValue("savestate", saveState());

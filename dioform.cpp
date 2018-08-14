@@ -9,6 +9,8 @@ DioForm::DioForm(QWidget *parent) :
     ui->setupUi(this);
 
     hatInterface = new HatInterface();
+    tmrGoTimer = new QTimer(this);
+    mHistListSize = 50;
 
     ui->teShowValues->setFont(QFont ("Courier", 8));
     ui->lblRateReturned->setFont(QFont ("Courier", 8));
@@ -17,16 +19,22 @@ DioForm::DioForm(QWidget *parent) :
     ui->lblInfo->setStyleSheet("QLabel { color : blue; } ");
     ui->lblRateReturned->setStyleSheet("QLabel { background-color : white; color : blue; }" );
 
-    ui->cmbConfig->addItem("Direction");
-    ui->cmbConfig->addItem("Pull config");
-    ui->cmbConfig->addItem("Pull enable");
-    ui->cmbConfig->addItem("Input invert");
-    ui->cmbConfig->addItem("Input latch");
-    ui->cmbConfig->addItem("Output type");
-    ui->cmbConfig->addItem("Interrupt mask");
-    ui->cmbConfig->addItem("Interrupt status");
-    ui->cmbConfig->setCurrentIndex(1);
+    ui->cmbConfig->addItem("Direction", DIO_DIRECTION);
+    ui->cmbConfig->addItem("Pull config", DIO_PULL_CONFIG);
+    ui->cmbConfig->addItem("Pull enable", DIO_PULL_ENABLE);
+    ui->cmbConfig->addItem("Input invert", DIO_INPUT_INVERT);
+    ui->cmbConfig->addItem("Input latch", DIO_INPUT_LATCH);
+    ui->cmbConfig->addItem("Output type", DIO_OUTPUT_TYPE);
+    ui->cmbConfig->addItem("Interrupt mask", DIO_INT_MASK);
+    ui->cmbConfig->setCurrentIndex(0);
+    mConfigItem = DIO_DIRECTION;
+
     connect(ui->cmdGo, SIGNAL(clicked(bool)), this, SLOT(onClickCmdGo()));
+    connect(ui->cmdConfigIn, SIGNAL(clicked(bool)), this, SLOT(readOutputs()));
+    connect(ui->cmdConfigOut, SIGNAL(clicked(bool)), this, SLOT(writeConfiguration()));
+    connect(ui->cmbConfig, SIGNAL(currentIndexChanged(int)), this, SLOT(configItemChanged()));
+    connect(ui->cmdReset, SIGNAL(clicked(bool)), this, SLOT(runDioReset()));
+    connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
     createBitBoxes();
 }
 
@@ -35,16 +43,39 @@ DioForm::~DioForm()
     delete ui;
 }
 
+void DioForm::keyPressEvent(QKeyEvent *event)
+{
+    int keyCode = event->key();
+    if (keyCode == Qt::Key_Escape) {
+        toggleGoTimer(false);
+    }
+}
+
+void DioForm::closeEvent(QCloseEvent *event)
+{
+    event->accept();
+}
+
 void DioForm::updateParameters()
 {
     ChildWindow *parentWindow;
-    //bool showStop = false;
-    //bool enableIt = false;
-
     parentWindow = qobject_cast<ChildWindow *>(this->parent());
+    mAddress = parentWindow->devAddress();
     mDevName = parentWindow->devName();
     mHatID = parentWindow->devId();
+    //mCurGroup = parentWindow->curFunctionGroup();
 
+    mUseTimer = parentWindow->tmrEnabled();
+    //mGoTmrIsRunning = parentWindow->tmrRunning();
+    mTmrInterval = parentWindow->tmrInterval();
+    mOneSampPerForTotalSamps = parentWindow->tmrSampPerInterval();
+    ui->lblInfo->setText(QString("Timer set to %1 with interval %2.")
+                         .arg(mUseTimer)
+                         .arg(mTmrInterval));
+
+    initDeviceParams();
+    if(!ui->stackedWidget->isVisible())
+        parentWindow->adjustSize();
     this->setWindowTitle(mFuncName + ": " + mDevName);
 }
 
@@ -70,7 +101,7 @@ void DioForm::functionChanged(int utFunction)
         }
     }*/
 
-    //disableCheckboxInput(false);
+    disableCheckboxInput(false);
     this->setUiForFunction();
 }
 
@@ -78,7 +109,8 @@ void DioForm::setUiForFunction()
 {
     bool scanVisible, portsVisible, stopVisible;
     bool scanParamsVisible, setNumberVisible, asyncVisible;
-    bool configVisible;
+    bool configVisible, portCfgVisible, portSelVisible;
+    bool readCommandVisible, stopEnable;
     int stackIndex;
     ChildWindow *parentWindow;
 
@@ -86,10 +118,13 @@ void DioForm::setUiForFunction()
     parentWindow->setTmrEnabled(false);
 
     portsVisible = false;
+    portSelVisible = false;
+    portCfgVisible = false;
     asyncVisible = false;
     scanVisible = false;
     scanParamsVisible = false;
     setNumberVisible = false;
+    readCommandVisible = false;
     configVisible = false;
     stackIndex = 0;
     stopVisible = false;
@@ -100,60 +135,96 @@ void DioForm::setUiForFunction()
     QString startSample = "7";
     QString rateVal = "1000";
     QString blockText = "1000";
+    QString writeCommandText = "Write Configuration";
+    QString readCommandText = "Read Output";
     //int defPort;
+    disconnect(ui->cmdStop, SIGNAL(clicked(bool)), 0, 0);
     switch (mUtFunction) {
     case UL_D_CONFIG_PORT:
-        mFuncName = "ulDConfigPort";
-        portsVisible = true;
         asyncVisible = true;
         setNumberVisible = true;
+        portsVisible = true;
+        portCfgVisible = true;
         configVisible = true;
+        stopVisible = true;
         if (mCurGroup == FUNC_GROUP_DOUT) {
+            readCommandVisible = true;
             sampToolTip = "Value to write";
             goText = "Write";
         }
+        mFuncName = "ulDConfigPort";
+        stopText = "Read Cfg";
+        stopEnable = true;
+        //stop functions as read config in this mode
+        connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(readConfig()));
         break;
     case UL_D_CONFIG_BIT:
-        mFuncName = "ulDConfigBit";
-        stackIndex = 1;
         asyncVisible = true;
         stopVisible = true;
         configVisible = true;
-        sampToolTip = "Bit and Port to read/write (bit, port format)";
-        stopText = "Write";
         setNumberVisible = true;
-        /*foreach (DigitalPortType pt, validPorts) {
-            setDefaultBits(pt);
-        }
-        defPort = (int)validPorts[0];*/
-        //startSample = QString("0, %1").arg(defPort);
+        stopEnable = true;
+        stackIndex = 1;
+        mFuncName = "ulDConfigBit";
+        stopText = "Read Cfg";
+        sampToolTip = "Bit and Port to read/write (bit, port format)";
+        setDefaultBits(0);
+        connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(readConfig()));
         break;
     case UL_D_IN:
-        mFuncName = "ulDIn";
         asyncVisible = true;
+        setNumberVisible = true;
+        mFuncName = "ulDIn";
         startSample = "10";
         sampToolTip = "Samples per channel";
-        setNumberVisible = true;
+        connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
         break;
     case UL_D_OUT:
         portsVisible = true;
-        mFuncName = "ulDOut";
-        goText = "Write";
         asyncVisible = true;
         setNumberVisible = true;
+        mFuncName = "ulDOut";
+        goText = "Write";
         break;
     case UL_D_BIT_IN:
-        mFuncName = "ulDBitIn";
         asyncVisible = true;
+        disableCheckboxInput(true);
+        setDefaultBits(0);
         stackIndex = 1;
+        connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
+        mFuncName = "ulDBitIn";
         break;
     case UL_D_BIT_OUT:
-        mFuncName = "ulDBitOut";
         asyncVisible = true;
-        goText = "Read";
         stackIndex = 1;
+        setDefaultBits(0);
+        mFuncName = "ulDBitOut";
+        goText = "Read";
         break;
-    case UL_D_INSCAN:
+    case UL_D_INT_PORT:
+        asyncVisible = true;
+        setNumberVisible = true;
+        mFuncName = "IntPortIn";
+        startSample = "10";
+        sampToolTip = "Samples per channel";
+        connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
+        break;
+    case UL_D_INT_BIT:
+        asyncVisible = true;
+        disableCheckboxInput(true);
+        setDefaultBits(0);
+        stackIndex = 1;
+        connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
+        mFuncName = "IntBitIn";
+        break;
+    case UL_D_INT_WAIT:
+        asyncVisible = true;
+        setNumberVisible = true;
+        mFuncName = "IntWait";
+        startSample = "10";
+        sampToolTip = "Timeout";
+        break;
+    /*case UL_D_INSCAN:
         mFuncName = "ulDInScan";
         asyncVisible = true;
         goText = "Go";
@@ -162,10 +233,8 @@ void DioForm::setUiForFunction()
         scanVisible = true;
         mPlot = true;
         setNumberVisible = true;
-        mPlot = true;
         stackIndex = 2;
         break;
-    /*
     case UL_D_OUTSCAN:
         mFuncName = "ulDOutScan";
         asyncVisible = true;
@@ -182,26 +251,32 @@ void DioForm::setUiForFunction()
         break;
     }
     ui->stackedWidget->setVisible(!portsVisible);
-    ui->stackedWidget->setCurrentIndex(stackIndex);
+    ui->fraPortSel->setVisible(portSelVisible);
+    ui->fraPortCfg->setVisible(portCfgVisible);
+    ui->cmdConfigIn->setVisible(readCommandVisible);
     ui->fraScan->setVisible(scanVisible);
     ui->fraAsync->setVisible(asyncVisible);
     ui->cmbConfig->setVisible(configVisible);
-    //ui->fraPorts->setVisible(portsVisible);
+    ui->cmdConfigIn->setVisible(readCommandVisible);
     ui->spnLowChan->setVisible(scanParamsVisible);
     ui->spnHighChan->setVisible(scanParamsVisible);
     ui->leNumSamples->setVisible(setNumberVisible);
-    ui->leRate->setText(rateVal);
-    ui->leNumSamples->setToolTip(sampToolTip);
+    ui->cmdStop->setVisible(stopVisible);
+    ui->cmdStop->setEnabled(stopEnable);
+    ui->stackedWidget->setCurrentIndex(stackIndex);
     ui->leNumSamples->setText(startSample);
     ui->leBlockSize->setText(blockText);
+    ui->cmdConfigOut->setText(writeCommandText);
+    ui->cmdConfigIn->setText(readCommandText);
     ui->cmdGo->setText(goText);
-    ui->cmdStop->setVisible(stopVisible);
     ui->cmdStop->setText(stopText);
-    //parentWindow->adjustSize();
-    //updateControlDefaults(false);
+    ui->leRate->setText(rateVal);
+    ui->leNumSamples->setToolTip(sampToolTip);
     if (mPlot)
         showPlotWindow(mPlot);
     ui->cmdGo->setFocus();
+    if(!ui->stackedWidget->isVisible())
+        parentWindow->adjustSize();
     this->setWindowTitle(mFuncName + ": " + mDevName);
 }
 
@@ -209,7 +284,7 @@ void DioForm::showPlotWindow(bool showIt)
 {
     QFrame::Shape frameShape;
 
-    if ((mUtFunction == UL_D_OUTSCAN) | (mUtFunction == UL_D_INSCAN))
+    if (showIt)
         frameShape = QFrame::Box;
     mPlot = showIt;
     int curIndex = 0;
@@ -223,41 +298,117 @@ void DioForm::showPlotWindow(bool showIt)
 
 void DioForm::initDeviceParams()
 {
-
+    mNumBits = hatInterface->getNumDioChans(mHatID);
+    mUtFunction = UL_D_CONFIG_PORT;
+    setUiForFunction();
 }
 
-void DioForm::configureInputs()
+void DioForm::configItemChanged()
 {
-
+    mConfigItem = ui->cmbConfig->currentData().toUInt();
+    readConfig();
 }
 
-void DioForm::configureOutputs()
+void DioForm::writeConfiguration()
 {
+    uint8_t value;
 
+    value = ui->leNumSamples->text().toUInt();
+    mResponse = hatInterface->dioPortConfigWrite(mHatID, mAddress, mConfigItem, value);
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void DioForm::runDioReset()
+{
+    mResponse = hatInterface->dioReset(mHatID, mAddress);
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void DioForm::readOutputs()
+{
+    uint8_t value;
+
+    value = 0;
+    mResponse = hatInterface->dioOutPortRead(mHatID, mAddress, value);
+    ui->leNumSamples->setText(QString("%1").arg(value));
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void DioForm::readConfig()
+{
+    uint8_t value;
+
+    mResponse = hatInterface->dioPortConfigRead(mHatID, mAddress, mConfigItem, value);
+    ui->leNumSamples->setText(QString("%1").arg(value));
+    ui->lblInfo->setText(hatInterface->getStatus());
+
+    if(mUtFunction == UL_D_CONFIG_BIT) {
+        for (int i = 0; i < numBitCheckboxes; i++) {
+            mResponse = hatInterface->dioBitConfigRead(mHatID, mAddress, i, mConfigItem, value);
+            chkBit[i]->setChecked(value == 1);
+        }
+    }
 }
 
 void DioForm::onClickCmdGo()
 {
-    runSelectedFunction();
+    bool tmrEnable;
+
+    tmrEnable = mUseTimer;
+    switch (mUtFunction) {
+    case UL_D_CONFIG_PORT:
+        if(mCurGroup == FUNC_GROUP_DIN)
+            readPort();
+        else
+            writePort();
+        break;
+    case UL_D_CONFIG_BIT:
+        readPort();
+        readBits();
+        break;
+    case UL_D_IN:
+        runSelectedFunction();
+        toggleGoTimer(tmrEnable);
+        break;
+    case UL_D_OUT:
+        runDOutFunc();
+        break;
+    case UL_D_BIT_IN:
+        //disableCheckboxInput(true);
+        //runDBitInFunc();
+        runSelectedFunction();
+        toggleGoTimer(tmrEnable);
+        break;
+    case UL_D_BIT_OUT:
+        break;
+    case UL_D_INT_PORT:
+        runSelectedFunction();
+        toggleGoTimer(tmrEnable);
+        break;
+    case UL_D_INT_BIT:
+        runSelectedFunction();
+        toggleGoTimer(tmrEnable);
+        break;
+    case UL_D_INT_WAIT:
+        waitForInterupt();
+        break;
+    default:
+        runSelectedFunction();
+        break;
+    }
 }
 
 void DioForm::bitToggled(int bitNumber)
 {
-    //int curBit;
-
-    mUtFunction = UL_D_CONFIG_PORT;
     bool setValue = chkBit[bitNumber]->isChecked();
     unsigned int bitVal = 0;
-    //DigitalDirection direction = DD_INPUT;
     if (setValue) {
         bitVal = 1;
-        //direction = DD_OUTPUT;
     }
-    //mapGridToPortBit(bitNumber, portType, curBit);
 
     switch (mUtFunction) {
     case UL_D_CONFIG_BIT:
-        //runDConfigBit(portType, curBit, direction);
+        runDBitConfigFunc(bitNumber, bitVal );
         break;
     case UL_D_IN:
         break;
@@ -280,44 +431,12 @@ void DioForm::bitToggled(int bitNumber)
 
 void DioForm::runSelectedFunction()
 {
-    ChildWindow *parentWindow;
     QFont goFont = ui->cmdGo->font();
-    bool makeBold, tmrIsEnabled, tmrIsRunning;
-    //bool isBipolar;
-    bool showStop = false;
-    //int chanScale;
-    //double defaultRange, offset;
-
-    parentWindow = qobject_cast<ChildWindow *>(this->parent());
-
-    /*mChanCount = portList.count();
-    if (mUtFunction == UL_D_OUTSCAN) {
-        if (mChanCount) {
-            for (int i = 0; i < mChanCount; i++) {
-                int numWaves = mWaves.count() - 1;
-                if (i > numWaves) {
-                    //if data hasn't been defined set default data
-                    chanScale = DMgr::counts;
-                    defaultRange = (pow(2, mDioResolution)) - 2;
-                    offset = defaultRange / 2;
-                    isBipolar = false;
-                    mWaves.insert(i, DMgr::sineWave);
-                    mCycles.insert(i, 1);
-                    mAmplitude.insert(i, defaultRange);
-                    mOffset.insert(i, offset);
-                    mDataScale.insert(i, chanScale);
-                    mBipolar.insert(i, isBipolar);
-                }
-            }
-        }
-    }*/
-
     switch (mUtFunction) {
     case UL_D_CONFIG_PORT:
         runDOutFunc();
         break;
     case UL_D_CONFIG_BIT:
-        showStop = true;
         //readSingleBit();
         break;
     case UL_D_IN:
@@ -328,10 +447,16 @@ void DioForm::runSelectedFunction()
         break;
     case UL_D_BIT_IN:
         //disableCheckboxInput(true);
-        //runDBitInFunc();
+        runDBitInFunc();
         break;
     case UL_D_BIT_OUT:
         //runDBitInFunc();
+        break;
+    case UL_D_INT_PORT:
+        runIntPortFunc();
+        break;
+    case UL_D_INT_BIT:
+        runIntBitFunc();
         break;
     /*
     case UL_D_INSCAN:
@@ -365,67 +490,158 @@ void DioForm::runSelectedFunction()
     default:
         break;
     }
-
-    tmrIsEnabled = parentWindow->tmrEnabled();
-    tmrIsRunning = parentWindow->tmrRunning();
-    if ((!tmrIsEnabled) & (!showStop)) {
-        if (tmrIsRunning)
-            parentWindow->setTmrRunning(false);
-        showStop = false;
-        mUseTimer = false;
-        goFont.setBold(false);
+    if(mGoTmrIsRunning) {
+        goFont.setBold(!ui->cmdGo->font().bold());
         ui->cmdGo->setFont(goFont);
-    } else {
-        if (mUtFunction == UL_D_CONFIG_BIT) {
-            showStop = true;
-        } else if (mUseTimer) {
-            if (!tmrIsRunning) {
-                parentWindow->setTmrRunning(true);
-                ui->cmdStop->setEnabled(true);
-            }
-            showStop = true;
-            makeBold = !ui->cmdGo->font().bold();
-            goFont.setBold(makeBold);
-            ui->cmdGo->setFont(goFont);
-        } else {
-            if (tmrIsRunning) {
-                parentWindow->setTmrRunning(false);
-                ui->cmdStop->setEnabled(false);
-            }
-            goFont.setBold(false);
-            ui->cmdGo->setFont(goFont);
-        }
     }
-    ui->cmdStop->setVisible(tmrIsEnabled | showStop);
+}
+
+void DioForm::readPort()
+{
+    uint8_t value;
+
+    if(mCurGroup == FUNC_GROUP_DIN)
+        mResponse = hatInterface->dioInPortRead(mHatID, mAddress, value);
+    else
+        mResponse = hatInterface->dioOutPortRead(mHatID, mAddress, value);
+
+    ui->leNumSamples->setText(QString("%1").arg(value));
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void DioForm::readBits()
+{
+    uint8_t bit, value;
+
+    for(bit = 0; bit < numBitCheckboxes; bit++) {
+        if(mCurGroup == FUNC_GROUP_DIN)
+            mResponse = hatInterface->dioInBitRead(mHatID, mAddress, bit, value);
+        else
+            mResponse = hatInterface->dioOutBitRead(mHatID, mAddress, bit, value);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        chkBit[bit]->setChecked(value != 0);
+    }
 }
 
 void DioForm::runDInFunc()
 {
+    uint8_t value;
+    int numSamples;
+
+    ui->teShowValues->clear();
+    numSamples = ui->leNumSamples->text().toInt();
+    if(mCurGroup == FUNC_GROUP_DIN) {
+        for(int i = 0; i < numSamples; i++) {
+            mResponse = hatInterface->dioInPortRead(mHatID, mAddress, value);
+            ui->teShowValues->append(QString("%1").arg(value));
+        }
+    } else {
+        mResponse = hatInterface->dioOutPortRead(mHatID, mAddress, value);
+        ui->teShowValues->setText(QString("%1").arg(value));
+    }
+    ui->lblInfo->setText(hatInterface->getStatus());
 }
 
-void DioForm::runDBitInFunc(uint8_t value, uint8_t bit)
+void DioForm::runIntPortFunc()
 {
-    mResponse = hatInterface->dioInputRead(mHatID, mAddress, bit, value);
+    uint8_t value;
+
+    ui->teShowValues->clear();
+    mResponse = hatInterface->dioIntStatusPort(mHatID, mAddress, value);
+    ui->teShowValues->setText(QString("%1").arg(value));
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void DioForm::runDBitInFunc()
+{
+    uint8_t bit, value;
+
+    for(bit = 0; bit < numBitCheckboxes; bit++) {
+        mResponse = hatInterface->dioInBitRead(mHatID, mAddress, bit, value);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        chkBit[bit]->setChecked(value != 0);
+    }
+}
+
+void DioForm::runIntBitFunc()
+{
+    uint8_t bit, value;
+
+    for(bit = 0; bit < numBitCheckboxes; bit++) {
+        mResponse = hatInterface->dioIntStatusBit(mHatID, mAddress, bit, value);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        chkBit[bit]->setChecked(value != 0);
+    }
+}
+
+void DioForm::waitForInterupt()
+{
+    int timeout, intState;
+    QString waitStatus, timoText;
+
+    timeout = ui->leNumSamples->text().toInt();
+    if(timeout == (-1))
+        timoText = "indefinitely.\n";
+    else
+        timoText = QString("for %1ms.\n").arg(timeout);
+    ui->teShowValues->setText("Waiting for interrupt " + timoText);
+    delay(200);
+    mResponse = hatInterface->waitForInterrupt(timeout);
+    waitStatus = hatInterface->getStatus();
+    ui->lblInfo->setText(waitStatus);
+    ui->teShowValues->append(waitStatus);
+    intState = hatInterface->getInterruptState();
+    ui->teShowValues->append(QString("Interrupt state: %1").arg(intState));
+    ui->lblStatus->setText(hatInterface->getStatus());
+}
+
+void DioForm::writePort()
+{
+    uint8_t value;
+
+    value = ui->leNumSamples->text().toUInt();
+    mResponse = hatInterface->dioOutPortWrite(mHatID, mAddress, value);
+    ui->lblInfo->setText(hatInterface->getStatus());
 }
 
 void DioForm::runDOutFunc()
 {
-
 }
 
-void DioForm::runDBitOutFunc(uint8_t value, uint8_t bit)
+void DioForm::runDBitOutFunc(uint8_t bit, uint8_t value)
 {
-    mResponse = hatInterface->dioOutputWrite(mHatID, mAddress, bit, value);
+    mResponse = hatInterface->dioOutBitWrite(mHatID, mAddress, bit, value);
+    ui->lblInfo->setText(hatInterface->getStatus());
+}
+
+void DioForm::runDBitConfigFunc(uint8_t bit, uint8_t value)
+{
+    mResponse = hatInterface->dioBitConfigWrite(mHatID, mAddress, bit, mConfigItem, value);
+    ui->lblInfo->setText(hatInterface->getStatus());
 }
 
 void DioForm::onClickCmdStop()
 {
-
+    toggleGoTimer(false);
 }
 
-void DioForm::stopGoTimer()
+void DioForm::toggleGoTimer(bool enableTimer)
 {
+    ChildWindow *parentWindow;
+    QFont goFont = ui->cmdGo->font();
 
+    parentWindow = qobject_cast<ChildWindow *>(this->parent());
+    if(enableTimer) {
+        parentWindow->setTmrRunning(true);
+        goFont.setBold(true);
+    } else {
+        parentWindow->setTmrRunning(false);
+        goFont.setBold(false);
+    }
+    mGoTmrIsRunning = enableTimer;
+    ui->cmdStop->setVisible(mUseTimer);
+    ui->cmdStop->setEnabled(enableTimer);
+    ui->cmdGo->setFont(goFont);
 }
 
 void DioForm::showQueueConfig()
@@ -445,8 +661,8 @@ void DioForm::createBitBoxes()
     connect(mapBits, SIGNAL(mapped(int)), this, SLOT(bitToggled(int)));
     bitLayout->setSpacing(1);
     bitLayout->setMargin(4);
-    bitLayout->setSizeConstraint(QLayout::SetFixedSize);
-    bitLayout->setColumnMinimumWidth(3, 40);
+    bitLayout->setSizeConstraint(QLayout::SetFixedSize); //
+    //bitLayout->setColumnMinimumWidth(3, 40);
 
     //spacing between auxport and firsport set by col width
     pos = 0;
@@ -490,8 +706,52 @@ void DioForm::createBitBoxes()
         }
         */
         chkBit[i]->setToolTip(portBit);
-        bitLayout->addWidget(chkBit[i], pos % 8, pos / 8);
+        bitLayout->addWidget(chkBit[i], pos % 4, pos / 4);
         pos++;
     }
     ui->stackedWidget->widget(1)->setLayout(bitLayout);
+}
+
+void DioForm::disableCheckboxInput(bool disableMouse)
+{
+    if (disableMouse)
+        for (int i = 0; i < numBitCheckboxes; i++) {
+            chkBit[i]->setAttribute(Qt::WA_TransparentForMouseEvents);
+        }
+    else
+        for (int i = 0; i < numBitCheckboxes; i++) {
+            chkBit[i]->setAttribute(Qt::WA_TransparentForMouseEvents, false);
+        }
+}
+
+void DioForm::setDefaultBits(uint8_t portType)
+{
+    (void)portType;
+    uint8_t dirValue, bitVal;
+    bool checkTrue;
+
+    mResponse = hatInterface->dioPortConfigRead(mHatID, mAddress, DIO_DIRECTION, dirValue);
+    /*portIndex = validPorts.indexOf(portType);
+    configMask = getIOConfigMask(portIndex);
+    int numBits = portBits.value(portType);
+    int portOffset = getGridOffsetFromPort(portType);
+    */
+    checkTrue = false;
+    for (int i = 0; i < numBitCheckboxes; i++) {
+        bool triState = true;
+        if ((mUtFunction == UL_D_CONFIG_BIT) |
+            (mUtFunction == UL_D_BIT_OUT)) {
+            triState = false;
+            if (mUtFunction == UL_D_CONFIG_BIT)
+                checkTrue = ((int)pow(2, i) & (int)dirValue);
+        }
+        if(mUtFunction == UL_D_BIT_IN) {
+            chkBit[i]->setTristate(false);
+            mResponse = hatInterface->dioInBitRead(mHatID, mAddress, i, bitVal);
+            chkBit[i]->setChecked(bitVal == 1);
+        } else {
+            chkBit[i]->setTristate(triState);
+            chkBit[i]->setChecked(checkTrue);
+        }
+    }
 }

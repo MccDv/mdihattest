@@ -355,6 +355,186 @@ int HatInterface::getNumAInChans(uint16_t devType)
     return numChans;
 }
 
+uint16_t HatInterface::getAInCodeMax(uint16_t devType)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+    uint16_t maxCode;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": aInMaxCode");
+    funcArgs = "() = result\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxCode = mcc118_info()->AI_MAX_CODE;
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxCode = 0;
+        break;
+    }
+    argVals = "()";
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(maxCode);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(maxCode);
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
+    return maxCode;
+}
+
+uint16_t HatInterface::getAInCodeMin(uint16_t devType)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+    uint16_t minCode;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": aInMinCode");
+    funcArgs = "() = result\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minCode = mcc118_info()->AI_MIN_CODE;
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minCode = 0;
+        break;
+    }
+    argVals = "()";
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(minCode);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(minCode);
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
+    return minCode;
+}
+
+double HatInterface::getAInRangeMax(uint16_t devType)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+    double maxRange;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": aInMaxRange");
+    funcArgs = "() = result\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxRange = mcc118_info()->AI_MAX_RANGE;
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxRange = 0;
+        break;
+    }
+    argVals = "()";
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(maxRange);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(maxRange);
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
+    return maxRange;
+}
+
+double HatInterface::getAInRangeMin(uint16_t devType)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+    double minRange;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": aInMinRange");
+    funcArgs = "() = result\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minRange = mcc118_info()->AI_MIN_RANGE;
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minRange = 0;
+        break;
+    }
+    argVals = "()";
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(minRange);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(minRange);
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
+    return minRange;
+}
+
+double HatInterface::getAInVoltsMax(uint16_t devType)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+    double maxVolts;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": aInMaxVolts");
+    funcArgs = "() = result\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxVolts = mcc118_info()->AI_MAX_VOLTAGE;
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxVolts = 0;
+        break;
+    }
+    argVals = "()";
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(maxVolts);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(maxVolts);
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
+    return maxVolts;
+}
+
+double HatInterface::getAInVoltsMin(uint16_t devType)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+    double minVolts;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": aInMinVolts");
+    funcArgs = "() = result\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minVolts = mcc118_info()->AI_MIN_VOLTAGE;
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minVolts = 0;
+        break;
+    }
+    argVals = "()";
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(minVolts);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(minVolts);
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
+    return minVolts;
+}
+
 int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double &slope, double &offset)
 {
     QString nameOfFunc, funcArgs, funcStr;
@@ -724,6 +904,7 @@ void HatInterface::updateAppStatus(UtFunctionGroup funcGroup, QString statusText
     mMainWindow->setStatusLabel(groupName + ": " +  statusText);
 }
 
+
 #ifdef HAT_03
 
 int HatInterface::boardTemp(uint16_t devType, uint8_t address, double &temp)
@@ -854,7 +1035,45 @@ int HatInterface::writeTcType(uint16_t devType, uint8_t address, uint8_t chan, u
     return mResponse;
 }
 
+#else
+
+int HatInterface::boardTemp(uint16_t devType, uint8_t address, double &temp)
+{
+    (void)devType;
+    (void)address;
+    (void)temp;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::tInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp)
+{
+    (void)devType;
+    (void)address;
+    (void)chan;
+    (void)temp;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType)
+{
+    (void)devType;
+    (void)address;
+    (void)chan;
+    (void)tcType;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType)
+{
+    (void)devType;
+    (void)address;
+    (void)chan;
+    (void)tcType;
+    return RESULT_INVALID_DEVICE;
+}
+
 #endif
+
 
 #ifdef HAT_04
 
@@ -873,7 +1092,7 @@ int HatInterface::getNumAOutChans(uint16_t devType)
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        numChans = mcc152_a_out_num_channels();
+        numChans = mcc152_info()->NUM_AO_CHANNELS;
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -903,7 +1122,7 @@ int HatInterface::getNumDioChans(uint16_t devType)
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        numChans = mcc152_dio_num_channels();
+        numChans = mcc152_info()->NUM_DIO_CHANNELS;
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -932,7 +1151,7 @@ int HatInterface::getAOutCodeMax(uint16_t devType)
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        codeMax = mcc152_a_out_code_max();
+        codeMax = mcc152_info()->AO_MAX_CODE;
         mResponse = RESULT_SUCCESS;
         break;
     default:
@@ -963,7 +1182,7 @@ int HatInterface::getAOutCodeMin(uint16_t devType)
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        codeMin = mcc152_a_out_code_min();
+        codeMin = mcc152_info()->AO_MIN_CODE;
         mResponse = RESULT_SUCCESS;
         break;
     default:
@@ -994,7 +1213,7 @@ double HatInterface::getAOutVoltsMin(uint16_t devType)
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        voltsMin = mcc152_a_out_voltage_min();
+        voltsMin = mcc152_info()->AO_MIN_VOLTAGE;
         mResponse = RESULT_SUCCESS;
         break;
     default:
@@ -1025,7 +1244,7 @@ double HatInterface::getAOutVoltsMax(uint16_t devType)
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        voltsMax = mcc152_a_out_voltage_max();
+        voltsMax = mcc152_info()->AO_MAX_VOLTAGE;
         mResponse = RESULT_SUCCESS;
         break;
     default:
@@ -1134,7 +1353,7 @@ int HatInterface::dioReset(uint16_t devType, uint8_t address)
     return mResponse;
 }
 
-int HatInterface::dioInputRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+int HatInterface::dioInBitRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -1143,12 +1362,12 @@ int HatInterface::dioInputRead(uint16_t devType, uint8_t address, uint8_t chan, 
     QString hatName;
 
     hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioInputRead");
+    nameOfFunc = hatName.append(": dioInBitRead");
     funcArgs = "(mAddress, curChan, &data)\n";
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_input_read(address, chan, &data);
+        mResponse = mcc152_dio_input_read_bit(address, chan, &data);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1182,7 +1401,7 @@ int HatInterface::dioInPortRead(uint16_t devType, uint8_t address, uint8_t &valu
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         data = 0;
-        //mResponse = mcc152_dio_input_read(address, &data);
+        mResponse = mcc152_dio_input_read_port(address, &data);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1201,7 +1420,7 @@ int HatInterface::dioInPortRead(uint16_t devType, uint8_t address, uint8_t &valu
     return mResponse;
 }
 
-int HatInterface::dioOutputWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
+int HatInterface::dioOutBitWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -1209,12 +1428,12 @@ int HatInterface::dioOutputWrite(uint16_t devType, uint8_t address, uint8_t chan
     QString hatName;
 
     hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioOutputWrite");
+    nameOfFunc = hatName.append(": dioOutBitWrite");
     funcArgs = "(mAddress, curChan, value)\n";
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_output_write(address, chan, value);
+        mResponse = mcc152_dio_output_write_bit(address, chan, value);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1245,7 +1464,7 @@ int HatInterface::dioOutPortWrite(uint16_t devType, uint8_t address, uint8_t val
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        //mResponse = mcc152_dio_output_write(address, value);
+        mResponse = mcc152_dio_output_write_port(address, value);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1262,7 +1481,7 @@ int HatInterface::dioOutPortWrite(uint16_t devType, uint8_t address, uint8_t val
     return mResponse;
 }
 
-int HatInterface::dioOutputRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+int HatInterface::dioOutBitRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -1271,12 +1490,12 @@ int HatInterface::dioOutputRead(uint16_t devType, uint8_t address, uint8_t chan,
     QString hatName;
 
     hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioOutputRead");
+    nameOfFunc = hatName.append(": dioOutBitRead");
     funcArgs = "(mAddress, curChan, &data)\n";
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_output_read(address, chan, &data);
+        mResponse = mcc152_dio_output_read_bit(address, chan, &data);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1310,7 +1529,7 @@ int HatInterface::dioOutPortRead(uint16_t devType, uint8_t address, uint8_t &val
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         data = 0;
-        //mResponse = mcc152_dio_output_read(address, &data);
+        mResponse = mcc152_dio_output_read_port(address, &data);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1329,7 +1548,7 @@ int HatInterface::dioOutPortRead(uint16_t devType, uint8_t address, uint8_t &val
     return mResponse;
 }
 
-int HatInterface::dioDirectionWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
+int HatInterface::dioBitConfigWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t item, uint8_t value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -1338,20 +1557,21 @@ int HatInterface::dioDirectionWrite(uint16_t devType, uint8_t address, uint8_t c
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": dioDirectionWrite");
-    funcArgs = "(mAddress, curChan, value)\n";
+    funcArgs = "(mAddress, curChan, item, value)\n";
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_direction_write(address, chan, value);
+        mResponse = mcc152_dio_config_write_bit(address, chan, item, value);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
         break;
     }
-    argVals = QStringLiteral("(%1, %2, %3)")
+    argVals = QStringLiteral("(%1, %2, %3, %4)")
             .arg(address)
             .arg(chan)
+            .arg(item)
             .arg(value);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
@@ -1360,7 +1580,72 @@ int HatInterface::dioDirectionWrite(uint16_t devType, uint8_t address, uint8_t c
     return mResponse;
 }
 
-int HatInterface::dioDirectionRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+int HatInterface::dioBitConfigRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t item, uint8_t &value)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+    uint8_t data;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": dioBitCfgRead");
+    funcArgs = "(mAddress, curChan, item, &data)\n";
+    switch (devType) {
+    case HAT_ID_MCC_152:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc152_dio_config_read_bit(address, chan, item, &data);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3, %4)")
+            .arg(address)
+            .arg(chan)
+            .arg(item)
+            .arg(data);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    value = data;
+    return mResponse;
+}
+
+int HatInterface::dioPortConfigWrite(uint16_t devType, uint8_t address, uint8_t item, uint8_t value)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": dioConfigWritePort");
+    funcArgs = "(mAddress, item, value)\n";
+    switch (devType) {
+    case HAT_ID_MCC_152:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc152_dio_config_write_port(address, item, value);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3)")
+            .arg(address)
+            .arg(getConfigItemName(item))
+            .arg(value);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
+}
+
+int HatInterface::dioPortConfigRead(uint16_t devType, uint8_t address, uint8_t item, uint8_t &value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -1369,12 +1654,45 @@ int HatInterface::dioDirectionRead(uint16_t devType, uint8_t address, uint8_t ch
     QString hatName;
 
     hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioDirectionRead");
+    nameOfFunc = hatName.append(": dioConfigReadPort");
+    funcArgs = "(mAddress, item, &data)\n";
+    switch (devType) {
+    case HAT_ID_MCC_152:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc152_dio_config_read_port(address, item, &data);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3)")
+            .arg(address)
+            .arg(getConfigItemName(item))
+            .arg(data);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    value = data;
+    return mResponse;
+}
+
+int HatInterface::dioIntStatusBit(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+    uint8_t data;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": dioIntStatusBit");
     funcArgs = "(mAddress, curChan, &data)\n";
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_direction_read(address, chan, &data);
+        mResponse = mcc152_dio_int_status_read_bit(address, chan, &data);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1393,38 +1711,7 @@ int HatInterface::dioDirectionRead(uint16_t devType, uint8_t address, uint8_t ch
     return mResponse;
 }
 
-int HatInterface::dioPullConfigWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioPullConfigWrite");
-    funcArgs = "(mAddress, curChan, value)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_pull_config_write(address, chan, value);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(value);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    return mResponse;
-}
-
-int HatInterface::dioPullConfigRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+int HatInterface::dioIntStatusPort(uint16_t devType, uint8_t address, uint8_t &value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -1433,236 +1720,12 @@ int HatInterface::dioPullConfigRead(uint16_t devType, uint8_t address, uint8_t c
     QString hatName;
 
     hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioPullConfigRead");
-    funcArgs = "(mAddress, curChan, &data)\n";
+    nameOfFunc = hatName.append(": dioIntStatusPort");
+    funcArgs = "(mAddress, &data)\n";
     switch (devType) {
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_pull_config_read(address, chan, &data);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(data);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    value = data;
-    return mResponse;
-}
-
-int HatInterface::dioPullEnableWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioPullEnableWrite");
-    funcArgs = "(mAddress, curChan, value)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_pull_enable_write(address, chan, value);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(value);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    return mResponse;
-}
-
-int HatInterface::dioPullEnableRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    uint8_t data;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioPullEnableRead");
-    funcArgs = "(mAddress, curChan, &data)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_pull_enable_read(address, chan, &data);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(data);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    value = data;
-    return mResponse;
-}
-
-int HatInterface::dioInputInvertWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioInputInvertWrite");
-    funcArgs = "(mAddress, curChan, value)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_input_invert_write(address, chan, value);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(value);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    return mResponse;
-}
-
-int HatInterface::dioInputInvertRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    uint8_t data;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioInputInvertRead");
-    funcArgs = "(mAddress, curChan, &data)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_input_invert_read(address, chan, &data);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(data);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    value = data;
-    return mResponse;
-}
-
-int HatInterface::dioInputLatchWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioInputLatchWrite");
-    funcArgs = "(mAddress, curChan, value)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_input_latch_write(address, chan, value);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(value);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    return mResponse;
-}
-
-int HatInterface::dioInputLatchRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    uint8_t data;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioInputLatchRead");
-    funcArgs = "(mAddress, curChan, &data)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_input_latch_read(address, chan, &data);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(data);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    value = data;
-    return mResponse;
-}
-
-int HatInterface::dioOutputTypeWrite(uint16_t devType, uint8_t address, uint8_t value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioOutputTypeWrite");
-    funcArgs = "(mAddress, curChan, value)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_output_type_write(address, value);
+        mResponse = mcc152_dio_int_status_read_port(address, &data);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1671,37 +1734,6 @@ int HatInterface::dioOutputTypeWrite(uint16_t devType, uint8_t address, uint8_t 
     }
     argVals = QStringLiteral("(%1, %2)")
             .arg(address)
-            .arg(value);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    return mResponse;
-}
-
-int HatInterface::dioOutputTypeRead(uint16_t devType, uint8_t address, uint8_t &value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    uint8_t data;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioOutputTypeRead");
-    funcArgs = "(mAddress, curChan, &data)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_output_type_read(address, &data);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
             .arg(data);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
@@ -1711,30 +1743,21 @@ int HatInterface::dioOutputTypeRead(uint16_t devType, uint8_t address, uint8_t &
     return mResponse;
 }
 
-int HatInterface::dioInterruptMaskWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
+int HatInterface::waitForInterrupt(int timeout)
 {
-    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
     QTime t;
     QString sStartTime;
     QString hatName;
 
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioInterruptMaskWrite");
-    funcArgs = "(mAddress, curChan, value)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_interrupt_mask_write(address, chan, value);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(value);
+    nameOfFunc = hatName.append("Hats: waitForInterrupt");
+    funcArgs = "(timeout)\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = hat_wait_for_interrupt(timeout);
+
+    argVals = QStringLiteral("(%1)")
+            .arg(timeout);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
@@ -1742,75 +1765,44 @@ int HatInterface::dioInterruptMaskWrite(uint16_t devType, uint8_t address, uint8
     return mResponse;
 }
 
-int HatInterface::dioInterruptMaskRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+int HatInterface::getInterruptState()
 {
-    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
     QTime t;
     QString sStartTime;
-    uint8_t data;
+    int state;
     QString hatName;
 
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioInterruptMaskRead");
-    funcArgs = "(mAddress, curChan, &data)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_interrupt_mask_read(address, chan, &data);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(data);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+    nameOfFunc = hatName.append("Hats: getInterruptState");
+    funcArgs = "() = result\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    state = hat_interrupt_state();
 
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    value = data;
-    return mResponse;
-}
+    argVals = "()";
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(state);
 
-int HatInterface::dioInterruptStatusRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    uint8_t data;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioInterruptStatusRead");
-    funcArgs = "(mAddress, curChan, &data)\n";
-    switch (devType) {
-    case HAT_ID_MCC_152:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc152_dio_interrupt_status_read(address, chan, &data);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3)")
-            .arg(address)
-            .arg(chan)
-            .arg(data);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    value = data;
-    return mResponse;
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(state);
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
+    return state;
 }
 
 #else
 
 int HatInterface::getNumAOutChans(uint16_t devType)
+{
+    (void)devType;
+    return 0;
+}
+
+int HatInterface::dioReset(uint16_t devType, uint8_t address)
+{
+    (void)devType;
+    (void)address;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::getNumDioChans(uint16_t devType)
 {
     (void)devType;
     return 0;
@@ -1859,7 +1851,7 @@ int HatInterface::aOutWriteAll(uint16_t devType, uint8_t address, uint32_t optio
     return RESULT_INVALID_DEVICE;
 }
 
-int HatInterface::dioInputRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+int HatInterface::dioInBitRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
 {
     (void)devType;
     (void)address;
@@ -1868,13 +1860,113 @@ int HatInterface::dioInputRead(uint16_t devType, uint8_t address, uint8_t chan, 
     return RESULT_INVALID_DEVICE;
 }
 
-int HatInterface::dioOutputWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
+int HatInterface::dioInPortRead(uint16_t devType, uint8_t address, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioOutBitWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t value)
 {
     (void)devType;
     (void)address;
     (void)chan;
     (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioOutPortWrite(uint16_t devType, uint8_t address, uint8_t value)
+{
+    (void)devType;
+    (void)address;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioOutBitRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)chan;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioOutPortRead(uint16_t devType, uint8_t address, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioBitConfigWrite(uint16_t devType, uint8_t address, uint8_t chan, uint8_t item, uint8_t value)
+{
+    (void)devType;
+    (void)address;
+    (void)chan;
+    (void)item;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioPortConfigWrite(uint16_t devType, uint8_t address, uint8_t item, uint8_t value)
+{
+    (void)devType;
+    (void)address;
+    (void)item;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioBitConfigRead(uint16_t devType, uint8_t address, uint8_t chan, uint8_t item, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)chan;
+    (void)item;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioPortConfigRead(uint16_t devType, uint8_t address, uint8_t item, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)item;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioIntStatusBit(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)chan;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::dioIntStatusPort(uint16_t devType, uint8_t address, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::waitForInterrupt(int timeout)
+{
+    (void)timeout;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::getInterruptState()
+{
     return RESULT_INVALID_DEVICE;
 }
 
 #endif
+
