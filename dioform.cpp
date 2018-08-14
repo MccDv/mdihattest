@@ -63,7 +63,7 @@ void DioForm::updateParameters()
     mAddress = parentWindow->devAddress();
     mDevName = parentWindow->devName();
     mHatID = parentWindow->devId();
-    //mCurGroup = parentWindow->curFunctionGroup();
+    mCurGroup = parentWindow->curFunctionGroup();
 
     mUseTimer = parentWindow->tmrEnabled();
     //mGoTmrIsRunning = parentWindow->tmrRunning();

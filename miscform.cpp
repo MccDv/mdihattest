@@ -21,6 +21,7 @@ MiscForm::MiscForm(QWidget *parent) :
 
     connect(ui->cmdStart, SIGNAL(clicked(bool)), this, SLOT(onClickCmdGo()));
     connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
+    connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
 
     initDevices();
 }
