@@ -1751,7 +1751,8 @@ int HatInterface::waitForInterrupt(int timeout)
     QString sStartTime;
     QString hatName;
 
-    nameOfFunc = hatName.append("Hats: waitForInterrupt");
+    hatName = "Hats";
+    nameOfFunc = hatName.append(": waitForInterrupt");
     funcArgs = "(timeout)\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
     mResponse = hat_wait_for_interrupt(timeout);
@@ -1774,7 +1775,8 @@ int HatInterface::getInterruptState()
     int state;
     QString hatName;
 
-    nameOfFunc = hatName.append("Hats: getInterruptState");
+    hatName = "Hats";
+    nameOfFunc = hatName.append(": getInterruptState");
     funcArgs = "() = result\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
     state = hat_interrupt_state();
@@ -1785,6 +1787,47 @@ int HatInterface::getInterruptState()
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(state);
     reportResult(RESULT_SUCCESS, sStartTime + funcStr);
     return state;
+}
+
+int HatInterface::enableCallback(void(*function)())
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+
+    hatName = "Hats";
+    nameOfFunc = hatName.append(": callbackEnable");
+    funcArgs = "(function)\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = hat_interrupt_callback_enable(function);
+    argVals = QStringLiteral("(%1)")
+            .arg(function != 0);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
+}
+
+int HatInterface::disableCallback()
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+
+    hatName = "Hats";
+    nameOfFunc = hatName.append(": callbackDisable");
+    funcArgs = "()\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = hat_interrupt_callback_disable();
+    argVals = "()";
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
 }
 
 #else
@@ -1964,6 +2007,16 @@ int HatInterface::waitForInterrupt(int timeout)
 }
 
 int HatInterface::getInterruptState()
+{
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::enableCallback(void(*function)())
+{
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::disableCallback()
 {
     return RESULT_INVALID_DEVICE;
 }

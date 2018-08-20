@@ -2,6 +2,8 @@
 #define MISCFORM_H
 
 #include <QWidget>
+#include <QMessageBox>
+#include <QThread>
 #include "unitest.h"
 #include "errordialog.h"
 #include "testutilities.h"
@@ -20,6 +22,7 @@ public:
     ~MiscForm();
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *event);
+    static void eventCallback(void);
 
 private slots:
     void updateParameters();
@@ -31,6 +34,9 @@ private slots:
     void toggleGoTimer(bool enableTimer);
     void showPlotWindow(bool showIt);
     void showQueueConfig();
+    void onCallback();
+    void runEventEnable();
+    void runEventDisable();
 
 private:
     Ui::MiscForm *ui;
@@ -39,6 +45,8 @@ private:
     ErrorDialog errDlg;
     QHash<uint8_t, QString> mHatList;
     QHash<uint8_t, uint16_t> mHatIDList;
+
+    typedef void (*callbackFunction)(void);
 
     int mNumHats;
     int mDevIndex;
@@ -64,6 +72,9 @@ private:
     void initDevices();
     void waitForInterupt();
     void getInterruptStatus();
+
+signals:
+    void callbackTriggered();
 };
 
 #endif // MISCFORM_H

@@ -22,6 +22,9 @@ MiscForm::MiscForm(QWidget *parent) :
     connect(ui->cmdStart, SIGNAL(clicked(bool)), this, SLOT(onClickCmdGo()));
     connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
     connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
+    connect(this, SIGNAL(callbackTriggered()), this, SLOT(onCallback()));
+    connect(ui->cmdDisableEvent, SIGNAL(clicked(bool)), this, SLOT(runEventDisable()));
+    connect(ui->cmdEnableEvent, SIGNAL(clicked(bool)), this, SLOT(runEventEnable()));
 
     initDevices();
 }
@@ -161,4 +164,37 @@ void MiscForm::getInterruptStatus()
             }
         }
     }
+}
+
+void MiscForm::runEventEnable()
+{
+    callbackFunction callbackFunc = &MiscForm::eventCallback;
+
+    mResponse = hatInterface->enableCallback(callbackFunc);
+    ui->lblStatus->setText(hatInterface->getStatus());
+
+}
+
+void MiscForm::eventCallback()
+{
+    QMessageBox *mBox = new QMessageBox(NULL);
+    mBox->setText("This is the callback calling.");
+    mBox->setMouseTracking(true);
+    mBox->setModal(true);
+    mBox->exec();
+    //emit gMiscForm->callbackTriggered();
+    /*mBox->hide();
+    mBox->deleteLater();
+    mBox = NULL;*/
+}
+
+void MiscForm::onCallback()
+{
+    ui->teStatus->setText("This is the callback calling.");
+}
+
+void MiscForm::runEventDisable()
+{
+    mResponse = hatInterface->disableCallback();
+    ui->lblStatus->setText(hatInterface->getStatus());
 }

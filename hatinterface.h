@@ -73,6 +73,8 @@ public:
 
     int waitForInterrupt(int timeout);
     int getInterruptState();
+    int enableCallback(void(*function)());
+    int disableCallback();
 
     void addToMenu(uint16_t devType, uint8_t address, QString devName);
     void removeFromMenu(uint8_t address);
