@@ -1,6 +1,8 @@
 #ifndef HATINTERFACE_H
 #define HATINTERFACE_H
 
+//#include "miscform.h"
+
 #include <QApplication>
 #include <QWidget>
 #include <QTime>
@@ -73,7 +75,7 @@ public:
 
     int waitForInterrupt(int timeout);
     int getInterruptState();
-    int enableCallback(void(*function)());
+    int enableCallback(void(*function)(void *), void *userData);
     int disableCallback();
 
     void addToMenu(uint16_t devType, uint8_t address, QString devName);

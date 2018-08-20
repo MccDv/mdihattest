@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionLoad_Queue, SIGNAL(triggered(bool)), this, SLOT(configureQueue()));
     connect(ui->actionTmrloop, SIGNAL(triggered(bool)), this, SLOT(setTimer()));
 
+    mHistListSize = 50;
     readWindowPosition();
 
     functionGroup = new QActionGroup(this);

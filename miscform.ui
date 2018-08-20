@@ -138,6 +138,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QCheckBox" name="chkRead">
+        <property name="text">
+         <string>Read On Interrupt</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="cmdEnableEvent">
         <property name="text">
          <string>Enable</string>

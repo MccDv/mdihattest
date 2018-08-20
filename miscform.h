@@ -22,7 +22,7 @@ public:
     ~MiscForm();
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *event);
-    static void eventCallback(void);
+    static void eventCallback(void *userData);
 
 private slots:
     void updateParameters();
@@ -46,7 +46,7 @@ private:
     QHash<uint8_t, QString> mHatList;
     QHash<uint8_t, uint16_t> mHatIDList;
 
-    typedef void (*callbackFunction)(void);
+    typedef void (*callbackFunction)(void *userData);
 
     int mNumHats;
     int mDevIndex;

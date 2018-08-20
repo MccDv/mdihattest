@@ -100,6 +100,7 @@ void MiscForm::onClickCmdStop()
 void MiscForm::runSelectedFunction()
 {
     QFont goFont = ui->cmdStart->font();
+    ui->teStatus->clear();
     getInterruptStatus();
     if(mGoTmrIsRunning) {
         goFont.setBold(!ui->cmdStart->font().bold());
@@ -146,9 +147,12 @@ void MiscForm::getInterruptStatus()
     int intState;
     uint8_t hatAddress, value;
     uint16_t hatID;
+    bool readOnInt;
+    QString statString;
 
+    readOnInt = ui->chkRead->isChecked();
     intState = hatInterface->getInterruptState();
-    ui->teStatus->setText(QString("Interrupt state: %1\n\n").arg(intState));
+    ui->teStatus->append(QString("Interrupt state: %1\n\n").arg(intState));
     ui->lblStatus->setText(hatInterface->getStatus());
     if(intState == 0) {
         ui->teStatus->append("No devices generating interrupt.");
@@ -157,10 +161,16 @@ void MiscForm::getInterruptStatus()
             hatID = mHatIDList.value(hatAddress);
             if(hatID == HAT_ID_MCC_152) {
                 mResponse = hatInterface->dioIntStatusPort(hatID, hatAddress, value);
-                if(value != 0)
+                if(value != 0) {
                     ui->teStatus->append(QString("MCC 152 [%1] interrupt request: %2")
                                      .arg(hatAddress)
                                      .arg(value));
+                    if(readOnInt) {
+                        mResponse = hatInterface->dioInPortRead(hatID, hatAddress, value);
+                        statString = hatInterface->getStatus();
+                        ui->teStatus->append(QString("Value read: %1 (").arg(value) + statString + ")");
+                    }
+                }
             }
         }
     }
@@ -169,28 +179,24 @@ void MiscForm::getInterruptStatus()
 void MiscForm::runEventEnable()
 {
     callbackFunction callbackFunc = &MiscForm::eventCallback;
-
-    mResponse = hatInterface->enableCallback(callbackFunc);
+    mResponse = hatInterface->enableCallback(callbackFunc, this);
     ui->lblStatus->setText(hatInterface->getStatus());
-
 }
 
-void MiscForm::eventCallback()
+void MiscForm::eventCallback(void *userData)
 {
-    QMessageBox *mBox = new QMessageBox(NULL);
-    mBox->setText("This is the callback calling.");
-    mBox->setMouseTracking(true);
-    mBox->setModal(true);
-    mBox->exec();
-    //emit gMiscForm->callbackTriggered();
-    /*mBox->hide();
-    mBox->deleteLater();
-    mBox = NULL;*/
+    MiscForm *miscForm = (MiscForm *)userData;
+    emit miscForm->callbackTriggered();
 }
 
 void MiscForm::onCallback()
 {
-    ui->teStatus->setText("This is the callback calling.");
+    QTime t;
+    QString sStartTime;
+
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz");
+    ui->teStatus->setText("Callback called at " + sStartTime);
+    getInterruptStatus();
 }
 
 void MiscForm::runEventDisable()

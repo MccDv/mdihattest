@@ -1789,7 +1789,7 @@ int HatInterface::getInterruptState()
     return state;
 }
 
-int HatInterface::enableCallback(void(*function)())
+int HatInterface::enableCallback(void(*function)(void *), void *userData)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -1800,7 +1800,7 @@ int HatInterface::enableCallback(void(*function)())
     nameOfFunc = hatName.append(": callbackEnable");
     funcArgs = "(function)\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = hat_interrupt_callback_enable(function);
+    mResponse = hat_interrupt_callback_enable(function, userData);
     argVals = QStringLiteral("(%1)")
             .arg(function != 0);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
@@ -2011,7 +2011,7 @@ int HatInterface::getInterruptState()
     return RESULT_INVALID_DEVICE;
 }
 
-int HatInterface::enableCallback(void(*function)())
+int HatInterface::enableCallback(void(*function)(), void *userData)
 {
     return RESULT_INVALID_DEVICE;
 }
