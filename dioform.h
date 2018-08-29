@@ -53,6 +53,7 @@ private:
     QCheckBox *chkBit[8]={};
 
     QString mFuncName;
+    QString mGroupName;
     int mUtFunction;
     int mCurGroup;
 

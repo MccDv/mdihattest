@@ -76,12 +76,14 @@ void DioForm::updateParameters()
     initDeviceParams();
     if(!ui->stackedWidget->isVisible())
         parentWindow->adjustSize();
-    this->setWindowTitle(mFuncName + ": " + mDevName);
+    mGroupName = "[" + getFuncGroupName((UtFunctionGroup)mCurGroup) + "] ";
+    this->setWindowTitle(mGroupName + mFuncName + ": " + mDevName);
 }
 
 void DioForm::groupChanged(int newGroup)
 {
     mCurGroup = newGroup;
+    mGroupName = "[" + getFuncGroupName((UtFunctionGroup)mCurGroup) + "] ";
 }
 
 void DioForm::setUiForGroup()
@@ -152,7 +154,7 @@ void DioForm::setUiForFunction()
             sampToolTip = "Value to write";
             goText = "Write";
         }
-        mFuncName = "ulDConfigPort";
+        mFuncName = "Port Config";
         stopText = "Read Cfg";
         stopEnable = true;
         //stop functions as read config in this mode
@@ -165,7 +167,7 @@ void DioForm::setUiForFunction()
         setNumberVisible = true;
         stopEnable = true;
         stackIndex = 1;
-        mFuncName = "ulDConfigBit";
+        mFuncName = "Bit Config";
         stopText = "Read Cfg";
         sampToolTip = "Bit and Port to read/write (bit, port format)";
         setDefaultBits(0);
@@ -174,7 +176,7 @@ void DioForm::setUiForFunction()
     case UL_D_IN:
         asyncVisible = true;
         setNumberVisible = true;
-        mFuncName = "ulDIn";
+        mFuncName = "Read Port";
         startSample = "10";
         sampToolTip = "Samples per channel";
         connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
@@ -183,7 +185,7 @@ void DioForm::setUiForFunction()
         portsVisible = true;
         asyncVisible = true;
         setNumberVisible = true;
-        mFuncName = "ulDOut";
+        mFuncName = "Write Port";
         goText = "Write";
         break;
     case UL_D_BIT_IN:
@@ -192,13 +194,13 @@ void DioForm::setUiForFunction()
         setDefaultBits(0);
         stackIndex = 1;
         connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
-        mFuncName = "ulDBitIn";
+        mFuncName = "Read Bit";
         break;
     case UL_D_BIT_OUT:
         asyncVisible = true;
         stackIndex = 1;
         setDefaultBits(0);
-        mFuncName = "ulDBitOut";
+        mFuncName = "Write Bit";
         goText = "Read";
         break;
     case UL_D_INT_PORT:
@@ -277,7 +279,7 @@ void DioForm::setUiForFunction()
     ui->cmdGo->setFocus();
     if(!ui->stackedWidget->isVisible())
         parentWindow->adjustSize();
-    this->setWindowTitle(mFuncName + ": " + mDevName);
+    this->setWindowTitle(mGroupName + mFuncName + ": " + mDevName);
 }
 
 void DioForm::showPlotWindow(bool showIt)
@@ -371,7 +373,8 @@ void DioForm::onClickCmdGo()
         toggleGoTimer(tmrEnable);
         break;
     case UL_D_OUT:
-        runDOutFunc();
+        runSelectedFunction();
+        toggleGoTimer(tmrEnable);
         break;
     case UL_D_BIT_IN:
         //disableCheckboxInput(true);
@@ -413,7 +416,7 @@ void DioForm::bitToggled(int bitNumber)
     case UL_D_IN:
         break;
     case UL_D_OUT:
-        runDOutFunc();
+        //runDOutFunc();
         break;
     case UL_D_BIT_IN:
         break;
@@ -434,7 +437,7 @@ void DioForm::runSelectedFunction()
     QFont goFont = ui->cmdGo->font();
     switch (mUtFunction) {
     case UL_D_CONFIG_PORT:
-        runDOutFunc();
+        //runDOutFunc();
         break;
     case UL_D_CONFIG_BIT:
         //readSingleBit();
@@ -606,6 +609,12 @@ void DioForm::writePort()
 
 void DioForm::runDOutFunc()
 {
+    uint8_t value;
+
+    ui->teShowValues->clear();
+    value = ui->leNumSamples->text().toUInt();
+    mResponse = hatInterface->dioOutPortWrite(mHatID, mAddress, value);
+    ui->lblInfo->setText(hatInterface->getStatus());
 }
 
 void DioForm::runDBitOutFunc(uint8_t bit, uint8_t value)
@@ -679,6 +688,8 @@ void DioForm::createBitBoxes()
         chkBit[i]->setMaximumHeight(16);
         chkBit[i]->setMaximumWidth(20);
         chkBit[i]->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        chkBit[i]->setStyleSheet("QCheckBox::indicator { color: red; }" );
+
         /*if (i < 16)
             portBit = QString("Aux1 bit %1").arg(i);
         else if (i < 32)

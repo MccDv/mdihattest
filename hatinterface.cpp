@@ -2011,8 +2011,10 @@ int HatInterface::getInterruptState()
     return RESULT_INVALID_DEVICE;
 }
 
-int HatInterface::enableCallback(void(*function)(), void *userData)
+int HatInterface::enableCallback(void(*function)(void *), void *userData)
 {
+    (void)function;
+    (void)userData;
     return RESULT_INVALID_DEVICE;
 }
 
