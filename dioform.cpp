@@ -75,9 +75,9 @@ void DioForm::updateParameters()
                          .arg(mTmrInterval));
 
     initDeviceParams();
-    //if(!ui->stackedWidget->isVisible())
+    if(!ui->stackedWidget->isVisible())
         parentWindow->adjustSize();
-    this->adjustSize();
+    //this->adjustSize();
     mGroupName = "[" + getFuncGroupName((UtFunctionGroup)mCurGroup) + "] ";
     this->setWindowTitle(mGroupName + mFuncName + ": " + mDevName);
 }

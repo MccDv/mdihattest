@@ -1556,7 +1556,7 @@ int HatInterface::dioBitConfigWrite(uint16_t devType, uint8_t address, uint8_t c
     QString hatName;
 
     hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": dioDirectionWrite");
+    nameOfFunc = hatName.append(": dioConfigWriteBit");
     funcArgs = "(mAddress, curChan, item, value)\n";
     switch (devType) {
     case HAT_ID_MCC_152:
@@ -1571,7 +1571,7 @@ int HatInterface::dioBitConfigWrite(uint16_t devType, uint8_t address, uint8_t c
     argVals = QStringLiteral("(%1, %2, %3, %4)")
             .arg(address)
             .arg(chan)
-            .arg(item)
+            .arg(getConfigItemName(item))
             .arg(value);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
