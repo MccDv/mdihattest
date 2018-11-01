@@ -27,6 +27,7 @@ MiscForm::MiscForm(QWidget *parent) :
     connect(ui->cmdEnableEvent, SIGNAL(clicked(bool)), this, SLOT(runEventEnable()));
 
     initDevices();
+    ui->leTimeout->setVisible(false);
 }
 
 MiscForm::~MiscForm()

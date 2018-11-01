@@ -36,6 +36,7 @@ DioForm::DioForm(QWidget *parent) :
     connect(ui->cmdReset, SIGNAL(clicked(bool)), this, SLOT(runDioReset()));
     connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
     createBitBoxes();
+    mFirstCall = true;
 }
 
 DioForm::~DioForm()
@@ -74,8 +75,9 @@ void DioForm::updateParameters()
                          .arg(mTmrInterval));
 
     initDeviceParams();
-    if(!ui->stackedWidget->isVisible())
+    //if(!ui->stackedWidget->isVisible())
         parentWindow->adjustSize();
+    this->adjustSize();
     mGroupName = "[" + getFuncGroupName((UtFunctionGroup)mCurGroup) + "] ";
     this->setWindowTitle(mGroupName + mFuncName + ": " + mDevName);
 }
@@ -277,9 +279,12 @@ void DioForm::setUiForFunction()
     if (mPlot)
         showPlotWindow(mPlot);
     ui->cmdGo->setFocus();
-    if(!ui->stackedWidget->isVisible())
+    if(!ui->stackedWidget->isVisible()) {
+        //delay(300);
         parentWindow->adjustSize();
+    }
     this->setWindowTitle(mGroupName + mFuncName + ": " + mDevName);
+    parentWindow->setWindowState(Qt::WindowNoState);
 }
 
 void DioForm::showPlotWindow(bool showIt)
@@ -301,8 +306,11 @@ void DioForm::showPlotWindow(bool showIt)
 void DioForm::initDeviceParams()
 {
     mNumBits = hatInterface->getNumDioChans(mHatID);
-    mUtFunction = UL_D_CONFIG_PORT;
-    setUiForFunction();
+    if(mFirstCall) {
+        mUtFunction = UL_D_CONFIG_PORT;
+        setUiForFunction();
+    }
+    mFirstCall = false;
 }
 
 void DioForm::configItemChanged()
@@ -383,6 +391,7 @@ void DioForm::onClickCmdGo()
         toggleGoTimer(tmrEnable);
         break;
     case UL_D_BIT_OUT:
+        runDBitInFunc();
         break;
     case UL_D_INT_PORT:
         runSelectedFunction();

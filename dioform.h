@@ -56,6 +56,7 @@ private:
     QString mGroupName;
     int mUtFunction;
     int mCurGroup;
+    bool mFirstCall;
 
     int mNumHats;
     int mDevIndex;
