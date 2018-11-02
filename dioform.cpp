@@ -114,7 +114,8 @@ void DioForm::setUiForFunction()
     bool scanVisible, portsVisible, stopVisible;
     bool scanParamsVisible, setNumberVisible, asyncVisible;
     bool configVisible, portCfgVisible, portSelVisible;
-    bool readCommandVisible, stopEnable;
+    bool readCommandVisible, stopEnable, bitRangeVisible;
+    bool readOnIntVisible;
     int stackIndex;
     ChildWindow *parentWindow;
 
@@ -127,11 +128,14 @@ void DioForm::setUiForFunction()
     asyncVisible = false;
     scanVisible = false;
     scanParamsVisible = false;
+    bitRangeVisible = false;
     setNumberVisible = false;
     readCommandVisible = false;
     configVisible = false;
     stackIndex = 0;
     stopVisible = false;
+    readOnIntVisible = false;
+
     mPlot = false;
     QString goText = "Read";
     QString stopText = "Stop";
@@ -192,9 +196,12 @@ void DioForm::setUiForFunction()
         break;
     case UL_D_BIT_IN:
         asyncVisible = true;
+        bitRangeVisible = true;
         disableCheckboxInput(true);
         setDefaultBits(0);
         stackIndex = 1;
+        ui->spnHighChan->setValue(mNumBits - 1);
+        ui->spnLowChan->setValue(0);
         connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(onClickCmdStop()));
         mFuncName = "Read Bit";
         break;
@@ -224,8 +231,9 @@ void DioForm::setUiForFunction()
     case UL_D_INT_WAIT:
         asyncVisible = true;
         setNumberVisible = true;
+        readOnIntVisible = true;
         mFuncName = "IntWait";
-        startSample = "10";
+        startSample = "5000";
         sampToolTip = "Timeout";
         break;
     /*case UL_D_INSCAN:
@@ -262,10 +270,11 @@ void DioForm::setUiForFunction()
     ui->fraAsync->setVisible(asyncVisible);
     ui->cmbConfig->setVisible(configVisible);
     ui->cmdConfigIn->setVisible(readCommandVisible);
-    ui->spnLowChan->setVisible(scanParamsVisible);
-    ui->spnHighChan->setVisible(scanParamsVisible);
+    ui->spnLowChan->setVisible(scanParamsVisible | bitRangeVisible);
+    ui->spnHighChan->setVisible(scanParamsVisible | bitRangeVisible);
     ui->leNumSamples->setVisible(setNumberVisible);
     ui->cmdStop->setVisible(stopVisible);
+    ui->chkReadOnInt->setVisible(readOnIntVisible);
     ui->cmdStop->setEnabled(stopEnable);
     ui->stackedWidget->setCurrentIndex(stackIndex);
     ui->leNumSamples->setText(startSample);
@@ -512,12 +521,18 @@ void DioForm::readPort()
 {
     uint8_t value;
 
-    if(mCurGroup == FUNC_GROUP_DIN)
+    if(mCurGroup == FUNC_GROUP_DIN) {
         mResponse = hatInterface->dioInPortRead(mHatID, mAddress, value);
-    else
+        if(mUtFunction == UL_D_INT_WAIT) {
+            ui->teShowValues->append(QString("Value read: %1").arg(value));
+        } else {
+            ui->leNumSamples->setText(QString("%1").arg(value));
+        }
+    } else {
         mResponse = hatInterface->dioOutPortRead(mHatID, mAddress, value);
+        ui->leNumSamples->setText(QString("%1").arg(value));
+    }
 
-    ui->leNumSamples->setText(QString("%1").arg(value));
     ui->lblInfo->setText(hatInterface->getStatus());
 }
 
@@ -566,9 +581,16 @@ void DioForm::runIntPortFunc()
 
 void DioForm::runDBitInFunc()
 {
-    uint8_t bit, value;
+    uint8_t bit, lowBit, highBit, value;
 
-    for(bit = 0; bit < numBitCheckboxes; bit++) {
+    lowBit = 0;
+    highBit = numBitCheckboxes;
+    if(mUtFunction == UL_D_BIT_IN) {
+        lowBit = ui->spnLowChan->value();
+        highBit = ui->spnHighChan->value() + 1;
+    }
+
+    for(bit = lowBit; bit < highBit; bit++) {
         mResponse = hatInterface->dioInBitRead(mHatID, mAddress, bit, value);
         ui->lblInfo->setText(hatInterface->getStatus());
         chkBit[bit]->setChecked(value != 0);
@@ -590,7 +612,9 @@ void DioForm::waitForInterupt()
 {
     int timeout, intState;
     QString waitStatus, timoText;
+    bool readOnInt;
 
+    readOnInt = ui->chkReadOnInt->isChecked();
     timeout = ui->leNumSamples->text().toInt();
     if(timeout == (-1))
         timoText = "indefinitely.\n";
@@ -604,6 +628,13 @@ void DioForm::waitForInterupt()
     ui->teShowValues->append(waitStatus);
     intState = hatInterface->getInterruptState();
     ui->teShowValues->append(QString("Interrupt state: %1").arg(intState));
+    if(mResponse == RESULT_SUCCESS) {
+        if(readOnInt) {
+            readPort();
+            intState = hatInterface->getInterruptState();
+            ui->teShowValues->append(QString("Interrupt state: %1").arg(intState));
+        }
+    }
     ui->lblStatus->setText(hatInterface->getStatus());
 }
 
