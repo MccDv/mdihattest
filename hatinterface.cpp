@@ -1261,6 +1261,68 @@ double HatInterface::getAOutVoltsMax(uint16_t devType)
     return voltsMax;
 }
 
+double HatInterface::getAOutRangeMax(uint16_t devType)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+    double voltsMax;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": AOutRangeMax");
+    funcArgs = "()\n";
+    switch (devType) {
+    case HAT_ID_MCC_152:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        voltsMax = mcc152_info()->AO_MAX_RANGE;
+        mResponse = RESULT_SUCCESS;
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        voltsMax = 0;
+        mResponse = RESULT_SUCCESS;
+        break;
+    }
+    argVals = QString("()");
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(voltsMax);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(voltsMax);
+    reportResult(mResponse, sStartTime + funcStr);
+    return voltsMax;
+}
+
+double HatInterface::getAOutRangeMin(uint16_t devType)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+    double voltsMin;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": AOutRangeMin");
+    funcArgs = "()\n";
+    switch (devType) {
+    case HAT_ID_MCC_152:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        voltsMin = mcc152_info()->AO_MIN_RANGE;
+        mResponse = RESULT_SUCCESS;
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        voltsMin = 0;
+        mResponse = RESULT_SUCCESS;
+        break;
+    }
+    argVals = QString("()");
+    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(voltsMin);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(voltsMin);
+    reportResult(mResponse, sStartTime + funcStr);
+    return voltsMin;
+}
+
 int HatInterface::aOutWrite(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;

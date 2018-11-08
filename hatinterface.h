@@ -53,6 +53,8 @@ public:
 
     double getAOutVoltsMax(uint16_t devType);
     double getAOutVoltsMin(uint16_t devType);
+    double getAOutRangeMax(uint16_t devType);
+    double getAOutRangeMin(uint16_t devType);
     int getAOutCodeMax(uint16_t devType);
     int getAOutCodeMin(uint16_t devType);
     int getNumAOutChans(uint16_t devType);

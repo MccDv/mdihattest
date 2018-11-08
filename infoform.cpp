@@ -582,9 +582,14 @@ void InfoForm::showBoardParameters()
                              .arg(highCount));
     double lowVolts = hatInterface->getAOutVoltsMin(mHatID);
     double highVolts = hatInterface->getAOutVoltsMax(mHatID);
-    ui->teShowValues->append(QString("AOut voltage range: %1 to %2")
+    ui->teShowValues->append(QString("AOut voltage min/max: %1 to %2")
                              .arg(lowVolts)
                              .arg(highVolts));
+    double lowRange = hatInterface->getAOutRangeMin(mHatID);
+    double highRange = hatInterface->getAOutRangeMax(mHatID);
+    ui->teShowValues->append(QString("AOut range min/max: %1 to %2")
+                             .arg(lowRange)
+                             .arg(highRange));
     int numDioChans = hatInterface->getNumDioChans(mHatID);
     ui->teShowValues->append(QString("Dio chans: %1").arg(numDioChans));
 #endif
