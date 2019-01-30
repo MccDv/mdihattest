@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>666</width>
-    <height>324</height>
+    <width>605</width>
+    <height>321</height>
    </rect>
   </property>
   <property name="font">
@@ -45,18 +45,21 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <property name="spacing">
+       <number>2</number>
+      </property>
       <property name="leftMargin">
        <number>0</number>
       </property>
       <property name="topMargin">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="rightMargin">
        <number>0</number>
       </property>
       <property name="bottomMargin">
-       <number>1</number>
+       <number>0</number>
       </property>
       <item>
        <widget class="QLineEdit" name="leNumSamples">
@@ -138,10 +141,75 @@
        </spacer>
       </item>
       <item>
-       <widget class="QCheckBox" name="chkCJC">
-        <property name="text">
-         <string>CJC</string>
+       <widget class="QFrame" name="fraCJC">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
         </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="topMargin">
+          <number>1</number>
+         </property>
+         <property name="rightMargin">
+          <number>1</number>
+         </property>
+         <property name="bottomMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="chkCJC_0">
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="toolTip">
+            <string>0</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="chkCJC_1">
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="toolTip">
+            <string>1</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="chkCJC_2">
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="toolTip">
+            <string>2</string>
+           </property>
+           <property name="text">
+            <string>CJC</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>

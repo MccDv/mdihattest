@@ -603,7 +603,7 @@ void InfoForm::showBoardParameters()
 #ifdef HAT_03
         double temp;
         if(mHatID == HAT_ID_MCC_134) {
-            mResponse = hatInterface->boardTemp(mHatID, mAddress, temp);
+            mResponse = hatInterface->boardTemp(mHatID, mAddress, 0, temp);
             ui->lblStatus->setText(hatInterface->getStatus());
             ui->teShowValues->append(QString("CJC temperature: %1ᵒC").arg(temp));
         }

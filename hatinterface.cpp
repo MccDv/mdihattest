@@ -339,7 +339,8 @@ int HatInterface::getNumAInChans(uint16_t devType)
 #ifdef HAT_03
     case HAT_ID_MCC_134:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        numChans = mcc134_a_in_num_channels();
+        //numChans = mcc134_a_in_num_channels();
+        numChans = mcc134_info()->NUM_AI_CHANNELS;
         break;
 #endif
     default:
@@ -907,18 +908,18 @@ void HatInterface::updateAppStatus(UtFunctionGroup funcGroup, QString statusText
 
 #ifdef HAT_03
 
-int HatInterface::boardTemp(uint16_t devType, uint8_t address, double &temp)
+int HatInterface::boardTemp(uint16_t devType, uint8_t address, uint8_t chan, double &temp)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
     double data;
-    uint8_t chan;
+    //uint8_t chan;
     QString hatName;
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": ReadCJC");
-    chan = 0;
+    //chan = 0;
     funcArgs = "(mAddress, curChan, &data)\n";
     switch (devType) {
     case HAT_ID_MCC_134:

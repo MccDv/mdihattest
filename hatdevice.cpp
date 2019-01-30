@@ -192,7 +192,7 @@ void HatDevice::setUiForFunction()
     }
     ui->fraScan->setVisible(scanVisible);
     ui->chkVolts->setVisible(voltCheckVisible);
-    ui->chkCJC->setVisible(cjcCheckVisible);
+    ui->fraCJC->setVisible(cjcCheckVisible);
     //ui->cmdStop->setEnabled(false);
     showPlotWindow(mPlot);
     this->setWindowTitle(mFuncName + ": " + mDevName);
@@ -757,8 +757,10 @@ void HatDevice::showPlotWindow(bool showIt)
     ui->stackedWidget->setFrameShape(frameShape);
     ui->stackedWidget->setCurrentIndex(curIndex);
     if(buffer) {
-        if(mPlot)
+        if(mPlot) {
+            setupPlot(ui->AiPlot, mChanCount);
             plotScan(0, 0, mTotalRead);
+        }
         else
             printData(0, 0, mTotalRead);
     }
@@ -993,16 +995,16 @@ void HatDevice::plotSelect()
 
 void HatDevice::runTinFunction()
 {
-    uint8_t aInChan, aInLastChan;
+    uint8_t aInChan, aInLastChan, cjcChan;
     uint32_t samplesToRead;
     int curIndex, addChan;
     double data;
     bool showVolts;
+    uint8_t cjcChans[3];
 
     data = 0.0;
     addChan = 0;
-    if(ui->chkCJC->isChecked())
-        addChan = 1;
+    uint8_t curChan;
     showVolts = ui->chkVolts->isChecked();
 
     if(!mQueueEnabled) {
@@ -1013,6 +1015,34 @@ void HatDevice::runTinFunction()
         for(int chan = 0; chan < mChanCount; chan++)
             mChanList[chan] = aInChan + chan;
         mChanCount += addChan;
+    }
+    for(curChan = 0; curChan < 3; curChan++) {
+        cjcChans[curChan] = 8;
+        switch (curChan) {
+        case 0:
+            if(ui->chkCJC_0->isChecked()) {
+                cjcChans[addChan] = 0;
+                addChan++;
+                mChanCount++;
+            }
+            break;
+        case 1:
+            if(ui->chkCJC_1->isChecked()) {
+                cjcChans[addChan] = 1;
+                addChan++;
+                mChanCount++;
+            }
+            break;
+        case 2:
+            if(ui->chkCJC_2->isChecked()) {
+                cjcChans[addChan] = 3;
+                addChan++;
+                mChanCount++;
+            }
+            break;
+        default:
+            break;
+        }
     }
     if(mChanCount < 1) mChanCount = 1;
 
@@ -1040,7 +1070,6 @@ void HatDevice::runTinFunction()
         memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
     }
 
-    uint8_t curChan;
     mRunning = true;
     for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
         foreach(curChan, mChanList) {
@@ -1056,10 +1085,18 @@ void HatDevice::runTinFunction()
                 return;
             }
         }
-        if(addChan != 0) {
-            mResponse = hatInterface->boardTemp(mHatID, mAddress, data);
-            buffer[curIndex] = data;
-            curIndex++;
+        for(curChan = 0; curChan < 3; curChan++) {
+            cjcChan = cjcChans[curChan];
+            if(cjcChan != 8) {
+                mResponse = hatInterface->boardTemp(mHatID, mAddress, cjcChan, data);
+                ui->lblInfo->setText(hatInterface->getStatus());
+                if(mResponse == RESULT_SUCCESS) {
+                    buffer[curIndex] = data;
+                    curIndex++;
+                } else {
+                    return;
+                }
+            }
         }
         mTotalRead += 1;
     }

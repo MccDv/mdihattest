@@ -47,7 +47,7 @@ public:
     int testTrig(uint16_t devType, uint8_t address, uint8_t &value);
 
     int tInRead(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
-    int boardTemp(uint16_t devType, uint8_t address, double &temp);
+    int boardTemp(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
     int readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType);
     int writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType);
 
