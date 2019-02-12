@@ -52,7 +52,6 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
         break;
     }
 
-    mScanOptions = 0;
     mTriggerType = TRIG_RISING_EDGE;
     mAiResolution = 12;
     mCurFunctionGroup = funcGroup;
@@ -64,6 +63,7 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     //MainWindow *mainParent = qobject_cast<MainWindow *>(parent);
     this->setWidget(subwidget);
     connect(this, SIGNAL(devNameChanged(QString)), subwidget, SLOT(updateParameters()));
+    connect(this, SIGNAL(serNumChanged(QString)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(devAddressChanged(uint8_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(devIdChanged(uint16_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(curFunctionChanged(int)), subwidget, SLOT(functionChanged(int)));
@@ -76,6 +76,10 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     connect(this, SIGNAL(tmrIntervalChanged(int)), subwidget, SLOT(updateParameters()));
 
     readWindowPosition();
+    if (funcGroup == FUNC_GROUP_AIN)
+        mScanOptions = OPTS_IFC_BACKGROUND;
+    else
+        mScanOptions = OPTS_DEFAULT;
 }
 
 void ChildWindow::closeEvent(QCloseEvent *event)
@@ -137,15 +141,13 @@ void ChildWindow::readWindowPosition()
     QSettings windowSettings("Measurement Computing", "Qt Hat Test Linux");
 
     windowSettings.beginGroup(mWindowName);
-
     restoreGeometry(windowSettings.value("geometry", saveGeometry()).toByteArray());
-    //restoreState(windowSettings.value("savestate", saveState()).toByteArray());
     move(windowSettings.value("pos", pos()).toPoint());
     resize(windowSettings.value("size", size()).toSize());
     if (windowSettings.value("maximized", isMaximized()).toBool())
         showMaximized();
-
     windowSettings.endGroup();
+
 }
 
 void ChildWindow::writeWindowPosition()
@@ -155,11 +157,18 @@ void ChildWindow::writeWindowPosition()
     windowSettings.beginGroup(mWindowName);
 
     windowSettings.setValue("geometry", saveGeometry());
-    //windowSettings.setValue("savestate", saveState());
     windowSettings.setValue("maximized", isMaximized());
     if (!isMaximized()) {
         windowSettings.setValue("pos", pos());
         windowSettings.setValue("size", size());
     }
     windowSettings.endGroup();
+
+    //mTInPrefs = "3,4,255,255";
+    if(mWindowName == "ainwindow") {
+        windowSettings.beginGroup(mSerNum);
+        windowSettings.setValue("TempPrefs", mTInPrefs);
+        windowSettings.endGroup();
+    }
+
 }

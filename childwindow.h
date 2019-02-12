@@ -16,6 +16,7 @@ class ChildWindow : public QMdiSubWindow
 {
     Q_OBJECT
     Q_PROPERTY(QString devName READ devName WRITE setDevName NOTIFY devNameChanged)
+    Q_PROPERTY(QString serNum READ serNum WRITE setSerNum NOTIFY serNumChanged)
     Q_PROPERTY(uint8_t devAddress READ devAddress WRITE setDevAddress NOTIFY devAddressChanged)
     Q_PROPERTY(uint16_t devId READ devId WRITE setDevId NOTIFY devIdChanged)
     Q_PROPERTY(bool showPlot READ showPlot WRITE setShowPlot NOTIFY showPlotChanged)
@@ -28,6 +29,7 @@ class ChildWindow : public QMdiSubWindow
     Q_PROPERTY(bool tmrSampPerInterval READ tmrSampPerInterval WRITE setTmrSampPerInterval NOTIFY tmrSampPerIntervalChanged)
     Q_PROPERTY(bool tmrStopOnStart READ tmrStopOnStart WRITE setTmrStopOnStart NOTIFY tmrStopOnStartChanged)
     Q_PROPERTY(bool tmrRunning READ tmrRunning WRITE setTmrRunning NOTIFY tmrRunningChanged)
+    Q_PROPERTY(QString tInPrefs READ tInPrefs WRITE setTInPrefs NOTIFY tInPrefsChanged)
 
 public:
     explicit ChildWindow(QWidget *parent = 0, UtFunctionGroup funcGroup = FUNC_GROUP_DISC);
@@ -38,6 +40,12 @@ public:
     {
         mDevName = devName;
         emit devNameChanged(devName);
+    }
+
+    void setSerNum(QString serNum)
+    {
+        mSerNum = serNum;
+        emit serNumChanged(serNum);
     }
 
     void setDevAddress(uint8_t devAddress)
@@ -106,7 +114,14 @@ public:
         emit tmrStopOnStartChanged(stopOnStart);
     }
 
+    void setTInPrefs(QString tInPrefs)
+    {
+        mTInPrefs = tInPrefs;
+        emit tInPrefsChanged(tInPrefs);
+    }
+
     QString devName() { return mDevName; }
+    QString serNum() { return mSerNum; }
     uint8_t devAddress() { return mDevAddress; }
     uint16_t devId() { return mDevID; }
 
@@ -121,8 +136,11 @@ public:
     int curFunction() { return mCurFunction; }
     TriggerMode triggerType() { return mTriggerType; }
     UtFunctionGroup curFunctionGroup() { return mCurFunctionGroup; }
+    QString tInPrefs() { return mTInPrefs; }
+
     void showQueueConfig() { emit configQueue(); }
     void setUpTimer();
+    void saveTInPrefs(QString tInPrefs);
 
 private slots:
     void goTimerRun(bool enable);
@@ -135,6 +153,7 @@ private:
     TmrDialog *tmrDialog;
 
     QString mDevName;
+    QString mSerNum;
     uint8_t mDevAddress;
     uint16_t mDevID;
     u_int32_t mScanOptions;
@@ -149,6 +168,7 @@ private:
     int mTmrInterval;
     bool mOneSamplePer;
     bool mTmrRunning = false;
+    QString mTInPrefs;
 
     UtFunctionGroup mCurFunctionGroup;
 
@@ -157,6 +177,7 @@ private:
 
 signals:
     void devNameChanged(QString);
+    void serNumChanged(QString);
     void devAddressChanged(uint8_t);
     void devIdChanged(uint16_t);
     void curFunctionChanged(int);
@@ -170,6 +191,7 @@ signals:
     void tmrRunningChanged(bool);
     void tmrSampPerIntervalChanged(bool);
     void tmrStopOnStartChanged(bool);
+    void tInPrefsChanged(QString);
 };
 
 #endif // CHILDWINDOW_H

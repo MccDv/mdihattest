@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionTmrloop, SIGNAL(triggered(bool)), this, SLOT(setTimer()));
 
     mHistListSize = 50;
+    mScanOptions = OPTS_DEFAULT;
     readWindowPosition();
 
     functionGroup = new QActionGroup(this);
@@ -59,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionCONTINUOUS->setData(OPTS_CONTINUOUS);
     ui->actionEXTCLOCK->setData(OPTS_EXTCLOCK);
     ui->actionEXTTRIGGER->setData(OPTS_EXTTRIGGER);
+    ui->actionBACKGROUND->setData(OPTS_IFC_BACKGROUND);
 
     connect(functionGroup, SIGNAL(triggered(QAction*)), this, SLOT(curFunctionChanged()));
 
@@ -67,6 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionEXTTRIGGER, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
     connect(ui->actionNOCALIBRATEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
     connect(ui->actionNOSCALEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
+    connect(ui->actionBACKGROUND, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
 
     mHatList.clear();
 
@@ -216,6 +219,8 @@ void MainWindow::createChild(UtFunctionGroup utFuncGroup, int defaultFunction)
     childWindow->setDevName(mCurBoardName);
     childWindow->setDevId(mCurID);
     childWindow->setCurFunction(defaultFunction);
+    if(utFuncGroup == FUNC_GROUP_AIN)
+        childWindow->setScanOptions(OPTS_IFC_BACKGROUND);
     createFuncMenus();
 }
 
@@ -482,7 +487,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
         UtFunctionGroup curFuncGroup = curChild->curFunctionGroup();
         curFunc = curChild->curFunction();
         curFunctionGroupName = getFuncGroupName(curFuncGroup);
-        mScanOptions = curChild->scanOptions();
+        //mScanOptions = curChild->scanOptions();
         switch (curFuncGroup) {
         case FUNC_GROUP_AIN:
             optionVisible = true;
@@ -619,11 +624,11 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
         if (optionVisible) {
             uint32_t childOption = curChild->scanOptions();
             foreach (QAction *ioMode, ui->menuOptions->actions()) {
-                uint32_t curMenuVal = (uint32_t)(ioMode->data().toLongLong());
+                uint32_t curMenuVal = (uint32_t)(ioMode->data().toInt());
                 //tempString += QString("%1, %2;").arg(curMenuVal).arg(childOption);
                 //ui->lblAppStatus->setText(tempString);
-                if(ioMode->text() != "BACKGROUND")
-                    ioMode->setChecked(false);
+                //if(ioMode->text() != "BACKGROUND")
+                ioMode->setChecked(false);
                 if (curMenuVal & childOption) {
                     ioMode->setChecked(true);
                 }
@@ -684,18 +689,21 @@ void MainWindow::curOptionChanged()
     ChildWindow *curChild = activeMdiChild();
 
     QAction *menuOption = (QAction *)this->sender();
-    QVariant optionValue = menuOption->data();
-    bool enableOption = menuOption->isChecked();
-    uint32_t optVal = (uint32_t)optionValue.toUInt();
+    if(menuOption->objectName() != "actionTmrloop") {
+        QVariant optionValue = menuOption->data();
+        bool enableOption = menuOption->isChecked();
 
-    if (enableOption)
-        mScanOptions = (uint32_t)(mScanOptions | optVal);
-    else {
-        uint32_t mask = getSoMask(optVal);
-        mScanOptions = (uint32_t)(mScanOptions & mask);
-    }
-    if (curChild) {
-        curChild->setScanOptions(mScanOptions);
+        uint32_t optVal = (uint32_t)optionValue.toUInt();
+
+        if (enableOption)
+            mScanOptions = (uint32_t)(mScanOptions | optVal);
+        else {
+            uint32_t mask = getSoMask(optVal);
+            mScanOptions = (uint32_t)(mScanOptions & mask);
+        }
+        if (curChild) {
+            curChild->setScanOptions(mScanOptions);
+        }
     }
 }
 
@@ -703,7 +711,8 @@ uint32_t MainWindow::getSoMask(uint32_t optSelected)
 {
     uint32_t allOpts = (uint32_t)(
                 OPTS_CONTINUOUS | OPTS_EXTCLOCK |
-                OPTS_EXTTRIGGER | OPTS_NOCALIBRATEDATA | OPTS_NOSCALEDATA);
+                OPTS_EXTTRIGGER | OPTS_NOCALIBRATEDATA |
+                OPTS_NOSCALEDATA | OPTS_IFC_BACKGROUND);
     uint32_t maskVal = (uint32_t)(allOpts ^ optSelected);
     return maskVal;
 }

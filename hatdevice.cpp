@@ -13,14 +13,16 @@ HatDevice::HatDevice(QWidget *parent) :
     mHistListSize = 50;
 
     tmrGoTimer = new QTimer(this);
+    tmrBGResultRead = new QTimer(this);
     mUseGetStatus = true;
     mStopOnStart = false;
     functionGroup = new QActionGroup(this);
     buffer = NULL;
+    data = NULL;
 
     mAddress = -1;
     mNumHats = 0;
-    mScanOptions = 0;
+    mScanOptions = OPTS_DEFAULT;
     mTriggerType = TRIG_RISING_EDGE;
     mAiResolution = 12;
     mCurFunction = UL_AIN;
@@ -40,6 +42,7 @@ HatDevice::HatDevice(QWidget *parent) :
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
 
     connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(checkStatus()));
+    //connect(tmrBGResultRead, SIGNAL(timeout()), this, SLOT(runBackgrndResult()));
     connect(ui->cmdGo, SIGNAL(clicked(bool)), this, SLOT(goCmdClicked()));
     connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(stopCmdClicked()));
 
@@ -49,6 +52,8 @@ HatDevice::HatDevice(QWidget *parent) :
             ui->AiPlot->yAxis2, SLOT(setRange(QCPRange)));
     connect(ui->rbAutoScale, SIGNAL(clicked(bool)), this, SLOT(replot()));
     connect(ui->rbFullScale, SIGNAL(clicked(bool)), this, SLOT(replot()));
+    connect(ui->cmdSetTcConf, SIGNAL(clicked(bool)), this, SLOT(writeStoredTcValues()));
+    connect(ui->cmdReadTcConf, SIGNAL(clicked(bool)), this, SLOT(updateTcValues()));
 
     rbPlotSel[0] = ui->rbPlot0;
     rbPlotSel[1] = ui->rbPlot1;
@@ -99,12 +104,15 @@ void HatDevice::updateParameters()
 {
     ChildWindow *parentWindow;
     QString trigString;
+    uint32_t allOptions;
 
     parentWindow = qobject_cast<ChildWindow *>(this->parent());
     mDevName = parentWindow->devName();
     mAddress = parentWindow->devAddress();
     mHatID = parentWindow->devId();
-    mScanOptions = parentWindow->scanOptions();
+    allOptions = parentWindow->scanOptions();
+    mScanOptions = allOptions & 0xFFF;
+    mBackgroundScan = ((allOptions & 0x1000) != 0);
     mTriggerType = parentWindow->triggerType();
 
     mUseTimer = parentWindow->tmrEnabled();
@@ -112,8 +120,9 @@ void HatDevice::updateParameters()
     mGoTmrIsRunning = parentWindow->tmrRunning();
     mTmrInterval = parentWindow->tmrInterval();
     mOneSampPerForTotalSamps = parentWindow->tmrSampPerInterval();
+    //mTInPrefs = parentWindow->tInPrefs();
 
-    mOptNames = getOptionNames(mScanOptions);
+    mOptNames = getOptionNames(allOptions);
     trigString = getTrigText(mTriggerType);
     ui->lblInfo->setText(QString("Options: %1,  Trigger: %2")
                          .arg(mOptNames).arg(trigString));
@@ -161,6 +170,8 @@ void HatDevice::setUiForFunction()
     //mRange = parentWindow->getCurrentRange();
     bool scanVisible, voltCheckVisible;
     bool cjcCheckVisible;
+    bool scanConfigVisible;
+    bool setTcCmdVisible;
 
     //mChanList.clear();
     //mRangeList.clear();
@@ -168,6 +179,9 @@ void HatDevice::setUiForFunction()
     scanVisible = false;
     voltCheckVisible = false;
     cjcCheckVisible = false;
+    scanConfigVisible = false;
+    setTcCmdVisible = false;
+
     switch (mCurFunction) {
     case UL_AIN:
         mFuncName = "ulAIn";
@@ -178,9 +192,13 @@ void HatDevice::setUiForFunction()
         ui->leNumSamples->setText("10");
         voltCheckVisible = true;
         cjcCheckVisible = true;
+        scanConfigVisible = true;
+        setTcCmdVisible = true;
+        checkCurTcConfig(false);
         break;
     case UL_AINSCAN:
         mFuncName = "ulAInScan";
+        scanConfigVisible = true;
         scanVisible = true;
         mPlot = true;
         ui->leRate->setText("1000");
@@ -193,6 +211,10 @@ void HatDevice::setUiForFunction()
     ui->fraScan->setVisible(scanVisible);
     ui->chkVolts->setVisible(voltCheckVisible);
     ui->fraCJC->setVisible(cjcCheckVisible);
+    ui->fraChan->setVisible(cjcCheckVisible);
+    ui->fraChanScan->setVisible(!cjcCheckVisible);
+    ui->fraScanConf->setVisible(scanConfigVisible);
+    ui->fraSetTc->setVisible(setTcCmdVisible);
     //ui->cmdStop->setEnabled(false);
     showPlotWindow(mPlot);
     this->setWindowTitle(mFuncName + ": " + mDevName);
@@ -202,6 +224,99 @@ void HatDevice::functionChanged(int utFunction)
 {
     mCurFunction = utFunction;
     this->setUiForFunction();
+}
+
+void HatDevice::updateTcValues()
+{
+    checkCurTcConfig(true);
+}
+
+void HatDevice::checkCurTcConfig(bool saveToChild)
+{
+    QSettings windowSettings("Measurement Computing", "Qt Hat Test Linux");
+    QVariant storedTInPrefs;
+    ChildWindow *parentWindow;
+    parentWindow = qobject_cast<ChildWindow *>(this->parent());
+    QString typePrefs, serNum;
+    uint8_t chan;
+    int numChans;
+    uint8_t tcType;
+
+    mResponse = hatInterface->getSerialNumber(mHatID, mAddress, serNum);
+    ui->lblInfo->setText(hatInterface->getStatus());
+
+    if(mResponse == RESULT_SUCCESS) {
+        mSerNum = QString("%1").arg(serNum);
+        parentWindow->setSerNum(mSerNum);
+    }
+
+    windowSettings.beginGroup(mSerNum);
+    storedTInPrefs = windowSettings.value("TempPrefs", "0,0,0,0");
+    mTInPrefs = storedTInPrefs.toString();
+    windowSettings.endGroup();
+    if(mTInPrefs == "")
+        mTInPrefs = "255,255,255,255";
+
+    typePrefs = "";
+    numChans = hatInterface->getNumAInChans(mHatID);
+    for(chan = 0; chan < numChans; chan++) {
+        mResponse = hatInterface->readTcTypes(mHatID, mAddress, chan, tcType);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        if(mResponse != RESULT_SUCCESS)
+            break;
+        else {
+            typePrefs += QString("%1,").arg(tcType);
+            switch (chan) {
+            case 0:
+                ui->chkChan0->setChecked(tcType != TC_DISABLED);
+                break;
+            case 1:
+                ui->chkChan1->setChecked(tcType != TC_DISABLED);
+                break;
+            case 2:
+                ui->chkChan2->setChecked(tcType != TC_DISABLED);
+                break;
+            case 3:
+                ui->chkChan3->setChecked(tcType != TC_DISABLED);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    typePrefs.chop(1);
+    //mTInPrefs = typePrefs;
+    //parentWindow->setTInPrefs(mTInPrefs);
+    //ui->cmdSetTcConf->setEnabled(mTInPrefs != typePrefs);
+    ui->lblStatus->setText(mSerNum + " Type prefs = " + typePrefs + " stored prefs = " + mTInPrefs);
+    if(saveToChild) {
+        parentWindow->setTInPrefs(typePrefs);
+        ui->lblStatus->setText(mSerNum + " Type prefs = " + typePrefs + " Wrote " + typePrefs);
+        mTInPrefs = typePrefs;
+    }
+}
+
+void HatDevice::writeStoredTcValues()
+{
+    uint8_t tcType;
+    QString tInPrefs;
+    QVector<uint8_t> typeList;
+    bool writeFail;
+
+    ui->teShowValues->clear();
+    tInPrefs = "";
+    writeFail = false;
+
+    typeList = getTcTypesFromString(mTInPrefs);
+    for (int curChan = 0; curChan < typeList.length(); curChan++) {
+        tcType = typeList.at(curChan);
+        mResponse = hatInterface->writeTcType(mHatID, mAddress, curChan, tcType);
+        if (mResponse != RESULT_SUCCESS) {
+            writeFail = true;
+            break;
+        }
+    }
+    checkCurTcConfig(!writeFail);
 }
 
 void HatDevice::goCmdClicked()
@@ -995,53 +1110,90 @@ void HatDevice::plotSelect()
 
 void HatDevice::runTinFunction()
 {
-    uint8_t aInChan, aInLastChan, cjcChan;
+    uint8_t cjcChan, chanMask;
     uint32_t samplesToRead;
-    int curIndex, addChan;
+    int curIndex, addChan, chan;
     double data;
     bool showVolts;
     uint8_t cjcChans[3];
 
     data = 0.0;
     addChan = 0;
+    chan = 0;
+    chanMask = 0;
     uint8_t curChan;
     showVolts = ui->chkVolts->isChecked();
 
-    if(!mQueueEnabled) {
+    /*if(!mQueueEnabled) {
         mChanList.clear();
+        mChanCount = 0;
         aInChan = ui->spnLowChan->value();
         aInLastChan = ui->spnHighChan->value();
         mChanCount = (aInLastChan - aInChan) + 1;
         for(int chan = 0; chan < mChanCount; chan++)
             mChanList[chan] = aInChan + chan;
         mChanCount += addChan;
-    }
-    for(curChan = 0; curChan < 3; curChan++) {
-        cjcChans[curChan] = 8;
-        switch (curChan) {
-        case 0:
-            if(ui->chkCJC_0->isChecked()) {
-                cjcChans[addChan] = 0;
-                addChan++;
-                mChanCount++;
+    }*/
+
+    if(!mQueueEnabled) {
+        mChanList.clear();
+        mChanCount = 0;
+        chanMask = 0;
+        for(curChan = 0; curChan < 4; curChan++) {
+            cjcChans[curChan] = 8;
+            switch (curChan) {
+            case 0:
+                if(ui->chkChan0->isChecked()) {
+                    mChanList[chan] = curChan;
+                    chan++;
+                    mChanCount++;
+                    chanMask = chanMask | 0x01 << 0;
+                }
+                if(ui->chkCJC_0->isChecked()) { //  && !mBackgroundScan
+                    cjcChans[addChan] = 0;
+                    addChan++;
+                    mChanCount++;
+                    //chanMask = chanMask | 0x01 << 4;
+                }
+                break;
+            case 1:
+                if(ui->chkChan1->isChecked()) {
+                    mChanList[chan] = curChan;
+                    chan++;
+                    mChanCount++;
+                    chanMask = chanMask | 0x01 << 1;
+                }
+                if(ui->chkCJC_1->isChecked()) { //  && !mBackgroundScan
+                    cjcChans[addChan] = 1;
+                    addChan++;
+                    mChanCount++;
+                    //chanMask = chanMask | 0x01 << 5;
+                }
+                break;
+            case 2:
+                if(ui->chkChan2->isChecked()) {
+                    mChanList[chan] = curChan;
+                    chan++;
+                    mChanCount++;
+                    chanMask = chanMask | 0x01 << 2;
+                }
+                if(ui->chkCJC_2->isChecked()) { //  && !mBackgroundScan
+                    cjcChans[addChan] = 3;
+                    addChan++;
+                    mChanCount++;
+                    //chanMask = chanMask | 0x01 << 6;
+                }
+                break;
+            case 3:
+                if(ui->chkChan3->isChecked()) {
+                    mChanList[chan] = curChan;
+                    chan++;
+                    mChanCount++;
+                    chanMask = chanMask | 0x01 << 3;
+                }
+            default:
+                break;
             }
-            break;
-        case 1:
-            if(ui->chkCJC_1->isChecked()) {
-                cjcChans[addChan] = 1;
-                addChan++;
-                mChanCount++;
-            }
-            break;
-        case 2:
-            if(ui->chkCJC_2->isChecked()) {
-                cjcChans[addChan] = 3;
-                addChan++;
-                mChanCount++;
-            }
-            break;
-        default:
-            break;
         }
     }
     if(mChanCount < 1) mChanCount = 1;
@@ -1070,25 +1222,29 @@ void HatDevice::runTinFunction()
         memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
     }
 
-    mRunning = true;
-    for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
-        foreach(curChan, mChanList) {
-            if(showVolts)
-                mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, 0, data);
-            else
-                mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
-            ui->lblInfo->setText(hatInterface->getStatus());
+    if(false) {         // !showVolts & mBackgroundScan
+        for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
+            mResponse = hatInterface->tInReadBackground(mHatID, mAddress, chanMask);
+            //int sampsRead = mTotalRead;
             if(mResponse == RESULT_SUCCESS) {
-                buffer[curIndex] = data;
-                curIndex++;
-            } else {
-                return;
+                //tmrBGResultRead->start(200);
+                mRunning = true;
+                do {
+                    //runBackgrndResult();
+                    delay(200);
+                    //QApplication::processEvents(QEventLoop::AllEvents, 100);
+                }
+                while (mRunning);
             }
         }
-        for(curChan = 0; curChan < 3; curChan++) {
-            cjcChan = cjcChans[curChan];
-            if(cjcChan != 8) {
-                mResponse = hatInterface->boardTemp(mHatID, mAddress, cjcChan, data);
+    } else {
+        mRunning = true;
+        for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
+            foreach(curChan, mChanList) {
+                if(showVolts)
+                    mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, 0, data);
+                else
+                    mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
                 ui->lblInfo->setText(hatInterface->getStatus());
                 if(mResponse == RESULT_SUCCESS) {
                     buffer[curIndex] = data;
@@ -1097,23 +1253,37 @@ void HatDevice::runTinFunction()
                     return;
                 }
             }
+            for(curChan = 0; curChan < 3; curChan++) {
+                cjcChan = cjcChans[curChan];
+                if(cjcChan != 8) {
+                    mResponse = hatInterface->boardTemp(mHatID, mAddress, cjcChan, data);
+                    ui->lblInfo->setText(hatInterface->getStatus());
+                    if(mResponse == RESULT_SUCCESS) {
+                        buffer[curIndex] = data;
+                        curIndex++;
+                    } else {
+                        return;
+                    }
+                }
+            }
+            mTotalRead += 1;
         }
-        mTotalRead += 1;
-    }
-    if(mOneSampPerForTotalSamps) {
-        QString timerRate = ".";
-        if(mUseTimer)
-            timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
-        ui->lblStatus->setText(QString("%1 samples read%2")
-                               .arg(mTotalRead).arg(timerRate));
-    }
+        if(mOneSampPerForTotalSamps) {
+            QString timerRate = ".";
+            if(mUseTimer)
+                timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
+            ui->lblStatus->setText(QString("%1 samples read%2")
+                                   .arg(mTotalRead).arg(timerRate));
+        }
 
-    mRunning = false;
-    if(mPlot)
-        plotScan(0, 0, mTotalRead);
-    else
-        printData(0, 0, mTotalRead);
-    if(mTotalRead == mSamplesPerChan) {
-        mUseTimer = false;
+        mRunning = false;
+        if(mPlot)
+            plotScan(0, 0, mTotalRead);
+        else
+            printData(0, 0, mTotalRead);
+        if(mTotalRead == mSamplesPerChan) {
+            mUseTimer = false;
+        }
     }
 }
+

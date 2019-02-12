@@ -190,8 +190,8 @@
     <addaction name="actionEXTCLOCK"/>
     <addaction name="actionEXTTRIGGER"/>
     <addaction name="actionCONTINUOUS"/>
-    <addaction name="separator"/>
     <addaction name="actionBACKGROUND"/>
+    <addaction name="separator"/>
     <addaction name="actionTmrloop"/>
    </widget>
    <widget class="QMenu" name="menuTriggering">

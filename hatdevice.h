@@ -37,11 +37,15 @@ private slots:
     void updateParameters();
     void showQueueConfig();
     void queueDialogResponse();
+    void writeStoredTcValues();
+    void updateTcValues();
+    //void runBackgrndResult();
 
 private:
     Ui::HatDevice *ui;
     HatInterface *hatInterface;
     QTimer *tmrGoTimer;
+    QTimer *tmrBGResultRead;
     QRadioButton *rbPlotSel[8]={};
     QActionGroup *functionGroup;
     QActionGroup *optionGroup;
@@ -55,6 +59,7 @@ private:
     uint8_t mAddress;
     uint16_t mHatID;
     QString mDevName;
+    QString mSerNum;
 
     uint32_t mScanOptions;
     TriggerMode mTriggerType;
@@ -76,6 +81,7 @@ private:
     long long mTotalRead;
     long long mPlotSize;
     QString mFuncName;
+    QString mTInPrefs = "";
 
     bool mUseTimer;
     bool mGoTmrIsRunning;
@@ -90,6 +96,7 @@ private:
     bool mStatusTimerEnabled;
     int mPlotChan;
     double *buffer;
+    double *data;
     QVector<double> xValues;
     QVector<QVector<double>> yChans;
     int32_t mBlockSize;
@@ -103,6 +110,7 @@ private:
     //void runOpenDevice(uint8_t address);
     //void runCloseDevice(uint8_t address);
     void setUiForFunction();
+    void checkCurTcConfig(bool saveToChild);
     void runAinFunction();
     void runTinFunction();
     void runAInScanFunc();

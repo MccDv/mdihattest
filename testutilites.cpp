@@ -1,4 +1,5 @@
 #include "testutilities.h"
+#include "hatinterface.h"
 
 void delay(int milliSeconds)
 {
@@ -117,6 +118,8 @@ QString getOptionNames(uint32_t curOptions)
             optString += "EXTTRIGGER, ";
         if (curOptions & OPTS_CONTINUOUS)
             optString += "CONTINUOUS, ";
+        if (curOptions & OPTS_IFC_BACKGROUND)
+            optString += "BACKGROUND, ";
         optString = optString.left(optString.length() - 2);
     }
     return optString;
@@ -221,10 +224,65 @@ QString getTcTypeName(uint8_t tcType)
     case TC_TYPE_N:
         return "N";
         break;
+    case TC_DISABLED:
+        return "Disabled";
+        break;
     default:
         return "unknown";
         break;
     }
+}
+
+QVector <uint8_t> getTcTypesFromString(QString tcTypes)
+{
+    QString  chanString;
+    int nextIndex, prevIndex;
+    QVector<uint8_t> tcTypeVector;
+
+    nextIndex = 0;
+    prevIndex = 0;
+    chanString = "";
+    do {
+        nextIndex = tcTypes.indexOf(",", nextIndex);
+        chanString = tcTypes.mid(prevIndex, nextIndex - prevIndex);
+        nextIndex++;
+        prevIndex = nextIndex;
+        tcTypeVector.push_back(chanString.toUInt());
+    } while (nextIndex > 0);
+    return tcTypeVector;
+}
+
+QString setTcTypeInString(QString tcTypes, uint8_t chan, uint8_t newType)
+{
+    QString typePrefs;
+    QString newTypeString;
+    int nextIndex, prevIndex, chanIndex;
+    int numChars;
+
+    nextIndex = 0;
+    prevIndex = 0;
+    chanIndex = 0;
+    numChars = 1;
+    //chanString = "";
+    typePrefs = tcTypes;
+    newTypeString = QString("%1").arg(newType);
+    do {
+        nextIndex = tcTypes.indexOf(",", nextIndex);
+        //chanString = tcTypes.mid(prevIndex, nextIndex - prevIndex);
+        if(chan == chanIndex) {
+            numChars = (nextIndex - prevIndex);
+            if (numChars < 0)
+                numChars = 255;
+            typePrefs.replace(prevIndex, numChars, newTypeString);
+            break;
+        } else {
+            nextIndex++;
+            prevIndex = nextIndex;
+            nextIndex = tcTypes.indexOf(",", nextIndex);
+        }
+        chanIndex ++;
+    } while (chanIndex <= chan);
+    return typePrefs;
 }
 
 #ifdef HAT_04

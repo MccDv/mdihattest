@@ -55,12 +55,14 @@ private:
 
     int mNumHats;
     QString mDevName;
+    QString mSerNum;
     int mResponse;
     uint8_t mAddress;
     uint16_t mHatID;
     int mUtFunction;
     int mSelectedFunction;
     bool mShowPlot;
+    QString mTInPrefs;
 
     void readCal();
     void writeCal();
@@ -71,7 +73,7 @@ private:
     void flashLED();
     void readStatus();
     void readIntStatus();
-
+    void readStoredTypes();
 
 };
 

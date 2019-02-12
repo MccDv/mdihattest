@@ -43,6 +43,7 @@ public:
     void addDeviceToMenu(QString devName, uint8_t devAddress, uint16_t hatType);
     void removeDeviceFromMenu(uint8_t devAddress);
     void setStatusLabel(QString statusText);
+    void savePreferences(QString prefList);
 
 private slots:
     void setBoardMenuSelect(QMdiSubWindow* childWind);

@@ -976,6 +976,70 @@ int HatInterface::tInRead(uint16_t devType, uint8_t address, uint8_t chan, doubl
     return mResponse;
 }
 
+/*int HatInterface::tInReadBackground(uint16_t devType, uint8_t address, uint8_t chanMask)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": TInReadBackground");
+    funcArgs = "(mAddress, chanMask)\n";
+    switch (devType) {
+    case HAT_ID_MCC_134:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_t_in_read_background(address, chanMask);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2)")
+            .arg(address)
+            .arg(chanMask);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
+}
+
+int HatInterface::backgroundResult(uint16_t devType, uint8_t address, uint8_t *chanMask, uint8_t *count, double &temp)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+    //double* data;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": BackgroundResult");
+    funcArgs = "(mAddress, chanMask, count, &data)\n";
+    switch (devType) {
+    case HAT_ID_MCC_134:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_background_result(address, &chanMask, &count, temp);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3, %4)")
+            .arg(address)
+            .arg(chanMask)
+            .arg(count)
+            .arg(temp[0]);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    //temp = data;
+    return mResponse;
+}*/
+
 int HatInterface::readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType)
 {
     QString nameOfFunc, funcArgs, funcStr;

@@ -16,7 +16,9 @@ QString getTrigText(TriggerMode trigType);
 QString getTcTypeName(uint8_t tcType);
 QString getConfigItemName(uint8_t configItem);
 QString getHatTypeName(uint16_t hatType);
+QString setTcTypeInString(QString tcTypes, uint8_t chan, uint8_t newType);
 uint16_t getHatIdFromName(QString hatName);
+QVector<uint8_t> getTcTypesFromString(QString tcTypes);
 #endif // TESTUTILITIES_H
 
 #ifndef HAT_03

@@ -25,6 +25,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbTcType->addItem("TC_TYPE_S", TC_TYPE_S);
     ui->cmbTcType->addItem("TC_TYPE_B", TC_TYPE_B);
     ui->cmbTcType->addItem("TC_TYPE_N", TC_TYPE_N);
+    ui->cmbTcType->addItem("Disabled", TC_DISABLED);
 #endif
 
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
@@ -45,6 +46,12 @@ InfoForm::~InfoForm()
 
 void InfoForm::updateParameters()
 {
+    //ChildWindow *parentWindow;
+
+    //parentWindow = qobject_cast<ChildWindow *>(this->parent());
+    //mTInPrefs = parentWindow->tInPrefs();
+    //mSerNum = parentWindow->serNum();
+    //ui->lblInfo->setText(mSerNum + " Preferences = " + mTInPrefs);
 
 }
 
@@ -241,13 +248,16 @@ void InfoForm::functionChanged(int utFunction)
         ui->cmbTcType->addItem("TC_TYPE_S", TC_TYPE_S);
         ui->cmbTcType->addItem("TC_TYPE_B", TC_TYPE_B);
         ui->cmbTcType->addItem("TC_TYPE_N", TC_TYPE_N);
+        ui->cmbTcType->addItem("Disabled", TC_DISABLED);
         readCmdText = "Read TC types";
         writeCmdText = "Load TC type";
-        spnToolTip = "TC channel";
+        spnToolTip = "TC channel (-1 loads saved configuration)";
         flashCmdText = "Flash LED";
         scanCleanVisible = false;
         calVisible = false;
         tcTypeVisible = true;
+        lowLimit = -1;
+        readStoredTypes();
         break;
 #endif
     case UL_TEST:
@@ -611,12 +621,33 @@ void InfoForm::showBoardParameters()
     }
 }
 
+void InfoForm::readStoredTypes()
+{
+    QSettings windowSettings("Measurement Computing", "Qt Hat Test Linux");
+    QVariant storedTInPrefs;
+    QString serNum;
+
+    mResponse = hatInterface->getSerialNumber(mHatID, mAddress, serNum);
+    ui->lblInfo->setText(hatInterface->getStatus());
+
+    if(mResponse == RESULT_SUCCESS) {
+        mSerNum = QString("%1").arg(serNum);
+    }
+
+    windowSettings.beginGroup(mSerNum);
+    storedTInPrefs = windowSettings.value("TempPrefs", "0,0,0,0");
+    mTInPrefs = storedTInPrefs.toString();
+    windowSettings.endGroup();
+    if(mTInPrefs == "")
+        mTInPrefs = "255,255,255,255";
+}
+
 void InfoForm::readTcTypes()
 {
     QString dataText, typeName;
     uint8_t chan, curChan;
     int numChans;
-    uint8_t tcType;
+    uint8_t tcType, typeIndex;
 
     curChan = ui->spnCalChan->value();
     ui->teShowValues->clear();
@@ -630,8 +661,13 @@ void InfoForm::readTcTypes()
         dataText.append(QString("<td>Chan: %1</td><td>TC Type:  %2 (%3)</td>")
                         .arg(chan).arg(tcType).arg(typeName));
         dataText.append("</tr><tr>");
-        if(chan == curChan)
-            ui->cmbTcType->setCurrentIndex(tcType);
+        if(chan == curChan) {
+            if(tcType == TC_DISABLED)
+                typeIndex = TC_TYPE_N + 1;
+            else
+                typeIndex = tcType;
+            ui->cmbTcType->setCurrentIndex(typeIndex);
+        }
     }
     ui->teShowValues->setHtml(dataText);
     ui->lblInfo->setText(hatInterface->getStatus());
@@ -640,12 +676,41 @@ void InfoForm::readTcTypes()
 void InfoForm::writeTcType()
 {
     uint8_t chan, tcType;
+    QString tInPrefs, typeString;
+    QVector<uint8_t> typeList;
 
-    chan = ui->spnCalChan->value();
-    tcType = ui->cmbTcType->currentData().toUInt();
     ui->teShowValues->clear();
-    mResponse = hatInterface->writeTcType(mHatID, mAddress, chan, tcType);
+    chan = ui->spnCalChan->value();
+    tInPrefs = "";
+    //when spinner is -1, result is 255 (uint8)
+    typeList = getTcTypesFromString(mTInPrefs);
+    if(chan > 15) {
+        for (int curChan = 0; curChan < typeList.length(); curChan++) {
+            tcType = typeList.at(curChan);
+            mResponse = hatInterface->writeTcType(mHatID, mAddress, curChan, tcType);
+            if (mResponse != RESULT_SUCCESS) {
+                tInPrefs = "";
+                break;
+            } else {
+                typeString = getTcTypeName(tcType);
+                tInPrefs += typeString + ",";
+            }
+        }
+    } else {
+        tcType = ui->cmbTcType->currentData().toUInt();
+        mResponse = hatInterface->writeTcType(mHatID, mAddress, chan, tcType);
+        uint8_t storedType;
+        storedType = typeList.at(chan);
+        if(tcType != storedType) {
+            mTInPrefs = setTcTypeInString(mTInPrefs, chan, tcType);
+            ui->lblStatus->setText("New prefs: " + mTInPrefs + "for mSerNum " + mSerNum);
+        }
+    }
     delay(300);
+    if (tInPrefs.length() > 0) {
+        tInPrefs.chop(1);
+        ui->lblStatus->setText("Preference string: " + tInPrefs);
+    }
     readTcTypes();
 }
 
