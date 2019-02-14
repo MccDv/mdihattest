@@ -1040,6 +1040,64 @@ int HatInterface::backgroundResult(uint16_t devType, uint8_t address, uint8_t *c
     return mResponse;
 }*/
 
+int HatInterface::readInterval(uint16_t devType, uint8_t address, uint8_t &interval)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+    uint8_t intervalRead;
+
+    funcArgs = "(address, &interval)\n";
+    switch (devType) {
+    case HAT_ID_MCC_134:
+        nameOfFunc = "134: readInterval";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_update_interval_read(address, &intervalRead);
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QString("(%1, %2)")
+            .arg(address)
+            .arg(intervalRead);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    interval = intervalRead;
+    return mResponse;
+}
+
+int HatInterface::writeInterval(uint16_t devType, uint8_t address, uint8_t interval)
+{
+    QString nameOfFunc, funcArgs, funcStr;
+    QString argVals;
+    QTime t;
+    QString sStartTime;
+
+    funcArgs = "(address, interval)\n";
+    switch (devType) {
+    case HAT_ID_MCC_134:
+        nameOfFunc = "134: writeInterval";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc134_update_interval_write(address, interval);
+        break;
+    default:
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QString("(%1, %2)")
+            .arg(address)
+            .arg(interval);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
+}
+
 int HatInterface::readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType)
 {
     QString nameOfFunc, funcArgs, funcStr;

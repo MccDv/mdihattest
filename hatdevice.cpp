@@ -54,6 +54,7 @@ HatDevice::HatDevice(QWidget *parent) :
     connect(ui->rbFullScale, SIGNAL(clicked(bool)), this, SLOT(replot()));
     connect(ui->cmdSetTcConf, SIGNAL(clicked(bool)), this, SLOT(writeStoredTcValues()));
     connect(ui->cmdReadTcConf, SIGNAL(clicked(bool)), this, SLOT(updateTcValues()));
+    connect(ui->cmdSetInterval, SIGNAL(clicked(bool)), this, SLOT(setInterval()));
 
     rbPlotSel[0] = ui->rbPlot0;
     rbPlotSel[1] = ui->rbPlot1;
@@ -169,9 +170,10 @@ void HatDevice::setUiForFunction()
     //parentWindow = qobject_cast<ChildWindow *>(this->parent());
     //mRange = parentWindow->getCurrentRange();
     bool scanVisible, voltCheckVisible;
-    bool cjcCheckVisible;
-    bool scanConfigVisible;
+    bool cjcCheckVisible, intervalSetVisible;
+    bool scanConfigVisible, scanParamsVisible;
     bool setTcCmdVisible;
+    QString blockToolTip;
 
     //mChanList.clear();
     //mRangeList.clear();
@@ -181,6 +183,9 @@ void HatDevice::setUiForFunction()
     cjcCheckVisible = false;
     scanConfigVisible = false;
     setTcCmdVisible = false;
+    intervalSetVisible = false;
+    scanParamsVisible = false;
+    blockToolTip = "Block size";
 
     switch (mCurFunction) {
     case UL_AIN:
@@ -194,12 +199,16 @@ void HatDevice::setUiForFunction()
         cjcCheckVisible = true;
         scanConfigVisible = true;
         setTcCmdVisible = true;
+        scanParamsVisible = true;
+        intervalSetVisible = true;
+        blockToolTip = "Interval";
         checkCurTcConfig(false);
         break;
     case UL_AINSCAN:
         mFuncName = "ulAInScan";
         scanConfigVisible = true;
         scanVisible = true;
+        scanParamsVisible = true;
         mPlot = true;
         ui->leRate->setText("1000");
         ui->leNumSamples->setText("1000");
@@ -215,6 +224,9 @@ void HatDevice::setUiForFunction()
     ui->fraChanScan->setVisible(!cjcCheckVisible);
     ui->fraScanConf->setVisible(scanConfigVisible);
     ui->fraSetTc->setVisible(setTcCmdVisible);
+    ui->fraScanParams->setVisible(scanParamsVisible);
+    ui->cmdSetInterval->setVisible(intervalSetVisible);
+    ui->leBlockSize->setToolTip(blockToolTip);
     //ui->cmdStop->setEnabled(false);
     showPlotWindow(mPlot);
     this->setWindowTitle(mFuncName + ": " + mDevName);
@@ -237,8 +249,8 @@ void HatDevice::checkCurTcConfig(bool saveToChild)
     QVariant storedTInPrefs;
     ChildWindow *parentWindow;
     parentWindow = qobject_cast<ChildWindow *>(this->parent());
-    QString typePrefs, serNum;
-    uint8_t chan;
+    QString typePrefs, serNum, typeName;
+    uint8_t chan, interval;
     int numChans;
     uint8_t tcType;
 
@@ -249,6 +261,9 @@ void HatDevice::checkCurTcConfig(bool saveToChild)
         mSerNum = QString("%1").arg(serNum);
         parentWindow->setSerNum(mSerNum);
     }
+    mResponse = hatInterface->readInterval(mHatID, mAddress, interval);
+    if(mResponse == RESULT_SUCCESS)
+        ui->leBlockSize->setText(QString("%1").arg(interval));
 
     windowSettings.beginGroup(mSerNum);
     storedTInPrefs = windowSettings.value("TempPrefs", "0,0,0,0");
@@ -266,18 +281,23 @@ void HatDevice::checkCurTcConfig(bool saveToChild)
             break;
         else {
             typePrefs += QString("%1,").arg(tcType);
+            typeName = getTcTypeName(tcType);
             switch (chan) {
             case 0:
                 ui->chkChan0->setChecked(tcType != TC_DISABLED);
+                ui->chkChan0->setToolTip(typeName);
                 break;
             case 1:
                 ui->chkChan1->setChecked(tcType != TC_DISABLED);
+                ui->chkChan1->setToolTip(typeName);
                 break;
             case 2:
                 ui->chkChan2->setChecked(tcType != TC_DISABLED);
+                ui->chkChan2->setToolTip(typeName);
                 break;
             case 3:
                 ui->chkChan3->setChecked(tcType != TC_DISABLED);
+                ui->chkChan3->setToolTip(typeName);
                 break;
             default:
                 break;
@@ -294,6 +314,15 @@ void HatDevice::checkCurTcConfig(bool saveToChild)
         ui->lblStatus->setText(mSerNum + " Type prefs = " + typePrefs + " Wrote " + typePrefs);
         mTInPrefs = typePrefs;
     }
+}
+
+void HatDevice::setInterval()
+{
+    uint8_t interval;
+
+    interval = ui->leBlockSize->text().toUInt();
+    mResponse = hatInterface->writeInterval(mHatID, mAddress, interval);
+    ui->lblStatus->setText(hatInterface->getStatus());
 }
 
 void HatDevice::writeStoredTcValues()

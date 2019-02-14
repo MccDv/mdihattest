@@ -54,6 +54,8 @@ public:
     int boardTemp(uint16_t devType, uint8_t address, uint8_t chan, double &temp);
     int readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType);
     int writeTcType(uint16_t devType, uint8_t address, uint8_t chan, uint8_t tcType);
+    int readInterval(uint16_t devType, uint8_t address, uint8_t &interval);
+    int writeInterval(uint16_t devType, uint8_t address, uint8_t interval);
 
     double getAOutVoltsMax(uint16_t devType);
     double getAOutVoltsMin(uint16_t devType);
