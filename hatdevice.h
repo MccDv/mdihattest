@@ -54,58 +54,60 @@ private:
     QueueDialog *queueSetup;
     ErrorDialog errDlg;
 
-    int mNumHats;
-    int mDevIndex;
-    int mResponse;
-    uint8_t mAddress;
-    uint16_t mHatID;
-    QString mDevName;
-    QString mSerNum;
+    int mNumHats = 0;
+    int mDevIndex = 0;
+    int mResponse = 0;
+    uint8_t mAddress = 0;
+    uint16_t mHatID = 0;
+    QString mDevName = "";
+    QString mSerNum = "";
 
-    uint32_t mScanOptions;
-    TriggerMode mTriggerType;
-    uint32_t mSamplesPerChan;
-    double mRateReturned;
+    uint32_t mScanOptions = 0;
+    TriggerMode mTriggerType = TRIG_RISING_EDGE;
+    uint32_t mSamplesPerChan = 0;
+    double mRateReturned = 0.0;
     struct HatInfo hatInfoList[MAX_NUMBER_HATS];
-    QString mOptNames;
-    bool mBackgroundScan;
+    QString mOptNames = "";
+    bool mBackgroundScan = true;
 
     QMap<int, int> mChanList;
-    bool mQueueEnabled;
+    bool mQueueEnabled = false;
 
     QHash<int, bool> mPlotList;
-    uint8_t mChanCount;
-    int mAiResolution;
-    int mCurFunction;
-    long long mPlotIndex;
-    long long mPlotCount;
-    long long mTotalRead;
-    long long mPlotSize;
-    QString mFuncName;
+    uint8_t mChanCount = 0;
+    int mAiResolution = 0;
+    int mCurFunction = 0;
+    long long mPlotInde = 0;
+    long long mPlotCount = 0;
+    long long mTotalRead = 0;
+    long long mPlotSize = 0;
+    int mTextIndex = 0;
+    QString mFuncName = "";
     QString mTInPrefs = "";
 
-    bool mUseTimer;
-    bool mGoTmrIsRunning;
-    bool mStopOnStart;
-    bool mOneSampPerForTotalSamps;
-    int mTmrInterval;
+    bool mUseTimer = false;
+    bool mTimerConfigured = false;
+    bool mGoTmrIsRunning = false;
+    bool mStopOnStart = false;
+    bool mOneSampPerForTotalSamps = false;
+    int mTmrInterval = 1000;
 
-    bool mPlot;
-    bool mRunning;
-    bool mTriggered;
-    bool mUseGetStatus;
-    bool mStatusTimerEnabled;
-    int mPlotChan;
+    bool mPlot = false;
+    bool mRunning = false;
+    bool mTriggered = false;
+    bool mUseGetStatus = true;
+    bool mStatusTimerEnabled = false;
+    int mPlotChan = 0;
     double *buffer;
     double *data;
     QVector<double> xValues;
     QVector<QVector<double>> yChans;
-    int32_t mBlockSize;
-    long long mBufSize;
-    long long mFinalCount;
+    int32_t mBlockSize = 0;
+    long long mBufSize = 0;
+    long long mFinalCount = 0;
 
     QStringList mFuncHistoryList;
-    int mHistListSize;
+    int mHistListSize = 50;
 
     //void showBoardParameters();
     //void runOpenDevice(uint8_t address);
@@ -123,6 +125,7 @@ private:
     void printData(unsigned long long currentCount, long long currentIndex, int blockSize);
     void plotScan(unsigned long long currentCount, long long currentIndex, int blockSize);
     void updatePlot();
+    void updateData();
     void setupQueue();
 
     //void setError(int curError, QString funcText);

@@ -252,6 +252,8 @@ QVector <uint8_t> getTcTypesFromString(QString tcTypes)
     return tcTypeVector;
 }
 
+#ifdef HAT_03
+
 QString setTcTypeInString(QString tcTypes, uint8_t chan, uint8_t newType)
 {
     QString typePrefs;
@@ -284,6 +286,8 @@ QString setTcTypeInString(QString tcTypes, uint8_t chan, uint8_t newType)
     } while (chanIndex <= chan);
     return typePrefs;
 }
+
+#endif
 
 #ifdef HAT_04
 

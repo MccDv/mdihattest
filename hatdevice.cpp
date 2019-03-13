@@ -93,6 +93,8 @@ void HatDevice::keyPressEvent(QKeyEvent *event)
         stopCmdClicked();
     }
     if (keyCode == Qt::Key_F6)
+        updateData();
+    if (keyCode == Qt::Key_F12)
         readBuffer();
 }
 
@@ -357,6 +359,7 @@ void HatDevice::goCmdClicked()
     mTotalRead = 0;
     tmrIsEnabled = parentWindow->tmrEnabled();
     mUseTimer = tmrIsEnabled;
+    mTimerConfigured = tmrIsEnabled;
     runSelectedFunction();
 }
 
@@ -504,8 +507,10 @@ void HatDevice::runAinFunction()
     mRunning = false;
     if(mPlot)
         plotScan(0, 0, mTotalRead);
-    else
+    else {
+        mTextIndex = 0;
         printData(0, 0, mTotalRead);
+    }
     if(mTotalRead == mSamplesPerChan) {
         mUseTimer = false;
     }
@@ -669,8 +674,10 @@ void HatDevice::runAInScanFunc()
                 ui->lblStatus->setText(QString("%1 samples read  Status: %2").arg(sampsReadPerChan).arg(statString));
                 if(mPlot)
                     plotScan(0, 0, sampsReadPerChan);
-                else
+                else {
+                    mTextIndex = 0;
                     printData(0, 0, sampsReadPerChan);
+                }
             }
             stopScan();
         }
@@ -770,8 +777,10 @@ void HatDevice::checkStatus()
         mTotalRead += samplesPerChanRead;
         if(mPlot)
             plotScan(0, 0, samplesPerChanRead);
-        else
+        else {
+            mTextIndex = 0;
             printData(0, 0, samplesPerChanRead);
+        }
     }
     mRunning = (status & STATUS_RUNNING);
     ui->lblStatus->setText(QString("%1 samples read  Status: %2").arg(mTotalRead).arg(statString));
@@ -844,6 +853,8 @@ void HatDevice::readBuffer()
     uint32_t samplesAvailable, samplesPerChanRead;
     double timeout = 0;
 
+    if (!buffer)
+        return;
     ui->lblInfo->clear();
     ui->lblStatus->clear();
     if(mHatID != HAT_ID_MCC_118) {
@@ -904,9 +915,10 @@ void HatDevice::showPlotWindow(bool showIt)
         if(mPlot) {
             setupPlot(ui->AiPlot, mChanCount);
             plotScan(0, 0, mTotalRead);
-        }
-        else
+        } else {
+            mTextIndex = 0;
             printData(0, 0, mTotalRead);
+        }
     }
 }
 
@@ -1031,29 +1043,35 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
 {
     QString dataText, str, val;
     double curSample;
-    int curScan, samplesToPrint, sampleLimit;
-    int sampleNum = 0;
+    int curScan, samplesToPrint, sampleLimit, totalSamps;
+    //int sampleNum = 0;
     int increment = 0;
     bool floatValue;
     long long samplePerChanel = mChanCount * ui->leNumSamples->text().toLongLong();;
     //ui->textEdit->setText(QString("Chans: %1, perChan: %2").arg(mChanCount).arg(samplePerChanel));
 
+    if(!buffer)
+        return;
     floatValue = (!(mScanOptions & OPTS_NOSCALEDATA));
 
+    totalSamps = mSamplesPerChan;
     ui->teShowValues->clear();
     dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
     sampleLimit = mRunning? 100 : 1000 / mChanCount;
     samplesToPrint = blockSize < sampleLimit? blockSize : sampleLimit;
+    if ((samplesToPrint + mTextIndex) > (totalSamps))
+        samplesToPrint = (totalSamps) - mTextIndex;
     for (int y = 0; y < samplesToPrint; y++) {
+        //int increment = 0;
         curScan = currentIndex + increment;
         if (!(curScan < samplePerChanel)) {
             currentIndex = 0;
             curScan = 0;
-            sampleNum = 0;
+            //sampleNum = 0;
         }
-        dataText.append("<td>" + str.setNum(currentCount + increment) + "</td>");
+        dataText.append("<td>" + str.setNum(increment) + "</td>");
         for (int chan = 0; chan < mChanCount; chan++) {
-            curSample = buffer[curScan + chan];
+            curSample = buffer[increment + chan];
             if (floatValue) {
                 val = QString("%1%2").arg((curSample < 0) ? "" : "+")
                         .arg(curSample, 2, 'f', 5, '0');
@@ -1063,13 +1081,62 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
             dataText.append("<td>" + val + "</td>");
         }
         dataText.append("</tr><tr>");
-        sampleNum = sampleNum + 1;
-        increment +=mChanCount;
+        //sampleNum = sampleNum + 1;
+        increment += mChanCount;
+        mTextIndex = increment;
     }
     dataText.append("</td></tr>");
     ui->teShowValues->setHtml(dataText);
-    if (samplesToPrint < blockSize)
-        ui->teShowValues->append("...");
+    if (samplesToPrint < totalSamps)
+        ui->teShowValues->append("... (F6)");
+}
+
+void HatDevice::updateData()
+{
+    QString dataText, str, val;
+    bool floatValue;
+
+    floatValue = false;
+    int increment = mTextIndex;
+    int samplesToPrint, sampleLimit, blockSize;
+    double curSample;
+
+    //blockSize = 1000;
+    blockSize = mSamplesPerChan;
+    if (!buffer)
+        return;
+    floatValue = (!(mScanOptions & OPTS_NOSCALEDATA));
+
+    //print only 1000
+    sampleLimit = mRunning? 100 : 1000 / mChanCount;
+    samplesToPrint = blockSize < sampleLimit? blockSize : sampleLimit;
+    //samplesToPrint = blockSize < 1000? mSamplesPerChan : 1000;
+    if (((samplesToPrint * mChanCount) + mTextIndex) > (blockSize))
+        samplesToPrint = (blockSize) - (mTextIndex / mChanCount);
+    ui->teShowValues->clear();
+    dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
+    for (int y = 0; y < samplesToPrint; y++) {
+        dataText.append("<td>" + str.setNum(increment) + "</td>");
+        for (int chan = 0; chan < mChanCount; chan++) {
+            curSample = buffer[increment + chan];
+            if (floatValue)
+                val = QString("%1%2").arg((curSample < 0) ? "" : "+")
+                        .arg(curSample, 2, 'f', 5, '0');
+            else
+                val = QString("%1").arg(curSample);
+            dataText.append("<td>" + val + "</td>");
+        }
+        dataText.append("</tr><tr>");
+        increment += mChanCount;
+        mTextIndex = increment;
+    }
+    dataText.append("</td></tr>");
+    ui->teShowValues->setHtml(dataText);
+    if (mTextIndex >= (blockSize * mChanCount))
+        mTextIndex = 0;
+    else
+        ui->teShowValues->append("... (F6)");
+    ui->lblInfo->setText(QString("%1, %2, %3").arg(mTextIndex).arg(blockSize).arg(samplesToPrint));
 }
 
 void HatDevice::updatePlot()
@@ -1299,7 +1366,7 @@ void HatDevice::runTinFunction()
         }
         if(mOneSampPerForTotalSamps) {
             QString timerRate = ".";
-            if(mUseTimer)
+            if(mTimerConfigured)
                 timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
             ui->lblStatus->setText(QString("%1 samples read%2")
                                    .arg(mTotalRead).arg(timerRate));
@@ -1308,8 +1375,10 @@ void HatDevice::runTinFunction()
         mRunning = false;
         if(mPlot)
             plotScan(0, 0, mTotalRead);
-        else
+        else {
+            mTextIndex = 0;
             printData(0, 0, mTotalRead);
+        }
         if(mTotalRead == mSamplesPerChan) {
             mUseTimer = false;
         }
