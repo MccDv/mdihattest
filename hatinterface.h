@@ -13,27 +13,7 @@
 
 #ifndef HAT_03
 
-enum TcTypes
-{
-    /// J type
-    TC_TYPE_J = 0,
-    /// K type
-    TC_TYPE_K,
-    /// T type
-    TC_TYPE_T,
-    /// E type
-    TC_TYPE_E,
-    /// R type
-    TC_TYPE_R,
-    /// S type
-    TC_TYPE_S,
-    /// B type
-    TC_TYPE_B,
-    /// N type
-    TC_TYPE_N,
-    /// Input disabled
-    TC_DISABLED = 0xFF
-};
+#define TC_DISABLED  (0xFF)
 
 #endif
 
