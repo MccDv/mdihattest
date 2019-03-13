@@ -1160,10 +1160,11 @@ int HatInterface::writeTcType(uint16_t devType, uint8_t address, uint8_t chan, u
 
 #else
 
-int HatInterface::boardTemp(uint16_t devType, uint8_t address, double &temp)
+int HatInterface::boardTemp(uint16_t devType, uint8_t address, uint8_t chan, double &temp)
 {
     (void)devType;
     (void)address;
+    (void)chan;
     (void)temp;
     return RESULT_INVALID_DEVICE;
 }
