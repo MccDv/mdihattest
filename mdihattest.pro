@@ -22,7 +22,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # MCC 152 development: HAT_04
 # MCC 134 development: HAT_03
 
-DEFINES += HAT_03
+#DEFINES += HAT_03
 DEFINES += HAT_04
 
 # You can also make your code fail to compile if you use deprecated APIs.
