@@ -197,6 +197,8 @@ QString getTrigText(TriggerMode trigType)
     }
 }
 
+#ifdef HAT_03
+
 QString getTcTypeName(uint8_t tcType)
 {
     switch (tcType) {
@@ -251,8 +253,6 @@ QVector <uint8_t> getTcTypesFromString(QString tcTypes)
     } while (nextIndex > 0);
     return tcTypeVector;
 }
-
-#ifdef HAT_03
 
 QString setTcTypeInString(QString tcTypes, uint8_t chan, uint8_t newType)
 {
