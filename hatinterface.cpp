@@ -1178,6 +1178,22 @@ int HatInterface::tInRead(uint16_t devType, uint8_t address, uint8_t chan, doubl
     return RESULT_INVALID_DEVICE;
 }
 
+int HatInterface::readInterval(uint16_t devType, uint8_t address, uint8_t &interval)
+{
+    (void)devType;
+    (void)address;
+    (void)interval;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::writeInterval(uint16_t devType, uint8_t address, uint8_t interval)
+{
+    (void)devType;
+    (void)address;
+    (void)interval;
+    return RESULT_INVALID_DEVICE;
+}
+
 int HatInterface::readTcTypes(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &tcType)
 {
     (void)devType;
