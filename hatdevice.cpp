@@ -526,8 +526,8 @@ void HatDevice::runAInScanFunc()
     QTime t;
     QString sStartTime, statString;
 
-    if(mHatID != HAT_ID_MCC_118) {
-        //so far, only compatible with 118
+    if((mHatID != HAT_ID_MCC_118) & (mHatID != HAT_ID_MCC_172)){
+        //so far, only compatible with 118 and 172
         ui->lblStatus->setText("Syncronous scan not supported for this device");
         ui->lblInfo->setText("Select a different device or function");
         return;

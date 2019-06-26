@@ -62,6 +62,12 @@ int HatInterface::openDevice(uint16_t devType, uint8_t address)
         mResponse = mcc152_open(address);
         break;
 #endif
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_open(address);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -100,6 +106,12 @@ int HatInterface::closeDevice(uint16_t devType, uint8_t address)
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc152_close(address);
+        break;
+#endif
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_close(address);
         break;
 #endif
     default:
@@ -141,6 +153,12 @@ bool HatInterface::deviceIsOpen(uint16_t devType, uint8_t address)
     case HAT_ID_MCC_152:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         isOpen = mcc152_is_open(address);
+        break;
+#endif
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        isOpen = mcc172_is_open(address);
         break;
 #endif
     default:
@@ -187,6 +205,12 @@ int HatInterface::getSerialNumber(uint16_t devType, uint8_t address, QString &se
         mResponse = mcc152_serial(address, serNum);
         break;
 #endif
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_serial(address, serNum);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -224,6 +248,12 @@ int HatInterface::getFirmwareVersion(uint16_t devType, uint8_t address, uint16_t
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc118_firmware_version(address, &version, &boot);
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_firmware_version(address, &version);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -261,6 +291,12 @@ int HatInterface::blinkLED(uint16_t devType, uint8_t address, uint8_t count)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc118_blink_led(address, count);
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_blink_led(address, count);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -298,6 +334,12 @@ int HatInterface::readCalDate(uint16_t devType, uint8_t address, QString &calDat
     case HAT_ID_MCC_134:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc134_calibration_date(address, dateReturned);
+        break;
+#endif
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_calibration_date(address, dateReturned);
         break;
 #endif
     default:
@@ -343,6 +385,12 @@ int HatInterface::getNumAInChans(uint16_t devType)
         numChans = mcc134_info()->NUM_AI_CHANNELS;
         break;
 #endif
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        numChans = mcc172_info()->NUM_AI_CHANNELS;
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         numChans = 0;
@@ -373,6 +421,13 @@ uint16_t HatInterface::getAInCodeMax(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxCode = mcc118_info()->AI_MAX_CODE;
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        //numChans = mcc134_a_in_num_channels();
+        maxCode = mcc172_info()->AI_MAX_CODE;
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxCode = 0;
@@ -403,6 +458,12 @@ uint16_t HatInterface::getAInCodeMin(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minCode = mcc118_info()->AI_MIN_CODE;
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minCode = mcc172_info()->AI_MIN_CODE;
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minCode = 0;
@@ -433,6 +494,12 @@ double HatInterface::getAInRangeMax(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxRange = mcc118_info()->AI_MAX_RANGE;
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxRange = mcc172_info()->AI_MAX_RANGE;
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxRange = 0;
@@ -463,6 +530,12 @@ double HatInterface::getAInRangeMin(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minRange = mcc118_info()->AI_MIN_RANGE;
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minRange = mcc172_info()->AI_MIN_RANGE;
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minRange = 0;
@@ -493,6 +566,12 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxVolts = mcc118_info()->AI_MAX_VOLTAGE;
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxVolts = mcc172_info()->AI_MAX_VOLTAGE;
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxVolts = 0;
@@ -523,6 +602,12 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minVolts = mcc118_info()->AI_MIN_VOLTAGE;
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minVolts = mcc172_info()->AI_MIN_VOLTAGE;
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minVolts = 0;
@@ -557,6 +642,12 @@ int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan,
     case HAT_ID_MCC_134:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc134_calibration_coefficient_read(address, chan, &chanSlope, &chanOffset);
+        break;
+#endif
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_calibration_coefficient_read(address, chan, &chanSlope, &chanOffset);
         break;
 #endif
     default:
@@ -598,6 +689,12 @@ int HatInterface::writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan
     case HAT_ID_MCC_134:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc134_calibration_coefficient_write(address, chan, slope, offset);
+        break;
+#endif
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_calibration_coefficient_write(address, chan, slope, offset);
         break;
 #endif
     default:
@@ -773,6 +870,12 @@ int HatInterface::readAInScanStatus(uint16_t devType, uint8_t address, uint16_t 
         mResponse = mcc118_a_in_scan_status(address, &statReturned, &numRead);
         //mResponse = mcc118_a_in_scan_read(address, &statReturned, 0, 0, NULL, 0, &numRead);
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_a_in_scan_status(address, &statReturned, &numRead);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -810,6 +913,12 @@ int HatInterface::stopAInScan(uint16_t devType, uint8_t address)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc118_a_in_scan_stop(address);
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_a_in_scan_stop(address);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -840,6 +949,12 @@ int HatInterface::aInScanChanCount(uint16_t devType, uint8_t address)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         chanCount = mcc118_a_in_scan_channel_count(address);
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        chanCount = mcc172_a_in_scan_channel_count(address);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -867,6 +982,12 @@ int HatInterface::aInScanCleanup(uint16_t devType, uint8_t address)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc118_a_in_scan_cleanup(address);
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_a_in_scan_cleanup(address);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;

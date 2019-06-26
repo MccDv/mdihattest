@@ -9,7 +9,7 @@
 #include "childwindow.h"
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -95,6 +95,8 @@ private:
     void writeWindowPosition();
     void readHatList();
     uint32_t getSoMask(uint32_t optSelected);
+
+    QHash<uint8_t, uint16_t> m_hatIDList;
 
 signals:
     void hatListChanged(QHash<uint8_t, QString>);
