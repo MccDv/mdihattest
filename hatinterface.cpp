@@ -973,6 +973,49 @@ int HatInterface::aInScanChanCount(uint16_t devType, uint8_t address)
     return chanCount;
 }
 
+int HatInterface::getBufferSize(uint16_t devType, uint8_t address, uint32_t &bufferSize)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    uint32_t bufSize = 0;
+    QString hatName;
+    int response;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": AInScanBufSize");
+    funcArgs = "(mAddress, bufferSize)\n";
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_a_in_scan_buffer_size(address, &bufSize);
+        break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc118_a_in_scan_buffer_size(address, &bufSize);
+        break;
+#endif
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QString("(%1, %2)")
+            .arg(address)
+            .arg(bufSize);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    response = mResponse;
+    if(mResponse == RESULT_RESOURCE_UNAVAIL) {
+        response = RESULT_SUCCESS;
+    }
+    reportResult(response, sStartTime + funcStr);
+    bufferSize = bufSize;
+    return mResponse;
+}
+
 int HatInterface::aInScanCleanup(uint16_t devType, uint8_t address)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;

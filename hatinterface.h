@@ -48,6 +48,7 @@ public:
     int aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double &value);
     int setTrigger(uint16_t devType, uint8_t address, uint8_t source, TriggerMode trigType);
     int stopAInScan(uint16_t devType, uint8_t address);
+    int getBufferSize(uint16_t devType, uint8_t address, uint32_t &bufferSize);
     int readAInScanStatus(uint16_t devType, uint8_t address, uint16_t &status, uint32_t &sampsAvailable);
     int aInScanChanCount(uint16_t devType, uint8_t address);
     int aInScanCleanup(uint16_t devType, uint8_t address);
