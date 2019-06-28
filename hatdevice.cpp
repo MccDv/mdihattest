@@ -930,10 +930,24 @@ void HatDevice::checkStatus()
 
     if(mRunning) {
         funcArgs = "(mAddress, &status, mBlockSize, timeout, buffer, mBufSize, &samplesPerChanRead)\n";
-        nameOfFunc = "118: AInScanRead";
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_a_in_scan_read(mAddress, &status, mBlockSize,
-            timeout, buffer, mBufSize, &samplesPerChanRead);
+        switch (mHatID) {
+        case HAT_ID_MCC_118:
+            nameOfFunc = "118: AInScanRead";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc118_a_in_scan_read(mAddress, &status, mBlockSize,
+                timeout, buffer, mBufSize, &samplesPerChanRead);
+            break;
+#ifdef HAT_05
+        case HAT_ID_MCC_172:
+            nameOfFunc = "172: AInScanRead";
+            mResponse = mcc172_a_in_scan_read(mAddress, &status, mBlockSize,
+                timeout, buffer, mBufSize, &samplesPerChanRead);
+            break;
+#endif
+        default:
+            mResponse = RESULT_INVALID_DEVICE;
+            break;
+        }
         argVals = QString("(%1, %2, %3, %4, %5, %6, %7)")
                 .arg(mAddress).arg(status).arg(mBlockSize).arg(timeout)
                 .arg("buffer").arg(mBufSize).arg(samplesPerChanRead);
