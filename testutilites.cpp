@@ -138,7 +138,7 @@ QString getStatusText(uint16_t status)
 
     statusString = "";
     if(status == 0)
-        return "Unavailable";
+        return "Unavailable or error";
     if (status & STATUS_HW_OVERRUN)
         statusString += "HW Overrun, ";
     if (status & STATUS_BUFFER_OVERRUN)

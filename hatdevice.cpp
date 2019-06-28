@@ -823,6 +823,8 @@ void HatDevice::runAInScan172Func()
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             do {
                 mResponse = mcc172_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
+                if(mResponse != RESULT_SUCCESS)
+                    status = 0;
                 statString = getStatusText(status);
                 ui->lblStatus->setText(QString("  Status: %1").arg(statString));
                 delay(200);
