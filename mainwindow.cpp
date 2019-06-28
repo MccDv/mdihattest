@@ -49,11 +49,21 @@ MainWindow::MainWindow(QWidget *parent) :
     trigTypeGroup->addAction(ui->actionACTIVE_HIGH);
     trigTypeGroup->addAction(ui->actionACTIVE_LOW);
 
+    trigSourceGroup = new QActionGroup(this);
+    trigSourceGroup->addAction(ui->action_SOURCE_LOCAL);
+    trigSourceGroup->addAction(ui->actionSOURCE_MASTER);
+    trigSourceGroup->addAction(ui->actionSOURCE_SLAVE);
+
     ui->actionRISING_EDGE->setData(TRIG_RISING_EDGE);
     ui->actionFALLING_EDGE->setData(TRIG_FALLING_EDGE);
     ui->actionACTIVE_HIGH->setData(TRIG_ACTIVE_HIGH);
     ui->actionACTIVE_LOW->setData(TRIG_ACTIVE_LOW);
     connect(trigTypeGroup, SIGNAL(triggered(QAction*)), this, SLOT(changeTrigType()));
+
+    ui->action_SOURCE_LOCAL->setData(SOURCE_LOCAL);
+    ui->actionSOURCE_MASTER->setData(SOURCE_MASTER);
+    ui->actionSOURCE_SLAVE->setData(SOURCE_SLAVE);
+    connect(trigSourceGroup, SIGNAL(triggered(QAction*)), this, SLOT());
 
     ui->actionNOCALIBRATEDATA->setData(OPTS_NOCALIBRATEDATA);
     ui->actionNOSCALEDATA->setData(OPTS_NOSCALEDATA);
@@ -735,6 +745,17 @@ void MainWindow::changeTrigType()
 
     if (curChild)
         curChild->setTriggerType(mTriggerType);
+}
+
+void MainWindow::changeSourceType()
+{
+    ChildWindow *curChild = activeMdiChild();
+
+    QVariant trigSetSource = trigSourceGroup->checkedAction()->data();
+    mTriggerSource = (SourceType)trigSetSource.toLongLong();
+
+    if (curChild)
+        curChild->setTriggerSource(mTriggerSource);
 }
 
 void MainWindow::addDeviceToMenu(QString devName, uint8_t devAddress, uint16_t hatType)

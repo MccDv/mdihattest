@@ -202,6 +202,10 @@
     <addaction name="actionFALLING_EDGE"/>
     <addaction name="actionACTIVE_HIGH"/>
     <addaction name="actionACTIVE_LOW"/>
+    <addaction name="separator"/>
+    <addaction name="action_SOURCE_LOCAL"/>
+    <addaction name="actionSOURCE_MASTER"/>
+    <addaction name="actionSOURCE_SLAVE"/>
    </widget>
    <widget class="QMenu" name="menuPlot">
     <property name="title">
@@ -427,6 +431,30 @@
     <font>
      <pointsize>10</pointsize>
     </font>
+   </property>
+  </action>
+  <action name="action_SOURCE_LOCAL">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>SOURCE_LOCAL</string>
+   </property>
+  </action>
+  <action name="actionSOURCE_MASTER">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>SOURCE_MASTER</string>
+   </property>
+  </action>
+  <action name="actionSOURCE_SLAVE">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>SOURCE_SLAVE</string>
    </property>
   </action>
  </widget>

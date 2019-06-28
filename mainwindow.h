@@ -56,6 +56,7 @@ private slots:
     void createMiscChild();
     void createChild(UtFunctionGroup utFuncGroup, int defaultFunction);
     void changeTrigType();
+    void changeSourceType();
     void curFunctionChanged();
     void curOptionChanged();
     void setSelectedDevice();
@@ -69,6 +70,7 @@ private:
     QActionGroup *functionGroup;
     QActionGroup *optionGroup;
     QActionGroup *trigTypeGroup;
+    QActionGroup *trigSourceGroup;
     ChildWindow *activeMdiChild() const;
     ErrorDialog errDlg;
 
@@ -78,6 +80,7 @@ private:
 
     int mCurFunction;
     TriggerMode mTriggerType;
+    SourceType mTriggerSource;
     uint32_t mScanOptions;
     QString mOptNames;
 
