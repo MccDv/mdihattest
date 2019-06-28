@@ -366,8 +366,7 @@ void HatDevice::goCmdClicked()
 
 void HatDevice::stopCmdClicked()
 {
-    if(mHatID == HAT_ID_MCC_118)
-        stopScan();
+    stopScan();
     mUseTimer = false;
 }
 
