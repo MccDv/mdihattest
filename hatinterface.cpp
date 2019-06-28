@@ -2361,17 +2361,18 @@ int HatInterface::ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t 
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
-    uint8_t data, sourceReturned;
-    double rateReturned;
+    uint8_t sync = 0;
+    uint8_t sourceReturned = SOURCE_LOCAL;
+    double rateReturned = 0.0;
     QString hatName;
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": ainClockConfigRead");
-    funcArgs = "(mAddress, source, rate, &value)\n";
+    funcArgs = "(mAddress, source, rate, &sync)\n";
     switch (devType) {
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &rateReturned, &data);
+        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &rateReturned, &sync);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -2382,14 +2383,14 @@ int HatInterface::ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t 
             .arg(address)
             .arg(sourceReturned)
             .arg(rateReturned)
-            .arg(data);
+            .arg(sync);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
     source = sourceReturned;
     rate = rateReturned;
-    value = data;
+    value = sync;
     return mResponse;
 
 }
