@@ -993,13 +993,6 @@ void HatDevice::checkStatus()
 
 void HatDevice::stopScan()
 {
-    if(mHatID != HAT_ID_MCC_118) {
-        //so far, only compatible with 118
-        ui->lblStatus->setText("Syncronous scan not supported for this device");
-        ui->lblInfo->setText("Select a different device or function");
-        return;
-    }
-
     QFont goFont = ui->cmdGo->font();
 
     tmrGoTimer->stop();
