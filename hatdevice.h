@@ -96,6 +96,7 @@ private:
     bool mPlot = false;
     bool mRunning = false;
     bool mTriggered = false;
+    bool mAbort = false;
     bool mUseGetStatus = true;
     bool mStatusTimerEnabled = false;
     int mPlotChan = 0;

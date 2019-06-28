@@ -90,7 +90,7 @@ void HatDevice::keyPressEvent(QKeyEvent *event)
 {
     int keyCode = event->key();
     if (keyCode == Qt::Key_Escape) {
-        //setTmrRunning(false);
+        mAbort = true;
         stopCmdClicked();
     }
     if (keyCode == Qt::Key_F6)
@@ -358,6 +358,7 @@ void HatDevice::goCmdClicked()
     bool tmrIsEnabled;
 
     mTotalRead = 0;
+    mAbort = false;
     tmrIsEnabled = parentWindow->tmrEnabled();
     mUseTimer = tmrIsEnabled;
     mTimerConfigured = tmrIsEnabled;
@@ -772,10 +773,6 @@ void HatDevice::runAInScan172Func()
     ui->lblInfo->setText(hatInterface->getStatus());
     if(mResponse != RESULT_SUCCESS)
         return;
-    /*mResponse = hatInterface->getBufferSize(mHatID, mAddress, bufferSize);
-    ui->lblInfo->setText(hatInterface->getStatus());
-    if(mResponse != RESULT_SUCCESS)
-        return;*/
     nameOfFunc = "172: AInScanStart";
     funcArgs = "(mAddress, chanMask, mSamplesPerChan, mScanOptions)\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -924,6 +921,10 @@ void HatDevice::checkStatus()
                 return;
             }
             delay(200);
+            if(mAbort) {
+                trigWait = false;
+                stopScan();
+            }
         } while (trigWait);
     }
 
