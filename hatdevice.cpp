@@ -764,6 +764,10 @@ void HatDevice::runAInScan172Func()
     memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
 
 #ifdef HAT_05
+    uint8_t source;
+    uint8_t value;
+    mResponse = hatInterface->ainClockConfigRead(mHatID, mAddress, source, mRateReturned, value);
+    mResponse = mcc172_a_in_scan_buffer_size(mAddress, &bufferSize);
     nameOfFunc = "172: AInScanStart";
     funcArgs = "(mAddress, chanMask, mSamplesPerChan, mScanOptions)\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -783,12 +787,12 @@ void HatDevice::runAInScan172Func()
         mStatusTimerEnabled = false;
     } else {
         mRunning = true;
-#ifdef HAT_05
+/*#ifdef HAT_05
         uint8_t source;
         uint8_t value;
         mResponse = hatInterface->ainClockConfigRead(mHatID, mAddress, source, mRateReturned, value);
         mResponse = mcc172_a_in_scan_buffer_size(mAddress, &bufferSize);
-#endif
+#endif*/
         ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
         ui->lblBufferSize->setText(QString("%1").arg(bufferSize));
         if(mBackgroundScan) {
