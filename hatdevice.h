@@ -64,6 +64,7 @@ private:
 
     uint32_t mScanOptions = 0;
     TriggerMode mTriggerType = TRIG_RISING_EDGE;
+    SourceType mTriggerSource = SOURCE_LOCAL;
     uint32_t mSamplesPerChan = 0;
     double mRateReturned = 0.0;
     struct HatInfo hatInfoList[MAX_NUMBER_HATS];
@@ -117,6 +118,7 @@ private:
     void runAinFunction();
     void runTinFunction();
     void runAInScanFunc();
+    void runAInScan172Func();
     void runSetTriggerFunc();
     void stopScan();
     void readBuffer();

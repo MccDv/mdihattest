@@ -238,8 +238,8 @@ void InfoForm::functionChanged(int utFunction)
         flashCmdText = "Scan Status";
         spnToolTip = "Cal channel";
         break;
-#ifdef HAT_03
     case UL_TEMP_INFO:
+#ifdef HAT_03
         ui->cmbTcType->addItem("TC_TYPE_J", TC_TYPE_J);
         ui->cmbTcType->addItem("TC_TYPE_K", TC_TYPE_K);
         ui->cmbTcType->addItem("TC_TYPE_T", TC_TYPE_T);
@@ -249,6 +249,8 @@ void InfoForm::functionChanged(int utFunction)
         ui->cmbTcType->addItem("TC_TYPE_B", TC_TYPE_B);
         ui->cmbTcType->addItem("TC_TYPE_N", TC_TYPE_N);
         ui->cmbTcType->addItem("Disabled", TC_DISABLED);
+        readStoredTypes();
+#endif
         readCmdText = "Read TC types";
         writeCmdText = "Load TC type";
         spnToolTip = "TC channel (-1 loads saved configuration)";
@@ -257,9 +259,7 @@ void InfoForm::functionChanged(int utFunction)
         calVisible = false;
         tcTypeVisible = true;
         lowLimit = -1;
-        readStoredTypes();
         break;
-#endif
     case UL_TEST:
         writeCmdText = "Trig/Clock Test";
         readCmdText = "Num Scan Chans";
@@ -583,27 +583,25 @@ void InfoForm::showBoardParameters()
     }
 
 #ifdef HAT_04
-    if(mHatID == HAT_ID_MCC_118) {
-        numChans = hatInterface->getNumAOutChans(mHatID);
-        ui->teShowValues->append(QString("AOut chans: %1").arg(numChans));
-        int lowCount = hatInterface->getAOutCodeMin(mHatID);
-        int highCount = hatInterface->getAOutCodeMax(mHatID);
-        ui->teShowValues->append(QString("AOut code range: %1 to %2")
-                                 .arg(lowCount)
-                                 .arg(highCount));
-        double lowVolts = hatInterface->getAOutVoltsMin(mHatID);
-        double highVolts = hatInterface->getAOutVoltsMax(mHatID);
-        ui->teShowValues->append(QString("AOut voltage min/max: %1 to %2")
-                                 .arg(lowVolts)
-                                 .arg(highVolts));
-        double lowRange = hatInterface->getAOutRangeMin(mHatID);
-        double highRange = hatInterface->getAOutRangeMax(mHatID);
-        ui->teShowValues->append(QString("AOut range min/max: %1 to %2")
-                                 .arg(lowRange)
-                                 .arg(highRange));
-        int numDioChans = hatInterface->getNumDioChans(mHatID);
-        ui->teShowValues->append(QString("Dio chans: %1").arg(numDioChans));
-    }
+    numChans = hatInterface->getNumAOutChans(mHatID);
+    ui->teShowValues->append(QString("AOut chans: %1").arg(numChans));
+    int lowCount = hatInterface->getAOutCodeMin(mHatID);
+    int highCount = hatInterface->getAOutCodeMax(mHatID);
+    ui->teShowValues->append(QString("AOut code range: %1 to %2")
+                             .arg(lowCount)
+                             .arg(highCount));
+    double lowVolts = hatInterface->getAOutVoltsMin(mHatID);
+    double highVolts = hatInterface->getAOutVoltsMax(mHatID);
+    ui->teShowValues->append(QString("AOut voltage min/max: %1 to %2")
+                             .arg(lowVolts)
+                             .arg(highVolts));
+    double lowRange = hatInterface->getAOutRangeMin(mHatID);
+    double highRange = hatInterface->getAOutRangeMax(mHatID);
+    ui->teShowValues->append(QString("AOut range min/max: %1 to %2")
+                             .arg(lowRange)
+                             .arg(highRange));
+    int numDioChans = hatInterface->getNumDioChans(mHatID);
+    ui->teShowValues->append(QString("Dio chans: %1").arg(numDioChans));
 #endif
 
     if (isOpen) {

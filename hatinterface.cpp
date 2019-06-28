@@ -821,7 +821,7 @@ int HatInterface::testTrig(uint16_t devType, uint8_t address, uint8_t &value)
     return mResponse;
 }
 
-int HatInterface::setTrigger(uint16_t devType, uint8_t address, TriggerMode trigType)
+int HatInterface::setTrigger(uint16_t devType, uint8_t address, uint8_t source, TriggerMode trigType)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -836,6 +836,12 @@ int HatInterface::setTrigger(uint16_t devType, uint8_t address, TriggerMode trig
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc118_trigger_mode(address, trigType);
         break;
+#ifdef HAT_05
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_trigger_config(address, source, trigType);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -2348,3 +2354,177 @@ int HatInterface::disableCallback()
 
 #endif
 
+#ifdef HAT_05
+
+int HatInterface::ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t &source, double &rate, uint8_t &value)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    uint8_t data, sourceReturned;
+    double rateReturned;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": ainClockConfigRead");
+    funcArgs = "(mAddress, source, rate, &value)\n";
+    switch (devType) {
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &rateReturned, &data);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3, %4)")
+            .arg(address)
+            .arg(sourceReturned)
+            .arg(rateReturned)
+            .arg(data);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    source = sourceReturned;
+    rate = rateReturned;
+    value = data;
+    return mResponse;
+
+}
+
+int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": ainClockConfigWrite");
+    funcArgs = "(mAddress, source, rate)\n";
+    switch (devType) {
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_a_in_clock_config_write(address, source, rate);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3)")
+            .arg(address)
+            .arg(source)
+            .arg(rate);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
+}
+
+int HatInterface::iepeConfigRead(uint16_t devType, uint8_t address, uint8_t channel, uint8_t &value)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    uint8_t data;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": iepeConfigRead");
+    funcArgs = "(mAddress, channel, &data)\n";
+    switch (devType) {
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_iepe_config_read(address, channel, &data);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3)")
+            .arg(address)
+            .arg(channel)
+            .arg(data);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    value = data;
+    return mResponse;
+}
+
+int HatInterface::iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t channel, uint8_t value)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": iepeConfigWrite");
+    funcArgs = "(mAddress, channel, value)\n";
+    switch (devType) {
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_iepe_config_write(address, channel, value);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3)")
+            .arg(address)
+            .arg(channel)
+            .arg(value);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
+}
+
+#else
+
+int HatInterface::ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t &source, double &rate, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)source;
+    (void)rate;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
+{
+    (void)devType;
+    (void)address;
+    (void)source;
+    (void)rate;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::iepeConfigRead(uint16_t devType, uint8_t address, uint8_t channel, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)channel;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t channel, uint8_t value)
+{
+    (void)devType;
+    (void)address;
+    (void)channel;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+#endif

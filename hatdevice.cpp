@@ -24,6 +24,7 @@ HatDevice::HatDevice(QWidget *parent) :
     mNumHats = 0;
     mScanOptions = OPTS_DEFAULT;
     mTriggerType = TRIG_RISING_EDGE;
+    mTriggerSource = SOURCE_LOCAL;
     mAiResolution = 12;
     mCurFunction = UL_AIN;
     mTriggered = false;
@@ -387,12 +388,13 @@ void HatDevice::runSelectedFunction()
         runAinFunction();
         break;
     case UL_AINSCAN:
-        runAInScanFunc();
+        if(mHatID == HAT_ID_MCC_118)
+            runAInScanFunc();
+        else
+            runAInScan172Func();
         break;
     case UL_TIN:
-#ifdef HAT_03
         runTinFunction();
-#endif
         break;
     default:
         break;
@@ -429,7 +431,7 @@ void HatDevice::runSetTriggerFunc()
 {
     QString trigString;
 
-    mResponse = hatInterface->setTrigger(mHatID, mAddress, mTriggerType);
+    mResponse = hatInterface->setTrigger(mHatID, mAddress, mTriggerSource, mTriggerType);
     ui->lblStatus->setText(hatInterface->getStatus());
 
     trigString = getTrigText(mTriggerType);
@@ -526,8 +528,8 @@ void HatDevice::runAInScanFunc()
     QTime t;
     QString sStartTime, statString;
 
-    if((mHatID != HAT_ID_MCC_118) & (mHatID != HAT_ID_MCC_172)){
-        //so far, only compatible with 118 and 172
+    if(mHatID != HAT_ID_MCC_118) {
+        //so far, only compatible with 118
         ui->lblStatus->setText("Syncronous scan not supported for this device");
         ui->lblInfo->setText("Select a different device or function");
         return;
@@ -653,6 +655,179 @@ void HatDevice::runAInScanFunc()
             sampsToRead = -1;
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             mResponse = mcc118_a_in_scan_read(mAddress, &status, sampsToRead, timeout, buffer, mBufSize, &sampsReadPerChan);
+            argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+                    .arg(mAddress)
+                    .arg(status)
+                    .arg(sampsToRead)
+                    .arg(timeout)
+                    .arg("buffer")
+                    .arg(mBufSize)
+                    .arg(sampsReadPerChan);
+            ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+            statString = getStatusText(status);
+
+            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            hatInterface->reportResult(mResponse, sStartTime + funcStr);
+            if (mResponse!=RESULT_SUCCESS) {
+                //mMainWindow->setError(mResponse, sStartTime + funcStr);
+                return;
+            }
+            if(sampsReadPerChan) {
+                ui->lblStatus->setText(QString("%1 samples read  Status: %2").arg(sampsReadPerChan).arg(statString));
+                if(mPlot)
+                    plotScan(0, 0, sampsReadPerChan);
+                else {
+                    mTextIndex = 0;
+                    printData(0, 0, sampsReadPerChan);
+                }
+            }
+            stopScan();
+        }
+    }
+}
+
+void HatDevice::runAInScan172Func()
+{
+    int lowChan, highChan;
+    uint8_t chanMask;
+    int32_t sampsToRead;
+    uint32_t bufferSize;
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime, statString;
+
+    if (mHatID != HAT_ID_MCC_172) {
+        //only compatible with 172
+        ui->lblStatus->setText("This function is not supported for this device");
+        ui->lblInfo->setText("Select a different device or function");
+        return;
+    }
+    bufferSize = 0;
+
+    if (buffer) {
+        mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
+        delete[] buffer;
+        buffer = NULL;
+    }
+
+    if(mScanOptions & OPTS_EXTTRIGGER) {
+        runSetTriggerFunc();
+        mTriggered = false;
+    }
+    //backgroundScan = ui->actionBACKGROUND->isChecked();
+    mBlockSize = ui->leBlockSize->text().toLongLong();
+    if(!mQueueEnabled) {
+        mChanList.clear();
+        lowChan = ui->spnLowChan->value();
+        highChan = ui->spnHighChan->value();
+        mChanCount = (highChan - lowChan) + 1;
+        for(int chan = 0; chan < mChanCount; chan++)
+            mChanList[chan] = lowChan + chan;
+    }
+    //if queue is enabled, mChanCount is set in setupQueue
+    if(mChanCount < 1) mChanCount = 1;
+
+    mSamplesPerChan = ui->leNumSamples->text().toLong();
+    double rate = ui->leRate->text().toDouble();
+    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, SOURCE_LOCAL, rate);
+
+    chanMask = 0;
+    uint8_t curChan;
+    foreach(curChan, mChanList)
+        chanMask |= (1 << curChan);
+
+    mTotalRead =0;
+    ui->lblStatus->clear();
+    long long bufSize = mChanCount * mSamplesPerChan;
+    if(mPlot)
+        setupPlot(ui->AiPlot, mChanCount);
+
+    //mFunctionFlag = (AInScanFlag)mAiFlags;
+    if (mStopOnStart) {
+        nameOfFunc = "ulAInScanStop";
+        funcArgs = "(mDaqDeviceHandle)";
+        //sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        //err = ulAInScanStop(mDaqDeviceHandle);
+        //argVals = QString("(%1)").arg(mDaqDeviceHandle);
+/*
+        funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+        if (!err==ERR_NO_ERROR) {
+            mMainWindow->setError(err, sStartTime + funcStr);
+        } else {
+            mMainWindow->addFunction(sStartTime + funcStr);
+        }
+  */
+    }
+
+    mBufSize = bufSize;
+    buffer = new double[bufSize];
+    memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
+
+#ifdef HAT_05
+    nameOfFunc = "172: AInScanStart";
+    funcArgs = "(mAddress, chanMask, mSamplesPerChan, mScanOptions)\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+    mResponse = mcc172_a_in_scan_start(mAddress, chanMask, mSamplesPerChan, mScanOptions);
+    argVals = QStringLiteral("(%1, %2, %3, %4)")
+            .arg(mAddress)
+            .arg(chanMask)
+            .arg(mSamplesPerChan)
+            .arg(mScanOptions);
+    ui->lblInfo->setText(nameOfFunc + argVals + "   " +
+                         mOptNames + QString("  [Error = %1]").arg(mResponse));
+#endif
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    hatInterface->reportResult(mResponse, sStartTime + funcStr);
+    if (mResponse!=RESULT_SUCCESS) {
+        mStatusTimerEnabled = false;
+    } else {
+        mRunning = true;
+#ifdef HAT_05
+        uint8_t source;
+        uint8_t value;
+        mResponse = hatInterface->ainClockConfigRead(mHatID, mAddress, source, mRateReturned, value);
+        mResponse = mcc172_a_in_scan_buffer_size(mAddress, &bufferSize);
+#endif
+        ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
+        ui->lblBufferSize->setText(QString("%1").arg(bufferSize));
+        if(mBackgroundScan) {
+            mStatusTimerEnabled = true;
+            tmrGoTimer->start(500);
+        } else {
+            uint16_t status;
+            double timeout;
+            uint32_t sampsReadPerChan;
+            timeout = ui->leTimeout->text().toDouble();
+            nameOfFunc = "172: AInScanRead";
+            funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            do {
+                mResponse = mcc172_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
+                statString = getStatusText(status);
+                ui->lblStatus->setText(QString("  Status: %1").arg(statString));
+                delay(200);
+            } while (status & STATUS_RUNNING);
+            argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
+                    .arg(mAddress)
+                    .arg(status)
+                    .arg("0")
+                    .arg(timeout)
+                    .arg("NULL")
+                    .arg("0")
+                    .arg("NULL");
+            ui->lblInfo->setText(nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse));
+
+            funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+            hatInterface->reportResult(mResponse, sStartTime + funcStr);
+            if (mResponse!=RESULT_SUCCESS) {
+                //mMainWindow->setError(mResponse, sStartTime + funcStr);
+                return;
+            }
+
+            sampsToRead = -1;
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc172_a_in_scan_read(mAddress, &status, sampsToRead, timeout, buffer, mBufSize, &sampsReadPerChan);
             argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
                     .arg(mAddress)
                     .arg(status)
@@ -1050,6 +1225,7 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
     long long samplePerChanel = mChanCount * ui->leNumSamples->text().toLongLong();;
     //ui->textEdit->setText(QString("Chans: %1, perChan: %2").arg(mChanCount).arg(samplePerChanel));
 
+    (void)currentCount;
     if(!buffer)
         return;
     floatValue = (!(mScanOptions & OPTS_NOSCALEDATA));
