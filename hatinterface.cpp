@@ -993,7 +993,7 @@ int HatInterface::getBufferSize(uint16_t devType, uint8_t address, uint32_t &buf
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc118_a_in_scan_buffer_size(address, &bufSize);
+        mResponse = mcc172_a_in_scan_buffer_size(address, &bufSize);
         break;
 #endif
     default:
