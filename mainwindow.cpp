@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionTmrloop, SIGNAL(triggered(bool)), this, SLOT(setTimer()));
 
     mHistListSize = 50;
-    mScanOptions = OPTS_DEFAULT;
+    mScanOptions = OPTS_IFC_BACKGROUND;
     readWindowPosition();
 
     functionGroup = new QActionGroup(this);
