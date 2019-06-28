@@ -924,6 +924,9 @@ void HatDevice::checkStatus()
             if(mAbort) {
                 trigWait = false;
                 stopScan();
+                delay(200);
+                mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
+                mRunning = (status & STATUS_RUNNING);
             }
         } while (trigWait);
     }
