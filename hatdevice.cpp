@@ -925,8 +925,8 @@ void HatDevice::checkStatus()
                 trigWait = false;
                 stopScan();
                 delay(200);
-                mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
-                mRunning = (status & STATUS_RUNNING);
+                mRunning = false;
+                samplesPerChanRead = 0;
             }
         } while (trigWait);
     }
