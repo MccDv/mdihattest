@@ -116,7 +116,7 @@ void HatDevice::updateParameters()
     mHatID = parentWindow->devId();
     allOptions = parentWindow->scanOptions();
     mScanOptions = allOptions & 0xFFF;
-    mBackgroundScan = ((allOptions & 0x1000) != 0);
+    mBackgroundScan = ((uint32_t)(allOptions & OPTS_IFC_BACKGROUND) != 0);
     mTriggerType = parentWindow->triggerType();
 
     mUseTimer = parentWindow->tmrEnabled();
