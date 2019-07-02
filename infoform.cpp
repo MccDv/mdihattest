@@ -28,6 +28,14 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbTcType->addItem("Disabled", TC_DISABLED);
 #endif
 
+    ui->cmbUtilFunc->addItem("Flash LED", UL_FLASH_LED);
+    ui->cmbUtilFunc->addItem("Get Err Msg", UL_GET_ERR_MSG);
+    ui->cmbUtilFunc->addItem("Scan Status", UL_GET_STATUS);
+    ui->cmbUtilFunc->addItem("Calibration", UL_AI_INFO);
+    ui->cmbUtilFunc->addItem("Thermocouples", UL_TEMP_INFO);
+    ui->cmbUtilFunc->addItem("Trig/Clock Test", UL_TEST);
+    ui->cmbUtilFunc->addItem("IEPE Config", UL_IEPE);
+
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
     connect(ui->cmbDevList, SIGNAL(currentIndexChanged(int)), this, SLOT(devSelectedChanged()));
     connect(ui->cmdDevParams, SIGNAL(clicked(bool)), this, SLOT(showBoardParameters()));
@@ -36,6 +44,7 @@ InfoForm::InfoForm(QWidget *parent) :
     connect(ui->cmdLoadCal, SIGNAL(clicked(bool)), this, SLOT(loadCalClicked()));
     connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLEDClicked()));
     connect(ui->cmdCleanup, SIGNAL(clicked(bool)), this, SLOT(cleanScanClicked()));
+    connect(ui->cmbUtilFunc, SIGNAL(currentIndexChanged(int)), this, SLOT(functionChanged(int)));
     findHats();
 }
 
@@ -123,6 +132,9 @@ void InfoForm::readCalClicked()
 void InfoForm::loadCalClicked()
 {
     switch (mUtFunction) {
+    case UL_FLASH_LED:
+        mSelectedFunction = FLASH_LED;
+        break;
     case UL_GET_ERR_MSG:
         mSelectedFunction = READ_ERROR;
         break;
@@ -202,7 +214,7 @@ void InfoForm::runSelectedFunction()
 
 void InfoForm::functionChanged(int utFunction)
 {
-    QString readCmdText, flashText;
+    QString readCmdText;
     QString writeCmdText, flashCmdText;
     QString spnToolTip;
     int lowLimit;
@@ -217,19 +229,24 @@ void InfoForm::functionChanged(int utFunction)
     spinVisible = true;
     readVisible = true;
     flashVisible = true;
-    scanCleanVisible = true;
+    scanCleanVisible = false;
     tcTypeVisible = false;
     lowLimit = 0;
-    flashText = "Flash LED";
+    //flashText = "Flash LED";
 
     switch (mUtFunction) {
+    case UL_FLASH_LED:
+        writeCmdText = "Flash LED";
+        readVisible = false;
+        spnToolTip = "Number of flashes";
+        break;
     case UL_GET_ERR_MSG:
         writeCmdText = "Get Err Msg";
-        flashText = "Interrupt State";
+        //flashCmdText = "Interrupt State";
         spnToolTip = "Result code";
         calVisible = false;
         readVisible = false;
-        flashVisible = true;
+        //flashVisible = true;
         lowLimit = -12;
         break;
     case UL_AI_INFO:
@@ -254,8 +271,8 @@ void InfoForm::functionChanged(int utFunction)
         readCmdText = "Read TC types";
         writeCmdText = "Load TC type";
         spnToolTip = "TC channel (-1 loads saved configuration)";
-        flashCmdText = "Flash LED";
-        scanCleanVisible = false;
+        //flashCmdText = "Flash LED";
+        //scanCleanVisible = false;
         calVisible = false;
         tcTypeVisible = true;
         lowLimit = -1;
@@ -276,20 +293,21 @@ void InfoForm::functionChanged(int utFunction)
     default:
         break;
     }
-    ui->cmdReadCal->setText(readCmdText);
-    ui->cmdLoadCal->setText(writeCmdText);
-    ui->cmdFlashLED->setText(flashCmdText);
     ui->leOffset->setVisible(calVisible);
     ui->leSlope->setVisible(calVisible);
-    ui->cmdCleanup->setVisible(scanCleanVisible);
-    ui->spnCalChan->setToolTip(spnToolTip);
+    ui->cmdCleanup->setVisible(false);
     ui->spnCalChan->setVisible(spinVisible);
     ui->cmdReadCal->setVisible(readVisible);
     ui->cmbTcType->setVisible(tcTypeVisible);
-    ui->cmdFlashLED->setVisible(flashVisible);
-    ui->leFlashCount->setVisible(flashVisible);
+    ui->cmdFlashLED->setVisible(false);
+    ui->leFlashCount->setVisible(false);
+
     ui->spnCalChan->setMinimum(lowLimit);
-    ui->cmdFlashLED->setText(flashText);
+
+    ui->spnCalChan->setToolTip(spnToolTip);
+    ui->cmdReadCal->setText(readCmdText);
+    ui->cmdLoadCal->setText(writeCmdText);
+    //ui->cmdFlashLED->setText(flashText);
 }
 
 void InfoForm::showPlotWindow(bool showIt)
