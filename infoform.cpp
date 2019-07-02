@@ -138,6 +138,9 @@ void InfoForm::loadCalClicked()
     case UL_GET_ERR_MSG:
         mSelectedFunction = READ_ERROR;
         break;
+    case UL_GET_STATUS:
+        mSelectedFunction = READ_STATUS;
+        break;
     case UL_AI_INFO:
         mSelectedFunction = WRITE_CAL;
         break;
@@ -155,7 +158,7 @@ void InfoForm::loadCalClicked()
 
 void InfoForm::flashLEDClicked()
 {
-    switch (mUtFunction) {
+    /*switch (mUtFunction) {
     case UL_GET_ERR_MSG:
         mSelectedFunction = READ_INT_STAT;
         break;
@@ -170,8 +173,8 @@ void InfoForm::flashLEDClicked()
         break;
     default:
         break;
-    }
-    runSelectedFunction();
+    }*/
+    //runSelectedFunction();
 }
 
 void InfoForm::runSelectedFunction()
@@ -219,7 +222,7 @@ void InfoForm::functionChanged(int utFunction)
     QString spnToolTip;
     int lowLimit;
     bool calVisible, readVisible, scanCleanVisible;
-    bool tcTypeVisible, spinVisible;
+    bool tcTypeVisible, writeVisible, spinVisible;
     bool flashVisible;
 
     ui->cmbTcType->clear();
@@ -247,6 +250,10 @@ void InfoForm::functionChanged(int utFunction)
         readVisible = false;
         //flashVisible = true;
         lowLimit = -12;
+        break;
+    case UL_GET_STATUS:
+        readVisible = true;
+        writeVisible = false;
         break;
     case UL_AI_INFO:
         readCmdText = "Read Cal";
@@ -297,6 +304,7 @@ void InfoForm::functionChanged(int utFunction)
     ui->cmdCleanup->setVisible(false);
     ui->spnCalChan->setVisible(spinVisible);
     ui->cmdReadCal->setVisible(readVisible);
+    ui->cmdLoadCal->setVisible(writeVisible);
     ui->cmbTcType->setVisible(tcTypeVisible);
     ui->cmdFlashLED->setVisible(false);
     ui->leFlashCount->setVisible(false);
