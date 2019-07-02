@@ -354,3 +354,32 @@ QString getConfigItemName(uint8_t configItem)
 }
 
 #endif
+
+#ifdef HAT_05
+
+QString getSourceText(SourceType trigSource)
+{
+    switch (trigSource) {
+    case SOURCE_LOCAL:
+        return "Local";
+        break;
+    case SOURCE_MASTER:
+        return "Master";
+        break;
+    case SOURCE_SLAVE:
+        return "Slave";
+        break;
+    default:
+        return "";
+    }
+}
+
+#else
+
+QString getSourceText(SourceType trigSource)
+{
+    (void)trigSource;
+    return "";
+}
+
+#endif

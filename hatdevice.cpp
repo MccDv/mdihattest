@@ -107,7 +107,7 @@ void HatDevice::closeEvent(QCloseEvent *event)
 void HatDevice::updateParameters()
 {
     ChildWindow *parentWindow;
-    QString trigString;
+    QString trigString, sourceString;
     uint32_t allOptions;
 
     parentWindow = qobject_cast<ChildWindow *>(this->parent());
@@ -118,6 +118,7 @@ void HatDevice::updateParameters()
     mScanOptions = allOptions & 0xFFF;
     mBackgroundScan = ((uint32_t)(allOptions & OPTS_IFC_BACKGROUND) != 0);
     mTriggerType = parentWindow->triggerType();
+    mTriggerSource = parentWindow->triggerSource();
 
     mUseTimer = parentWindow->tmrEnabled();
     mStopOnStart = parentWindow->tmrStopOnStart();
@@ -128,8 +129,12 @@ void HatDevice::updateParameters()
 
     mOptNames = getOptionNames(allOptions);
     trigString = getTrigText(mTriggerType);
+    sourceString = getSourceText(mTriggerSource);
+    if(sourceString.length() > 1)
+        trigString.append("  Source: " + sourceString);
     ui->lblInfo->setText(QString("Options: %1,  Trigger: %2")
                          .arg(mOptNames).arg(trigString));
+
     ui->lblStatus->clear();
     this->setWindowTitle(mFuncName + ": " + mDevName);
 }
@@ -429,12 +434,16 @@ void HatDevice::runSelectedFunction()
 
 void HatDevice::runSetTriggerFunc()
 {
-    QString trigString;
+    QString trigString, trigSource;
 
     mResponse = hatInterface->setTrigger(mHatID, mAddress, mTriggerSource, mTriggerType);
     ui->lblStatus->setText(hatInterface->getStatus());
 
     trigString = getTrigText(mTriggerType);
+    if(mTriggerSource > 0) {
+        trigSource = getSourceText(mTriggerSource);
+        trigString.append(" as " + trigSource);
+    }
     ui->lblInfo->setText("Trigger type: " + trigString);
 
 }

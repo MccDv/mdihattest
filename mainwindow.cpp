@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->action_SOURCE_LOCAL->setData(SOURCE_LOCAL);
     ui->actionSOURCE_MASTER->setData(SOURCE_MASTER);
     ui->actionSOURCE_SLAVE->setData(SOURCE_SLAVE);
-    connect(trigSourceGroup, SIGNAL(triggered(QAction*)), this, SLOT());
+    connect(trigSourceGroup, SIGNAL(triggered(QAction*)), this, SLOT(changeSourceType()));
 
     ui->actionNOCALIBRATEDATA->setData(OPTS_NOCALIBRATEDATA);
     ui->actionNOSCALEDATA->setData(OPTS_NOSCALEDATA);
