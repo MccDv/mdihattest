@@ -14,7 +14,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
     ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
-    mUtFunction = UL_AI_INFO;
+    mUtFunction = UL_FLASH_LED;
 
 #ifdef HAT_03
     ui->cmbTcType->addItem("TC_TYPE_J", TC_TYPE_J);
@@ -224,8 +224,8 @@ void InfoForm::functionChanged(int utFunction)
 
     ui->cmbTcType->clear();
 
-    mUtFunction = utFunction;
-    calVisible = true;
+    mUtFunction = ui->cmbUtilFunc->currentData().toInt();
+    calVisible = false;
     spinVisible = true;
     readVisible = true;
     flashVisible = true;
@@ -244,7 +244,6 @@ void InfoForm::functionChanged(int utFunction)
         writeCmdText = "Get Err Msg";
         //flashCmdText = "Interrupt State";
         spnToolTip = "Result code";
-        calVisible = false;
         readVisible = false;
         //flashVisible = true;
         lowLimit = -12;
