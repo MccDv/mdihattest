@@ -304,8 +304,8 @@ void InfoForm::functionChanged(int utFunction)
     ui->spnCalChan->setMinimum(lowLimit);
 
     ui->spnCalChan->setToolTip(spnToolTip);
-    ui->cmdReadCal->setText(readCmdText);
-    ui->cmdLoadCal->setText(writeCmdText);
+    //ui->cmdReadCal->setText(readCmdText);
+    //ui->cmdLoadCal->setText(writeCmdText);
     //ui->cmdFlashLED->setText(flashText);
 }
 
@@ -420,6 +420,7 @@ void InfoForm::showErrorMessage()
 
     result = ui->spnCalChan->value();
     message = hatInterface->getErrorMessage(result);
+    ui->lblInfo->setText(hatInterface->getStatus());
     ui->teShowValues->setText(message);
 }
 
@@ -427,7 +428,7 @@ void InfoForm::flashLED()
 {
     uint8_t flashCount;
 
-    flashCount = ui->leFlashCount->text().toUInt();
+    flashCount = ui->spnCalChan->text().toUInt();
 
     hatInterface->blinkLED(mHatID, mAddress, flashCount);
     ui->lblInfo->setText(hatInterface->getStatus());

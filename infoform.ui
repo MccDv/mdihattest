@@ -183,14 +183,14 @@
       <item>
        <widget class="QPushButton" name="cmdReadCal">
         <property name="text">
-         <string>Read Cal</string>
+         <string>Read</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="cmdLoadCal">
         <property name="text">
-         <string>Load Cal</string>
+         <string>Write</string>
         </property>
        </widget>
       </item>

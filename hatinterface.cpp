@@ -29,9 +29,21 @@ QString HatInterface::getErrorMessage(int result)
 {
     const char* errText;
     QString returnText;
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
 
+    nameOfFunc = "ErrorMessage";
+    funcArgs = "(errorCode)\n";
+    sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
     errText = hat_error_message(result);
     returnText = QString("%1").arg(errText);
+
+    argVals = QString("(%1)").arg(result);
+    mStatusString = nameOfFunc + argVals;
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(RESULT_SUCCESS, sStartTime + funcStr);
     return returnText;
 }
 
