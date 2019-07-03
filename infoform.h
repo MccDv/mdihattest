@@ -48,6 +48,7 @@ private:
 #define READ_ERROR          9
 #define READ_INT_STAT       10
 #define READ_SCAN_PARAMS    11
+#define WRITE_SCAN_CLEAN    12
 
     Ui::InfoForm *ui;
     HatInterface *hatInterface;

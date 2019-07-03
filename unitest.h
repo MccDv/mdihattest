@@ -92,7 +92,8 @@ typedef enum
     UL_TEMP_INFO = 9,
     UL_TEST = 10,
     UL_IEPE = 11,
-    UL_AI_PARAMS = 12
+    UL_AI_PARAMS = 12,
+    UL_SCAN_CLEAN = 13
 }UtMiscFunctions;
 
 #endif // UNITEST_H

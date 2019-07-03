@@ -36,6 +36,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbUtilFunc->addItem("Thermocouples", UL_TEMP_INFO);
     ui->cmbUtilFunc->addItem("Trig/Clock Test", UL_TEST);
     ui->cmbUtilFunc->addItem("IEPE Config", UL_IEPE);
+    ui->cmbUtilFunc->addItem("Clean scan", UL_SCAN_CLEAN);
 
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
     connect(ui->cmbDevList, SIGNAL(currentIndexChanged(int)), this, SLOT(devSelectedChanged()));
@@ -43,8 +44,8 @@ InfoForm::InfoForm(QWidget *parent) :
     connect(ui->cmdFindHats, SIGNAL(clicked(bool)), this, SLOT(findHats()));
     connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCalClicked()));
     connect(ui->cmdLoadCal, SIGNAL(clicked(bool)), this, SLOT(loadCalClicked()));
-    connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLEDClicked()));
-    connect(ui->cmdCleanup, SIGNAL(clicked(bool)), this, SLOT(cleanScanClicked()));
+    //connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLEDClicked()));
+    //connect(ui->cmdCleanup, SIGNAL(clicked(bool)), this, SLOT(cleanScanClicked()));
     connect(ui->cmbUtilFunc, SIGNAL(currentIndexChanged(int)), this, SLOT(functionChanged(int)));
     findHats();
 }
@@ -157,6 +158,9 @@ void InfoForm::loadCalClicked()
     case UL_TEST:
         mSelectedFunction = CLOCK_TEST;
         break;
+    case UL_SCAN_CLEAN:
+        mSelectedFunction = WRITE_SCAN_CLEAN;
+        break;
     default:
         break;
     }
@@ -220,6 +224,9 @@ void InfoForm::runSelectedFunction()
     case READ_SCAN_PARAMS:
         readScanParams();
         break;
+    case WRITE_SCAN_CLEAN:
+        cleanScanClicked();
+        break;
     default:
         break;
     }
@@ -228,6 +235,7 @@ void InfoForm::runSelectedFunction()
 void InfoForm::functionChanged(int utFunction)
 {
     QString spnToolTip, dblOneToolTip;
+    QString dblTwoToolTip;
     int lowLimit;
     bool calVisible, readVisible, dblOneVisible;
     bool tcTypeVisible, writeVisible, spinVisible;
@@ -252,24 +260,19 @@ void InfoForm::functionChanged(int utFunction)
     switch (mUtFunction) {
     case UL_FLASH_LED:
         readVisible = false;
-        writeVisible = true;
         spnToolTip = "Number of flashes";
         break;
     case UL_GET_ERR_MSG:
         spnToolTip = "Result code";
         readVisible = false;
-        writeVisible = true;
         //flashVisible = true;
         lowLimit = -12;
         break;
     case UL_GET_STATUS:
-        readVisible = true;
         writeVisible = false;
         spinVisible = false;
         break;
     case UL_AI_PARAMS:
-        readVisible = true;
-        writeVisible = true;
         spinVisible = true;
         dblOneVisible = true;
         spnToolTip = "Channel count";
@@ -278,6 +281,8 @@ void InfoForm::functionChanged(int utFunction)
     case UL_AI_INFO:
         calVisible = true;
         spnToolTip = "Cal channel";
+        dblOneToolTip = "Cal Slope";
+        dblTwoToolTip = "Cal Offset";
         break;
     case UL_TEMP_INFO:
 #ifdef HAT_03
@@ -305,6 +310,9 @@ void InfoForm::functionChanged(int utFunction)
         ui->cmbTcType->addItem("Clock High", 2);
         ui->cmbTcType->addItem("Clock 1kHz", 3);
         break;
+    case UL_SCAN_CLEAN:
+        readVisible = false;
+        break;
     default:
         break;
     }
@@ -321,7 +329,8 @@ void InfoForm::functionChanged(int utFunction)
     ui->spnCalChan->setMinimum(lowLimit);
 
     ui->spnCalChan->setToolTip(spnToolTip);
-    ui->leOffset->setToolTip(dblOneToolTip);
+    ui->leSlope->setToolTip(dblOneToolTip);
+    ui->leOffset->setToolTip(dblTwoToolTip);
 }
 
 void InfoForm::showPlotWindow(bool showIt)

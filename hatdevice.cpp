@@ -570,7 +570,6 @@ void HatDevice::runAInScanFunc()
 
     mSamplesPerChan = ui->leNumSamples->text().toLong();
     double rate = ui->leRate->text().toDouble();
-    //double rateRtn;
 
     chanMask = 0;
     uint8_t curChan;
@@ -624,8 +623,8 @@ void HatDevice::runAInScanFunc()
     } else {
         uint8_t source, value;
         mRunning = true;
-        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, mRateReturned, value);
-        //mResponse = mcc118_a_in_scan_actual_rate(mChanCount, rate, &mRateReturned);
+        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, rate, value);
+        mRateReturned = rate;
         ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
         mResponse = hatInterface->getBufferSize(mHatID, mAddress, bufferSize);
         ui->lblBufferSize->setText(QString("%1").arg(bufferSize));
