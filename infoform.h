@@ -37,16 +37,17 @@ private slots:
     void showErrorMessage();
 
 private:
-#define READ_CAL        1
-#define WRITE_CAL       2
-#define READ_TC_TYPES   3
-#define WRITE_TC_TYPE   4
-#define FLASH_LED       5
-#define CLOCK_TEST      6
-#define NUM_SCAN_CHANS  7
-#define READ_STATUS     8
-#define READ_ERROR      9
-#define READ_INT_STAT   10
+#define READ_CAL            1
+#define WRITE_CAL           2
+#define READ_TC_TYPES       3
+#define WRITE_TC_TYPE       4
+#define FLASH_LED           5
+#define CLOCK_TEST          6
+#define NUM_SCAN_CHANS      7
+#define READ_STATUS         8
+#define READ_ERROR          9
+#define READ_INT_STAT       10
+#define READ_SCAN_PARAMS    11
 
     Ui::InfoForm *ui;
     HatInterface *hatInterface;
@@ -73,6 +74,7 @@ private:
     void flashLED();
     void readStatus();
     void readIntStatus();
+    void readScanParams();
     void readStoredTypes();
 
 };

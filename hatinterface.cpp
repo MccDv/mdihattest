@@ -1028,6 +1028,55 @@ int HatInterface::getBufferSize(uint16_t devType, uint8_t address, uint32_t &buf
     return mResponse;
 }
 
+int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_t chanCount, uint8_t &source, double &rate, uint8_t &value)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    uint8_t sync = 0;
+    uint8_t sourceReturned;
+    double rateReturned = 0.0;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    sourceReturned = 0;
+    sync = 0;
+    switch (devType) {
+    case HAT_ID_MCC_118:
+        nameOfFunc = hatName.append(": ainScanRate");
+        mResponse = mcc118_a_in_scan_actual_rate(chanCount, rate, &rateReturned);
+        argVals = QStringLiteral("(%1, %2, %3)")
+                .arg(chanCount)
+                .arg(rate)
+                .arg(rateReturned);
+        break;
+    case HAT_ID_MCC_172:
+        nameOfFunc = hatName.append(": ainClockConfigRead");
+        funcArgs = "(mAddress, source, rate, &sync)\n";
+        sourceReturned = SOURCE_LOCAL;
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &rateReturned, &sync);
+        argVals = QStringLiteral("(%1, %2, %3, %4)")
+                .arg(address)
+                .arg(sourceReturned)
+                .arg(rateReturned)
+                .arg(sync);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    source = sourceReturned;
+    rate = rateReturned;
+    value = sync;
+    return mResponse;
+}
+
 int HatInterface::aInScanCleanup(uint16_t devType, uint8_t address)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
@@ -2411,45 +2460,6 @@ int HatInterface::disableCallback()
 
 #ifdef HAT_05
 
-int HatInterface::ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t &source, double &rate, uint8_t &value)
-{
-    QString nameOfFunc, funcArgs, argVals, funcStr;
-    QTime t;
-    QString sStartTime;
-    uint8_t sync = 0;
-    uint8_t sourceReturned = SOURCE_LOCAL;
-    double rateReturned = 0.0;
-    QString hatName;
-
-    hatName = getHatTypeName(devType);
-    nameOfFunc = hatName.append(": ainClockConfigRead");
-    funcArgs = "(mAddress, source, rate, &sync)\n";
-    switch (devType) {
-    case HAT_ID_MCC_172:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &rateReturned, &sync);
-        break;
-    default:
-        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = RESULT_INVALID_DEVICE;
-        break;
-    }
-    argVals = QStringLiteral("(%1, %2, %3, %4)")
-            .arg(address)
-            .arg(sourceReturned)
-            .arg(rateReturned)
-            .arg(sync);
-    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
-
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-    reportResult(mResponse, sStartTime + funcStr);
-    source = sourceReturned;
-    rate = rateReturned;
-    value = sync;
-    return mResponse;
-
-}
-
 int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
@@ -2546,16 +2556,6 @@ int HatInterface::iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t cha
 }
 
 #else
-
-int HatInterface::ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t &source, double &rate, uint8_t &value)
-{
-    (void)devType;
-    (void)address;
-    (void)source;
-    (void)rate;
-    (void)value;
-    return RESULT_INVALID_DEVICE;
-}
 
 int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
 {

@@ -31,6 +31,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbUtilFunc->addItem("Flash LED", UL_FLASH_LED);
     ui->cmbUtilFunc->addItem("Get Err Msg", UL_GET_ERR_MSG);
     ui->cmbUtilFunc->addItem("Scan Status", UL_GET_STATUS);
+    ui->cmbUtilFunc->addItem("GetAiRate", UL_AI_RATE);
     ui->cmbUtilFunc->addItem("Calibration", UL_AI_INFO);
     ui->cmbUtilFunc->addItem("Thermocouples", UL_TEMP_INFO);
     ui->cmbUtilFunc->addItem("Trig/Clock Test", UL_TEST);
@@ -114,6 +115,12 @@ void InfoForm::devSelectedChanged()
 void InfoForm::readCalClicked()
 {
     switch (mUtFunction) {
+    case UL_GET_STATUS:
+        mSelectedFunction = READ_STATUS;
+        break;
+    case UL_AI_RATE:
+        mSelectedFunction = READ_SCAN_PARAMS;
+        break;
     case UL_AI_INFO:
         mSelectedFunction = READ_CAL;
         break;
@@ -210,6 +217,9 @@ void InfoForm::runSelectedFunction()
     case READ_INT_STAT:
         readIntStatus();
         break;
+    case READ_SCAN_PARAMS:
+        readScanParams();
+        break;
     default:
         break;
     }
@@ -221,18 +231,20 @@ void InfoForm::functionChanged(int utFunction)
     QString writeCmdText, flashCmdText;
     QString spnToolTip;
     int lowLimit;
-    bool calVisible, readVisible, scanCleanVisible;
+    bool calVisible, readVisible;
     bool tcTypeVisible, writeVisible, spinVisible;
-    bool flashVisible;
+    //bool flashVisible;
 
+    (void)utFunction;
     ui->cmbTcType->clear();
 
     mUtFunction = ui->cmbUtilFunc->currentData().toInt();
     calVisible = false;
     spinVisible = true;
     readVisible = true;
-    flashVisible = true;
-    scanCleanVisible = false;
+    writeVisible = true;
+    //flashVisible = true;
+    //scanCleanVisible = false;
     tcTypeVisible = false;
     lowLimit = 0;
     //flashText = "Flash LED";
@@ -241,6 +253,7 @@ void InfoForm::functionChanged(int utFunction)
     case UL_FLASH_LED:
         writeCmdText = "Flash LED";
         readVisible = false;
+        writeVisible = true;
         spnToolTip = "Number of flashes";
         break;
     case UL_GET_ERR_MSG:
@@ -248,12 +261,19 @@ void InfoForm::functionChanged(int utFunction)
         //flashCmdText = "Interrupt State";
         spnToolTip = "Result code";
         readVisible = false;
+        writeVisible = true;
         //flashVisible = true;
         lowLimit = -12;
         break;
     case UL_GET_STATUS:
         readVisible = true;
         writeVisible = false;
+        spinVisible = false;
+        break;
+    case UL_AI_RATE:
+        readVisible = true;
+        writeVisible = true;
+        spinVisible = false;
         break;
     case UL_AI_INFO:
         readCmdText = "Read Cal";
@@ -290,7 +310,7 @@ void InfoForm::functionChanged(int utFunction)
         calVisible = false;
         tcTypeVisible = true;
         spinVisible = false;
-        scanCleanVisible = false;
+        //scanCleanVisible = false;
         ui->cmbTcType->addItem("Clock In", 0);
         ui->cmbTcType->addItem("Clock Low", 1);
         ui->cmbTcType->addItem("Clock High", 2);
@@ -446,14 +466,14 @@ void InfoForm::readStatus()
 {
     uint16_t status;
     QString statText;
-    uint32_t samplesAvailable;
+    uint32_t samplesAvailable = 0;
 
     mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
-    if(mResponse != RESULT_INVALID_DEVICE) {
-        ui->lblStatus->setText(hatInterface->getStatus());
+    ui->lblStatus->setText(hatInterface->getStatus());
+    if(mResponse == RESULT_SUCCESS) {
         statText = getStatusText(status);
-        ui->teShowValues->setText("Scan status: " + statText);
-        ui->teShowValues->append(QString("Scan status: %1 with %2 samples to read")
+        //ui->teShowValues->setText("Scan status: " + statText);
+        ui->teShowValues->setText(QString("Scan status: %1 with %2 samples to read")
                                  .arg(statText)
                                  .arg(samplesAvailable));
     }
@@ -466,6 +486,24 @@ void InfoForm::readIntStatus()
     intState = hatInterface->getInterruptState();
     ui->lblInfo->setText(hatInterface->getStatus());
     ui->teShowValues->setText(QString("Interrupt state: %1").arg(intState));
+}
+
+void InfoForm::readScanParams()
+{
+    QString sourceName;
+    uint8_t chanCount, source, sync;
+    double rateReturned;
+
+    chanCount = ui->spnCalChan->value();
+    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
+    ui->lblStatus->setText(hatInterface->getStatus());
+    sourceName = getSourceText(source);
+    if(mResponse == RESULT_SUCCESS) {
+        ui->teShowValues->setText(QString("Actual scan rate: %1 (for 172, source: %2, sync: %3)")
+                                  .arg(rateReturned)
+                                  .arg(sourceName)
+                                  .arg(sync));
+    }
 }
 
 void InfoForm::readClkTrg()
@@ -495,7 +533,7 @@ void InfoForm::readNumScanChans()
                               .arg(mAddress));
         ui->teShowValues->append("Is scan thread active?");
     }
-
+    ui->spnCalChan->setValue(numChans);
 }
 
 void InfoForm::cleanScanClicked()

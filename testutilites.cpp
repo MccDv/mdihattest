@@ -138,7 +138,7 @@ QString getStatusText(uint16_t status)
 
     statusString = "";
     if(status == 0)
-        return "Unavailable or error";
+        return "Status Unavailable";
     if (status & STATUS_HW_OVERRUN)
         statusString += "HW Overrun, ";
     if (status & STATUS_BUFFER_OVERRUN)
@@ -357,7 +357,7 @@ QString getConfigItemName(uint8_t configItem)
 
 #ifdef HAT_05
 
-QString getSourceText(SourceType trigSource)
+QString getSourceText(uint8_t trigSource)
 {
     switch (trigSource) {
     case SOURCE_LOCAL:
@@ -376,7 +376,7 @@ QString getSourceText(SourceType trigSource)
 
 #else
 
-QString getSourceText(SourceType trigSource)
+QString getSourceText(uint8_t trigSource)
 {
     (void)trigSource;
     return "";

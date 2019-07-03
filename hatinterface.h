@@ -51,6 +51,7 @@ public:
     int getBufferSize(uint16_t devType, uint8_t address, uint32_t &bufferSize);
     int readAInScanStatus(uint16_t devType, uint8_t address, uint16_t &status, uint32_t &sampsAvailable);
     int aInScanChanCount(uint16_t devType, uint8_t address);
+    int getAInScanParameters(uint16_t devType, uint8_t address, uint8_t chanCount, uint8_t &source, double &rate, uint8_t &value);
     int aInScanCleanup(uint16_t devType, uint8_t address);
     int testClock(uint16_t devType, uint8_t address, uint8_t mode, uint8_t &value);
     int testTrig(uint16_t devType, uint8_t address, uint8_t &value);
@@ -88,7 +89,7 @@ public:
     int dioIntStatusBit(uint16_t devType, uint8_t address, uint8_t chan, uint8_t &value);
     int dioIntStatusPort(uint16_t devType, uint8_t address, uint8_t &value);
 
-    int ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t &source, double &rate, uint8_t &value);
+    //int ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t &source, double &rate, uint8_t &value);
     int ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate);
     int iepeConfigRead(uint16_t devType, uint8_t address, uint8_t channel, uint8_t &value);
     int iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t channel, uint8_t value);

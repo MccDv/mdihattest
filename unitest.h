@@ -91,7 +91,8 @@ typedef enum
     UL_CTR_INFO = 8,
     UL_TEMP_INFO = 9,
     UL_TEST = 10,
-    UL_IEPE = 11
+    UL_IEPE = 11,
+    UL_AI_RATE = 12
 }UtMiscFunctions;
 
 #endif // UNITEST_H
