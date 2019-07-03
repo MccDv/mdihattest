@@ -31,7 +31,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbUtilFunc->addItem("Flash LED", UL_FLASH_LED);
     ui->cmbUtilFunc->addItem("Get Err Msg", UL_GET_ERR_MSG);
     ui->cmbUtilFunc->addItem("Scan Status", UL_GET_STATUS);
-    ui->cmbUtilFunc->addItem("GetAiRate", UL_AI_RATE);
+    ui->cmbUtilFunc->addItem("AinScan Params", UL_AI_PARAMS);
     ui->cmbUtilFunc->addItem("Calibration", UL_AI_INFO);
     ui->cmbUtilFunc->addItem("Thermocouples", UL_TEMP_INFO);
     ui->cmbUtilFunc->addItem("Trig/Clock Test", UL_TEST);
@@ -118,7 +118,7 @@ void InfoForm::readCalClicked()
     case UL_GET_STATUS:
         mSelectedFunction = READ_STATUS;
         break;
-    case UL_AI_RATE:
+    case UL_AI_PARAMS:
         mSelectedFunction = READ_SCAN_PARAMS;
         break;
     case UL_AI_INFO:
@@ -227,11 +227,9 @@ void InfoForm::runSelectedFunction()
 
 void InfoForm::functionChanged(int utFunction)
 {
-    QString readCmdText;
-    QString writeCmdText, flashCmdText;
-    QString spnToolTip;
+    QString spnToolTip, dblOneToolTip;
     int lowLimit;
-    bool calVisible, readVisible;
+    bool calVisible, readVisible, dblOneVisible;
     bool tcTypeVisible, writeVisible, spinVisible;
     //bool flashVisible;
 
@@ -243,22 +241,21 @@ void InfoForm::functionChanged(int utFunction)
     spinVisible = true;
     readVisible = true;
     writeVisible = true;
+    dblOneVisible = false;
     //flashVisible = true;
     //scanCleanVisible = false;
     tcTypeVisible = false;
     lowLimit = 0;
     //flashText = "Flash LED";
+    //flashCmdText = "Interrupt State";
 
     switch (mUtFunction) {
     case UL_FLASH_LED:
-        writeCmdText = "Flash LED";
         readVisible = false;
         writeVisible = true;
         spnToolTip = "Number of flashes";
         break;
     case UL_GET_ERR_MSG:
-        writeCmdText = "Get Err Msg";
-        //flashCmdText = "Interrupt State";
         spnToolTip = "Result code";
         readVisible = false;
         writeVisible = true;
@@ -270,15 +267,16 @@ void InfoForm::functionChanged(int utFunction)
         writeVisible = false;
         spinVisible = false;
         break;
-    case UL_AI_RATE:
+    case UL_AI_PARAMS:
         readVisible = true;
         writeVisible = true;
-        spinVisible = false;
+        spinVisible = true;
+        dblOneVisible = true;
+        spnToolTip = "Channel count";
+        dblOneToolTip = "Rate";
         break;
     case UL_AI_INFO:
-        readCmdText = "Read Cal";
-        writeCmdText = "Load Cal";
-        flashCmdText = "Scan Status";
+        calVisible = true;
         spnToolTip = "Cal channel";
         break;
     case UL_TEMP_INFO:
@@ -294,23 +292,14 @@ void InfoForm::functionChanged(int utFunction)
         ui->cmbTcType->addItem("Disabled", TC_DISABLED);
         readStoredTypes();
 #endif
-        readCmdText = "Read TC types";
-        writeCmdText = "Load TC type";
         spnToolTip = "TC channel (-1 loads saved configuration)";
-        //flashCmdText = "Flash LED";
         //scanCleanVisible = false;
         calVisible = false;
         tcTypeVisible = true;
         lowLimit = -1;
         break;
     case UL_TEST:
-        writeCmdText = "Trig/Clock Test";
-        readCmdText = "Num Scan Chans";
-        flashCmdText = "Flash LED";
-        calVisible = false;
-        tcTypeVisible = true;
         spinVisible = false;
-        //scanCleanVisible = false;
         ui->cmbTcType->addItem("Clock In", 0);
         ui->cmbTcType->addItem("Clock Low", 1);
         ui->cmbTcType->addItem("Clock High", 2);
@@ -320,7 +309,7 @@ void InfoForm::functionChanged(int utFunction)
         break;
     }
     ui->leOffset->setVisible(calVisible);
-    ui->leSlope->setVisible(calVisible);
+    ui->leSlope->setVisible(calVisible | dblOneVisible);
     ui->cmdCleanup->setVisible(false);
     ui->spnCalChan->setVisible(spinVisible);
     ui->cmdReadCal->setVisible(readVisible);
@@ -332,9 +321,7 @@ void InfoForm::functionChanged(int utFunction)
     ui->spnCalChan->setMinimum(lowLimit);
 
     ui->spnCalChan->setToolTip(spnToolTip);
-    //ui->cmdReadCal->setText(readCmdText);
-    //ui->cmdLoadCal->setText(writeCmdText);
-    //ui->cmdFlashLED->setText(flashText);
+    ui->leOffset->setToolTip(dblOneToolTip);
 }
 
 void InfoForm::showPlotWindow(bool showIt)
@@ -492,17 +479,47 @@ void InfoForm::readScanParams()
 {
     QString sourceName;
     uint8_t chanCount, source, sync;
+    uint32_t bufferSize;
     double rateReturned;
 
+    int numChans = 0;
+
+    numChans = hatInterface->aInScanChanCount(mHatID, mAddress);
+    if(numChans)
+        ui->teShowValues->setText(QString("Device at address %1 has %2 chans in scan.")
+                              .arg(mAddress).arg(numChans));
+    else {
+        ui->teShowValues->setText(QString("Device at address %1 reports 0 chans in scan.")
+                              .arg(mAddress));
+        ui->teShowValues->append("Is scan thread active?");
+    }
+    if(numChans > 0)
+        ui->spnCalChan->setValue(numChans);
+
+    mResponse = hatInterface->getBufferSize(mHatID, mAddress, bufferSize);
+    ui->lblStatus->setText(hatInterface->getStatus());
+    if(mResponse == RESULT_SUCCESS) {
+        ui->teShowValues->append(QString("\n\nBuffer size: %1)").arg(bufferSize));
+    } else {
+        QString errText;
+        errText = getErrorDescription(mResponse);
+        ui->teShowValues->append("\n\ngetBufferSize() returned error " + errText);
+    }
+
     chanCount = ui->spnCalChan->value();
+    rateReturned = ui->leSlope->text().toDouble();
     mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {
-        ui->teShowValues->setText(QString("Actual scan rate: %1 (for 172, source: %2, sync: %3)")
+        ui->teShowValues->append(QString("\n\nActual scan rate: %1 (for 172, source: %2, sync: %3)")
                                   .arg(rateReturned)
                                   .arg(sourceName)
                                   .arg(sync));
+    } else {
+        QString errText;
+        errText = getErrorDescription(mResponse);
+        ui->teShowValues->append("\n\ngetAInScanParameters() returned error " + errText);
     }
 }
 
