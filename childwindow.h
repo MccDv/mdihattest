@@ -23,7 +23,7 @@ class ChildWindow : public QMdiSubWindow
     Q_PROPERTY(u_int32_t scanOptions READ scanOptions WRITE setScanOptions NOTIFY scanOptionsChanged)
     Q_PROPERTY(int curFunction READ curFunction WRITE setCurFunction NOTIFY curFunctionChanged)
     Q_PROPERTY(TriggerMode triggerType READ triggerType WRITE setTriggerType NOTIFY triggerTypeChanged)
-    Q_PROPERTY(SourceType triggerSource READ triggerSource WRITE setTriggerSource NOTIFY triggerSourceChanged)
+    Q_PROPERTY(uint8_t triggerSource READ triggerSource WRITE setTriggerSource NOTIFY triggerSourceChanged)
 
     Q_PROPERTY(bool tmrEnabled READ tmrEnabled WRITE setTmrEnabled NOTIFY tmrEnabledChanged)
     Q_PROPERTY(int tmrInterval READ tmrInterval WRITE setTmrInterval NOTIFY tmrIntervalChanged)
@@ -85,7 +85,7 @@ public:
         emit triggerTypeChanged(trigType);
     }
 
-    void setTriggerSource(SourceType trigSource)
+    void setTriggerSource(uint8_t trigSource)
     {
         mTriggerSource = trigSource;
         emit triggerSourceChanged(trigSource);
@@ -142,7 +142,7 @@ public:
     u_int32_t scanOptions() { return mScanOptions; }
     int curFunction() { return mCurFunction; }
     TriggerMode triggerType() { return mTriggerType; }
-    SourceType triggerSource() { return mTriggerSource; }
+    uint8_t triggerSource() { return mTriggerSource; }
     UtFunctionGroup curFunctionGroup() { return mCurFunctionGroup; }
     QString tInPrefs() { return mTInPrefs; }
 
@@ -166,7 +166,7 @@ private:
     uint16_t mDevID;
     u_int32_t mScanOptions;
     TriggerMode mTriggerType;
-    SourceType mTriggerSource;
+    uint8_t mTriggerSource;
     int mAiResolution;
 
     bool mShowPlot;
@@ -193,7 +193,7 @@ signals:
     void showPlotChanged(bool);
     void scanOptionsChanged(u_int32_t);
     void triggerTypeChanged(TriggerMode);
-    void triggerSourceChanged(SourceType);
+    void triggerSourceChanged(uint8_t);
     void configQueue();
 
     void tmrEnabledChanged(bool);

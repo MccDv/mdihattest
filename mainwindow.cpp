@@ -752,7 +752,7 @@ void MainWindow::changeSourceType()
     ChildWindow *curChild = activeMdiChild();
 
     QVariant trigSetSource = trigSourceGroup->checkedAction()->data();
-    mTriggerSource = (SourceType)trigSetSource.toLongLong();
+    mTriggerSource = (uint8_t)trigSetSource.toLongLong();
 
     if (curChild)
         curChild->setTriggerSource(mTriggerSource);

@@ -80,7 +80,7 @@ private:
 
     int mCurFunction;
     TriggerMode mTriggerType;
-    SourceType mTriggerSource;
+    uint8_t mTriggerSource;
     uint32_t mScanOptions;
     QString mOptNames;
 
