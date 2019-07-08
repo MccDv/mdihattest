@@ -32,8 +32,7 @@ private slots:
     void showQueueConfig();
     void readCalClicked();
     void loadCalClicked();
-    void flashLEDClicked();
-    void cleanScanClicked();
+    //void flashLEDClicked();
     void showErrorMessage();
 
 private:
@@ -75,10 +74,11 @@ private:
     void readTcTypes();
     void readClkTrg();
     void readNumScanChans();
-    void flashLED();
+    //void flashLED();
     void readStatus();
     void readIntStatus();
     void readScanParams();
+    void runCleanScan();
     void readStoredTypes();
     void readIEPEConfig();
     void writeIEPEConfig();

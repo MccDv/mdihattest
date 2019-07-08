@@ -37,6 +37,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbUtilFunc->addItem("Trig/Clock Test", UL_TEST);
     ui->cmbUtilFunc->addItem("IEPE Config", UL_IEPE);
     ui->cmbUtilFunc->addItem("Clean scan", UL_SCAN_CLEAN);
+    ui->cmbUtilFunc->addItem("Interrupt State", UL_DIO_INFO);
 
     connect(ui->cmdSysInfo, SIGNAL(clicked(bool)), this, SLOT(showSysInfo()));
     connect(ui->cmbDevList, SIGNAL(currentIndexChanged(int)), this, SLOT(devSelectedChanged()));
@@ -45,7 +46,7 @@ InfoForm::InfoForm(QWidget *parent) :
     connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCalClicked()));
     connect(ui->cmdLoadCal, SIGNAL(clicked(bool)), this, SLOT(loadCalClicked()));
     //connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLEDClicked()));
-    //connect(ui->cmdCleanup, SIGNAL(clicked(bool)), this, SLOT(cleanScanClicked()));
+    //connect(ui->cmdCleanup, SIGNAL(clicked(bool)), this, SLOT(runCleanScan()));
     connect(ui->cmbUtilFunc, SIGNAL(currentIndexChanged(int)), this, SLOT(functionChanged(int)));
     findHats();
 }
@@ -128,9 +129,9 @@ void InfoForm::readCalClicked()
     case UL_TEMP_INFO:
         mSelectedFunction = READ_TC_TYPES;
         break;
-    case UL_TEST:
+    /*case UL_TEST:
         mSelectedFunction = NUM_SCAN_CHANS;
-        break;
+        break;*/
     case UL_IEPE:
         mSelectedFunction = READ_IEPE_CONFIG;
         break;
@@ -167,31 +168,13 @@ void InfoForm::loadCalClicked()
     case UL_IEPE:
         mSelectedFunction = WRITE_IEPE_CONFIG;
         break;
+    case UL_DIO_INFO:
+        mSelectedFunction = READ_INT_STAT;
+        break;
     default:
         break;
     }
     runSelectedFunction();
-}
-
-void InfoForm::flashLEDClicked()
-{
-    /*switch (mUtFunction) {
-    case UL_GET_ERR_MSG:
-        mSelectedFunction = READ_INT_STAT;
-        break;
-    case UL_AI_INFO:
-        mSelectedFunction = READ_STATUS;
-        break;
-    case UL_TEMP_INFO:
-        mSelectedFunction = READ_STATUS;
-        break;
-    case UL_TEST:
-        mSelectedFunction = FLASH_LED;
-        break;
-    default:
-        break;
-    }*/
-    //runSelectedFunction();
 }
 
 void InfoForm::runSelectedFunction()
@@ -231,12 +214,13 @@ void InfoForm::runSelectedFunction()
         readScanParams();
         break;
     case WRITE_SCAN_CLEAN:
-        cleanScanClicked();
+        runCleanScan();
         break;
     case READ_IEPE_CONFIG:
         readIEPEConfig();
         break;
     case WRITE_IEPE_CONFIG:
+        writeIEPEConfig();
         break;
     default:
         break;
@@ -315,6 +299,7 @@ void InfoForm::functionChanged(int utFunction)
         lowLimit = -1;
         break;
     case UL_TEST:
+        readVisible = false;
         spinVisible = false;
         tcTypeVisible = true;
         ui->cmbTcType->addItem("Clock In", 0);
@@ -329,6 +314,8 @@ void InfoForm::functionChanged(int utFunction)
     case UL_SCAN_CLEAN:
         spinVisible = false;
         readVisible = false;
+        break;
+    case UL_DIO_INFO:
         break;
     default:
         break;
@@ -554,22 +541,23 @@ void InfoForm::readIEPEConfig()
 {
     uint8_t channel, value;
     uint8_t firstChan, lastChan;
+    int chanSelected;
 
-    channel = ui->spnCalChan->value();
+    chanSelected = ui->spnCalChan->value();
     value = -1; //power: 0=off, 1=on
     ui->teShowValues->setText("IEPE settings:\n\n");
-    if(channel == -1) {
+    if(chanSelected == -1) {
         firstChan = 0;
         lastChan = 1;
     } else {
-        firstChan = channel;
-        lastChan = channel + 1;
+        firstChan = chanSelected;
+        lastChan = chanSelected;
     }
-    for(value = firstChan; value < lastChan; value++) {
+    for(channel = firstChan; channel <= lastChan; channel++) {
         mResponse = hatInterface->iepeConfigRead(mHatID, mAddress, channel, value);
         ui->lblStatus->setText(hatInterface->getStatus());
         if(mResponse == RESULT_SUCCESS) {
-            ui->teShowValues->append(QString("Value read from channel %1: %2)\n")
+            ui->teShowValues->append(QString("Value read from channel %1: %2)")
                                       .arg(channel)
                                       .arg(value));
         }
@@ -580,22 +568,23 @@ void InfoForm::writeIEPEConfig()
 {
     uint8_t channel, value;
     uint8_t firstChan, lastChan;
+    int chanSelected;
 
     channel = ui->spnCalChan->value();
     value = ui->leFlashCount->text().toInt(); //power: 0=off, 1=on
     ui->teShowValues->setText("IEPE settings:\n\n");
-    if(channel == -1) {
+    if(chanSelected == -1) {
         firstChan = 0;
         lastChan = 1;
     } else {
-        firstChan = channel;
-        lastChan = channel + 1;
+        firstChan = chanSelected;
+        lastChan = chanSelected;
     }
-    for(value = firstChan; value < lastChan; value++) {
+    for(channel = firstChan; channel <= lastChan; channel++) {
         mResponse = hatInterface->iepeConfigWrite(mHatID, mAddress, channel, value);
         ui->lblStatus->setText(hatInterface->getStatus());
         if(mResponse == RESULT_SUCCESS) {
-            ui->teShowValues->append(QString("Value written to channel %1: %2)\n")
+            ui->teShowValues->append(QString("Value written to channel %1: %2)")
                                       .arg(channel)
                                       .arg(value));
         }
@@ -632,7 +621,7 @@ void InfoForm::readNumScanChans()
     ui->spnCalChan->setValue(numChans);
 }
 
-void InfoForm::cleanScanClicked()
+void InfoForm::runCleanScan()
 {
     mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
     ui->lblInfo->setText(hatInterface->getStatus());
