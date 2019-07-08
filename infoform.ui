@@ -256,7 +256,7 @@
          <string>Flash count</string>
         </property>
         <property name="text">
-         <string>3</string>
+         <string>1</string>
         </property>
        </widget>
       </item>

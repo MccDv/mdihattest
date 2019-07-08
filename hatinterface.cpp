@@ -1008,8 +1008,7 @@ int HatInterface::aInScanChanCount(uint16_t devType, uint8_t address)
     nameOfFunc = hatName.append(": AInScanChanCount");
     chanCount = 0;
     mResponse = RESULT_SUCCESS;
-    funcArgs = "(address)\n";
-    argVals = QStringLiteral("(%1)").arg(address);
+    funcArgs = "(address) = chanCount\n";
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1029,6 +1028,7 @@ int HatInterface::aInScanChanCount(uint16_t devType, uint8_t address)
         break;
     }
 
+    argVals = QStringLiteral("(%1) = %2").arg(address).arg(chanCount);
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
     return chanCount;

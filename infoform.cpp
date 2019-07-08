@@ -316,6 +316,7 @@ void InfoForm::functionChanged(int utFunction)
         break;
     case UL_TEST:
         spinVisible = false;
+        tcTypeVisible = true;
         ui->cmbTcType->addItem("Clock In", 0);
         ui->cmbTcType->addItem("Clock Low", 1);
         ui->cmbTcType->addItem("Clock High", 2);
@@ -323,8 +324,10 @@ void InfoForm::functionChanged(int utFunction)
         break;
     case UL_IEPE:
         flashVisible = true;
+        lowLimit = -1;
         break;
     case UL_SCAN_CLEAN:
+        spinVisible = false;
         readVisible = false;
         break;
     default:
@@ -550,10 +553,53 @@ void InfoForm::readScanParams()
 void InfoForm::readIEPEConfig()
 {
     uint8_t channel, value;
+    uint8_t firstChan, lastChan;
+
+    channel = ui->spnCalChan->value();
+    value = -1; //power: 0=off, 1=on
+    ui->teShowValues->setText("IEPE settings:\n\n");
+    if(channel == -1) {
+        firstChan = 0;
+        lastChan = 1;
+    } else {
+        firstChan = channel;
+        lastChan = channel + 1;
+    }
+    for(value = firstChan; value < lastChan; value++) {
+        mResponse = hatInterface->iepeConfigRead(mHatID, mAddress, channel, value);
+        ui->lblStatus->setText(hatInterface->getStatus());
+        if(mResponse == RESULT_SUCCESS) {
+            ui->teShowValues->append(QString("Value read from channel %1: %2)\n")
+                                      .arg(channel)
+                                      .arg(value));
+        }
+    }
+}
+
+void InfoForm::writeIEPEConfig()
+{
+    uint8_t channel, value;
+    uint8_t firstChan, lastChan;
 
     channel = ui->spnCalChan->value();
     value = ui->leFlashCount->text().toInt(); //power: 0=off, 1=on
-    mResponse = hatInterface->iepeConfigRead(mHatID, mAddress, channel, value);
+    ui->teShowValues->setText("IEPE settings:\n\n");
+    if(channel == -1) {
+        firstChan = 0;
+        lastChan = 1;
+    } else {
+        firstChan = channel;
+        lastChan = channel + 1;
+    }
+    for(value = firstChan; value < lastChan; value++) {
+        mResponse = hatInterface->iepeConfigWrite(mHatID, mAddress, channel, value);
+        ui->lblStatus->setText(hatInterface->getStatus());
+        if(mResponse == RESULT_SUCCESS) {
+            ui->teShowValues->append(QString("Value written to channel %1: %2)\n")
+                                      .arg(channel)
+                                      .arg(value));
+        }
+    }
 }
 
 void InfoForm::readClkTrg()
