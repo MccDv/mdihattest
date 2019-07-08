@@ -49,6 +49,9 @@ private:
 #define READ_INT_STAT       10
 #define READ_SCAN_PARAMS    11
 #define WRITE_SCAN_CLEAN    12
+#define READ_IEPE_CONFIG    13
+#define WRITE_IEPE_CONFIG   14
+
 
     Ui::InfoForm *ui;
     HatInterface *hatInterface;
@@ -77,6 +80,8 @@ private:
     void readIntStatus();
     void readScanParams();
     void readStoredTypes();
+    void readIEPEConfig();
+    void writeIEPEConfig();
 
 };
 

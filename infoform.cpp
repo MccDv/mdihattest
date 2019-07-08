@@ -131,6 +131,9 @@ void InfoForm::readCalClicked()
     case UL_TEST:
         mSelectedFunction = NUM_SCAN_CHANS;
         break;
+    case UL_IEPE:
+        mSelectedFunction = READ_IEPE_CONFIG;
+        break;
     default:
         break;
     }
@@ -160,6 +163,9 @@ void InfoForm::loadCalClicked()
         break;
     case UL_SCAN_CLEAN:
         mSelectedFunction = WRITE_SCAN_CLEAN;
+        break;
+    case UL_IEPE:
+        mSelectedFunction = WRITE_IEPE_CONFIG;
         break;
     default:
         break;
@@ -227,6 +233,11 @@ void InfoForm::runSelectedFunction()
     case WRITE_SCAN_CLEAN:
         cleanScanClicked();
         break;
+    case READ_IEPE_CONFIG:
+        readIEPEConfig();
+        break;
+    case WRITE_IEPE_CONFIG:
+        break;
     default:
         break;
     }
@@ -235,11 +246,11 @@ void InfoForm::runSelectedFunction()
 void InfoForm::functionChanged(int utFunction)
 {
     QString spnToolTip, dblOneToolTip;
-    QString dblTwoToolTip;
+    QString dblTwoToolTip, flashText;
     int lowLimit;
     bool calVisible, readVisible, dblOneVisible;
     bool tcTypeVisible, writeVisible, spinVisible;
-    //bool flashVisible;
+    bool flashVisible;
 
     (void)utFunction;
     ui->cmbTcType->clear();
@@ -250,11 +261,11 @@ void InfoForm::functionChanged(int utFunction)
     readVisible = true;
     writeVisible = true;
     dblOneVisible = false;
-    //flashVisible = true;
+    flashVisible = false;
     //scanCleanVisible = false;
     tcTypeVisible = false;
     lowLimit = 0;
-    //flashText = "Flash LED";
+    flashText = "Power: 0=off, 1=on";
     //flashCmdText = "Interrupt State";
 
     switch (mUtFunction) {
@@ -310,6 +321,9 @@ void InfoForm::functionChanged(int utFunction)
         ui->cmbTcType->addItem("Clock High", 2);
         ui->cmbTcType->addItem("Clock 1kHz", 3);
         break;
+    case UL_IEPE:
+        flashVisible = true;
+        break;
     case UL_SCAN_CLEAN:
         readVisible = false;
         break;
@@ -324,13 +338,14 @@ void InfoForm::functionChanged(int utFunction)
     ui->cmdLoadCal->setVisible(writeVisible);
     ui->cmbTcType->setVisible(tcTypeVisible);
     ui->cmdFlashLED->setVisible(false);
-    ui->leFlashCount->setVisible(false);
+    ui->leFlashCount->setVisible(flashVisible);
 
     ui->spnCalChan->setMinimum(lowLimit);
 
     ui->spnCalChan->setToolTip(spnToolTip);
     ui->leSlope->setToolTip(dblOneToolTip);
     ui->leOffset->setToolTip(dblTwoToolTip);
+    ui->leFlashCount->setToolTip(flashText);
 }
 
 void InfoForm::showPlotWindow(bool showIt)
@@ -530,6 +545,15 @@ void InfoForm::readScanParams()
         errText = getErrorDescription(mResponse);
         ui->teShowValues->append("\n\ngetAInScanParameters() returned error " + errText);
     }
+}
+
+void InfoForm::readIEPEConfig()
+{
+    uint8_t channel, value;
+
+    channel = ui->spnCalChan->value();
+    value = ui->leFlashCount->text().toInt(); //power: 0=off, 1=on
+    mResponse = hatInterface->iepeConfigRead(mHatID, mAddress, channel, value);
 }
 
 void InfoForm::readClkTrg()
