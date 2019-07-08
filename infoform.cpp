@@ -322,12 +322,12 @@ void InfoForm::functionChanged(int utFunction)
     }
     ui->leOffset->setVisible(calVisible);
     ui->leSlope->setVisible(calVisible | dblOneVisible);
-    ui->cmdCleanup->setVisible(false);
+    //ui->cmdCleanup->setVisible(false);
     ui->spnCalChan->setVisible(spinVisible);
     ui->cmdReadCal->setVisible(readVisible);
     ui->cmdLoadCal->setVisible(writeVisible);
     ui->cmbTcType->setVisible(tcTypeVisible);
-    ui->cmdFlashLED->setVisible(false);
+    //ui->cmdFlashLED->setVisible(false);
     ui->leFlashCount->setVisible(flashVisible);
 
     ui->spnCalChan->setMinimum(lowLimit);

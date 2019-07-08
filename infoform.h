@@ -74,7 +74,7 @@ private:
     void readTcTypes();
     void readClkTrg();
     void readNumScanChans();
-    //void flashLED();
+    void flashLED();
     void readStatus();
     void readIntStatus();
     void readScanParams();
