@@ -511,6 +511,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
                 break;
             case UL_TIN:
                 actionName = "TIn";
+                break;
             default:
                 actionName = "AIn";
                 break;
