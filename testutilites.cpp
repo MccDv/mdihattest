@@ -40,15 +40,21 @@ QString getHatTypeName(uint16_t hatType)
     case HAT_ID_MCC_118:
         return "MCC118";
         break;
+#ifdef HAT_03
     case HAT_ID_MCC_134:
         return "MCC134";
         break;
+#endif
+#ifdef HAT_04
     case HAT_ID_MCC_152:
         return "MCC152";
         break;
+#endif
+#ifdef HAT_05
     case HAT_ID_MCC_172:
         return "MCC172";
         break;
+#endif
     default:
         return "NO_ID";
         break;

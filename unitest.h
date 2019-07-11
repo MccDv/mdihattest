@@ -1,6 +1,20 @@
 #ifndef UNITEST_H
 #define UNITEST_H
 
+#ifndef HAT_05
+enum SourceType
+{
+    /// Use a local-only source.
+    SOURCE_LOCAL    = 0,
+    /// Use a local source and set it as master.
+    SOURCE_MASTER   = 1,
+    /// Use a separate master source.
+    SOURCE_SLAVE    = 2
+};
+
+#define HAT_ID_MCC_172 0x0145
+#endif
+
 typedef enum
 {
     TYPE_UL_INFO = 0,

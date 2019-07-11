@@ -25,7 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 DEFINES += HAT_03
 DEFINES += HAT_04
-DEFINES += HAT_05
+# DEFINES += HAT_05
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.

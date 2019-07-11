@@ -706,6 +706,7 @@ void HatDevice::runAInScan172Func()
     QTime t;
     QString sStartTime, statString;
 
+#ifdef HAT_05
     if (mHatID != HAT_ID_MCC_172) {
         //only compatible with 172
         ui->lblStatus->setText("This function is not supported for this device");
@@ -776,7 +777,6 @@ void HatDevice::runAInScan172Func()
     buffer = new double[bufSize];
     memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
 
-#ifdef HAT_05
     uint8_t source;
     uint8_t value;
     //mResponse = hatInterface->ainClockConfigRead(mHatID, mAddress, source, mRateReturned, value);
@@ -795,6 +795,15 @@ void HatDevice::runAInScan172Func()
             .arg(mScanOptions);
     ui->lblInfo->setText(nameOfFunc + argVals + "   " +
                          mOptNames + QString("  [Error = %1]").arg(mResponse));
+#else
+    (void)lowChan;
+    (void)highChan;
+    (void)chanMask;
+    (void)sampsToRead;
+    (void)bufferSize;
+    nameOfFunc = "172: AInScanStart";
+    funcArgs = "(mAddress, chanMask, mSamplesPerChan, mScanOptions)\n";
+    mResponse = RESULT_INVALID_DEVICE;
 #endif
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
@@ -814,7 +823,6 @@ void HatDevice::runAInScan172Func()
         ui->lblInfo->setText(hatInterface->getStatus());
         if(mResponse != RESULT_SUCCESS)
             return;
-#endif
         ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
         ui->lblBufferSize->setText(QString("%1").arg(bufferSize));
         if(mBackgroundScan) {
@@ -884,6 +892,7 @@ void HatDevice::runAInScan172Func()
             }
             stopScan();
         }
+#endif
     }
 }
 

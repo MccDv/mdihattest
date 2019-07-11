@@ -1094,6 +1094,7 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
     sync = 0;
     switch (devType) {
     case HAT_ID_MCC_118:
+        (void)address;
         nameOfFunc = hatName.append(": ainScanRate");
         funcArgs = "(chanCount, rate, &rateReturned)\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1103,6 +1104,7 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
                 .arg(rate)
                 .arg(rateReturned);
         break;
+#ifdef HAT_05
     case HAT_ID_MCC_172:
         nameOfFunc = hatName.append(": ainClockConfigRead");
         funcArgs = "(mAddress, source, rate, &sync)\n";
@@ -1115,6 +1117,7 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
                 .arg(rateReturned)
                 .arg(sync);
         break;
+#endif
     default:
         nameOfFunc = hatName.append(": getAinScanParameters");
         funcArgs = "(~)\n";
