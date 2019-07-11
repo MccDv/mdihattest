@@ -587,12 +587,14 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
     QString argVals;
     QTime t;
     QString sStartTime;
-    double maxVolts;
     QString hatName;
+    int prec;
+    double maxVolts;
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMaxVolts");
     funcArgs = "() = maxVolts\n";
+    prec = 6;
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -600,6 +602,7 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
         break;
 #ifdef HAT_05
     case HAT_ID_MCC_172:
+        prec = 12;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxVolts = mcc172_info()->AI_MAX_VOLTAGE;
         break;
@@ -613,7 +616,8 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
     argVals = "()";
     mStatusString = nameOfFunc + argVals + QString(" = %1").arg(maxVolts);
 
-    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(maxVolts);
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1")
+            .arg(maxVolts, 0, 'e', prec);
     reportResult(RESULT_SUCCESS, sStartTime + funcStr);
     return maxVolts;
 }
@@ -624,12 +628,14 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
     QString argVals;
     QTime t;
     QString sStartTime;
-    double minVolts;
     QString hatName;
+    int prec;
+    double minVolts;
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMinVolts");
     funcArgs = "() = minVolts\n";
+    prec = 6;
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -637,6 +643,7 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
         break;
 #ifdef HAT_05
     case HAT_ID_MCC_172:
+        prec = 12;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minVolts = mcc172_info()->AI_MIN_VOLTAGE;
         break;
@@ -648,7 +655,8 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
         break;
     }
     argVals = "()";
-    mStatusString = nameOfFunc + argVals + QString(" = %1").arg(minVolts);
+    mStatusString = nameOfFunc + argVals + QString(" = %1")
+            .arg(minVolts, 0, 'e', prec);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(minVolts);
     reportResult(RESULT_SUCCESS, sStartTime + funcStr);

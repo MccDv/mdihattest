@@ -275,18 +275,18 @@ void InfoForm::functionChanged(int utFunction)
         spinVisible = false;
         break;
     case UL_AI_PARAMS:
-        spinVisible = true;
-        dblOneVisible = true;
-        spnToolTip = "Channel count";
-        dblOneToolTip = "Rate";
-        break;
-    case UL_AI_INFO:
 #ifdef HAT_05
         tcTypeVisible = true;
         ui->cmbTcType->addItem("Local", SOURCE_LOCAL);
         ui->cmbTcType->addItem("Master", SOURCE_MASTER);
         ui->cmbTcType->addItem("Slave", SOURCE_SLAVE);
 #endif
+        spinVisible = true;
+        dblOneVisible = true;
+        spnToolTip = "Channel count";
+        dblOneToolTip = "Rate";
+        break;
+    case UL_AI_INFO:
         calVisible = true;
         spnToolTip = "Cal channel";
         dblOneToolTip = "Cal Slope";
@@ -726,7 +726,7 @@ void InfoForm::writeCal()
 void InfoForm::showBoardParameters()
 {
     bool isOpen;
-    int numChans;
+    int numChans, prec;
     int32_t aInMinCode, aInMaxCode;
     double aInMaxVolts, aInMinVolts;
     double aInMaxRange, aInMinRange;
@@ -734,6 +734,9 @@ void InfoForm::showBoardParameters()
     ui->lblInfo->clear();
     ui->lblStatus->clear();
     ui->teShowValues->clear();
+    prec = 6;
+    if(mHatID == HAT_ID_MCC_172)
+        prec = 12;
     if(mHatID == 0) {
         ui->teShowValues->setText(QString("%1 device is not supported in this software version.")
                                   .arg(mDevName));
@@ -764,8 +767,8 @@ void InfoForm::showBoardParameters()
         aInMinVolts = hatInterface->getAInVoltsMin(mHatID);
         aInMaxVolts = hatInterface->getAInVoltsMax(mHatID);
         ui->teShowValues->append(QString("Volts: %1 to %2")
-                                 .arg(aInMinVolts)
-                                 .arg(aInMaxVolts));
+                                 .arg(aInMinVolts, 0, 'e', prec)
+                                 .arg(aInMaxVolts, 0, 'e', prec));
     }
 
 #ifdef HAT_04
