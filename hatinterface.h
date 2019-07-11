@@ -41,8 +41,8 @@ public:
     double getAInVoltsMin(uint16_t devType);
     double getAInRangeMax(uint16_t devType);
     double getAInRangeMin(uint16_t devType);
-    uint16_t getAInCodeMax(uint16_t devType);
-    uint16_t getAInCodeMin(uint16_t devType);
+    int32_t getAInCodeMax(uint16_t devType);
+    int32_t getAInCodeMin(uint16_t devType);
     int readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double &slope, double &offset);
     int writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double slope, double offset);
     int aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double &value);

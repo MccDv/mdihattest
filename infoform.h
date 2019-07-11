@@ -50,6 +50,7 @@ private:
 #define WRITE_SCAN_CLEAN    12
 #define READ_IEPE_CONFIG    13
 #define WRITE_IEPE_CONFIG   14
+#define WRITE_SCAN_PARAMS   15
 
 
     Ui::InfoForm *ui;
@@ -78,6 +79,7 @@ private:
     void readStatus();
     void readIntStatus();
     void readScanParams();
+    void writeScanParams();
     void runCleanScan();
     void readStoredTypes();
     void readIEPEConfig();

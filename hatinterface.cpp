@@ -433,18 +433,18 @@ int HatInterface::getNumAInChans(uint16_t devType)
     return numChans;
 }
 
-uint16_t HatInterface::getAInCodeMax(uint16_t devType)
+int32_t HatInterface::getAInCodeMax(uint16_t devType)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
     QTime t;
     QString sStartTime;
-    uint16_t maxCode;
+    int32_t maxCode;
     QString hatName;
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMaxCode");
-    funcArgs = "() = result\n";
+    funcArgs = "() = maxCode\n";
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -470,18 +470,18 @@ uint16_t HatInterface::getAInCodeMax(uint16_t devType)
     return maxCode;
 }
 
-uint16_t HatInterface::getAInCodeMin(uint16_t devType)
+int32_t HatInterface::getAInCodeMin(uint16_t devType)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
     QTime t;
     QString sStartTime;
-    uint16_t minCode;
+    int32_t minCode;
     QString hatName;
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMinCode");
-    funcArgs = "() = result\n";
+    funcArgs = "() = minCode\n";
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -518,7 +518,7 @@ double HatInterface::getAInRangeMax(uint16_t devType)
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMaxRange");
-    funcArgs = "() = result\n";
+    funcArgs = "() = maxRange\n";
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -555,7 +555,7 @@ double HatInterface::getAInRangeMin(uint16_t devType)
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMinRange");
-    funcArgs = "() = result\n";
+    funcArgs = "() = minRange\n";
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -592,7 +592,7 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMaxVolts");
-    funcArgs = "() = result\n";
+    funcArgs = "() = maxVolts\n";
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -629,7 +629,7 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
 
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMinVolts");
-    funcArgs = "() = result\n";
+    funcArgs = "() = minVolts\n";
     switch (devType) {
     case HAT_ID_MCC_118:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";

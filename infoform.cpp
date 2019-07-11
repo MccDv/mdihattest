@@ -171,6 +171,9 @@ void InfoForm::loadCalClicked()
     case UL_DIO_INFO:
         mSelectedFunction = READ_INT_STAT;
         break;
+    case UL_AI_PARAMS:
+        mSelectedFunction = WRITE_SCAN_PARAMS;
+        break;
     default:
         break;
     }
@@ -222,6 +225,9 @@ void InfoForm::runSelectedFunction()
     case WRITE_IEPE_CONFIG:
         writeIEPEConfig();
         break;
+    case WRITE_SCAN_PARAMS:
+        writeScanParams();
+        break;
     default:
         break;
     }
@@ -231,7 +237,7 @@ void InfoForm::functionChanged(int utFunction)
 {
     QString spnToolTip, dblOneToolTip;
     QString dblTwoToolTip, flashText;
-    int lowLimit;
+    int lowLimit, spinVal;
     bool calVisible, readVisible, dblOneVisible;
     bool tcTypeVisible, writeVisible, spinVisible;
     bool flashVisible;
@@ -249,6 +255,7 @@ void InfoForm::functionChanged(int utFunction)
     //scanCleanVisible = false;
     tcTypeVisible = false;
     lowLimit = 0;
+    spinVal = 0;
     flashText = "Power: 0=off, 1=on";
     //flashCmdText = "Interrupt State";
 
@@ -274,6 +281,12 @@ void InfoForm::functionChanged(int utFunction)
         dblOneToolTip = "Rate";
         break;
     case UL_AI_INFO:
+#ifdef HAT_05
+        tcTypeVisible = true;
+        ui->cmbTcType->addItem("Local", SOURCE_LOCAL);
+        ui->cmbTcType->addItem("Master", SOURCE_MASTER);
+        ui->cmbTcType->addItem("Slave", SOURCE_SLAVE);
+#endif
         calVisible = true;
         spnToolTip = "Cal channel";
         dblOneToolTip = "Cal Slope";
@@ -331,6 +344,7 @@ void InfoForm::functionChanged(int utFunction)
     ui->leFlashCount->setVisible(flashVisible);
 
     ui->spnCalChan->setMinimum(lowLimit);
+    ui->spnCalChan->setValue(spinVal);
 
     ui->spnCalChan->setToolTip(spnToolTip);
     ui->leSlope->setToolTip(dblOneToolTip);
@@ -513,7 +527,7 @@ void InfoForm::readScanParams()
     mResponse = hatInterface->getBufferSize(mHatID, mAddress, bufferSize);
     ui->lblStatus->setText(hatInterface->getStatus());
     if(mResponse == RESULT_SUCCESS) {
-        ui->teShowValues->append(QString("\n\nBuffer size: %1)").arg(bufferSize));
+        ui->teShowValues->append(QString("\nBuffer size: %1").arg(bufferSize));
     } else {
         QString errText;
         errText = getErrorDescription(mResponse);
@@ -526,14 +540,37 @@ void InfoForm::readScanParams()
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {
-        ui->teShowValues->append(QString("\n\nActual scan rate: %1 (for 172, source: %2, sync: %3)")
+        ui->teShowValues->append(QString("\nActual scan rate: %1 (if 172, source = %2, sync = %3)")
                                   .arg(rateReturned)
                                   .arg(sourceName)
                                   .arg(sync));
+        ui->leSlope->setText(QString("%1").arg(rateReturned));
     } else {
         QString errText;
         errText = getErrorDescription(mResponse);
         ui->teShowValues->append("\n\ngetAInScanParameters() returned error " + errText);
+    }
+}
+
+void InfoForm::writeScanParams()
+{
+    QString sourceName;
+    uint8_t source;
+    double rate;
+
+    rate = ui->leSlope->text().toDouble();
+    source = ui->cmbTcType->currentData().toUInt();
+    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, source, rate);
+    ui->lblStatus->setText(hatInterface->getStatus());
+    sourceName = getSourceText(source);
+    if(mResponse == RESULT_SUCCESS) {
+        ui->teShowValues->append(QString("\nScan rate set to: %1 (if 172, source set to %2)")
+                                  .arg(rate)
+                                  .arg(sourceName));
+    } else {
+        QString errText;
+        errText = getErrorDescription(mResponse);
+        ui->teShowValues->append("\n\nsetAInScanParameters() returned error " + errText);
     }
 }
 
@@ -570,7 +607,7 @@ void InfoForm::writeIEPEConfig()
     uint8_t firstChan, lastChan;
     int chanSelected;
 
-    channel = ui->spnCalChan->value();
+    chanSelected = ui->spnCalChan->value();
     value = ui->leFlashCount->text().toInt(); //power: 0=off, 1=on
     ui->teShowValues->setText("IEPE settings:\n\n");
     if(chanSelected == -1) {
@@ -690,7 +727,7 @@ void InfoForm::showBoardParameters()
 {
     bool isOpen;
     int numChans;
-    uint16_t aInMinCode, aInMaxCode;
+    int32_t aInMinCode, aInMaxCode;
     double aInMaxVolts, aInMinVolts;
     double aInMaxRange, aInMinRange;
 
