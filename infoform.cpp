@@ -753,7 +753,7 @@ void InfoForm::showBoardParameters()
     }
     numChans = hatInterface->getNumAInChans(mHatID);
     ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
-    if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172)) {
+    if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172) | (mHatID == HAT_ID_MCC_134)) {
         aInMinCode = hatInterface->getAInCodeMin(mHatID);
         aInMaxCode = hatInterface->getAInCodeMax(mHatID);
         ui->teShowValues->append(QString("Code range: %1 to %2")

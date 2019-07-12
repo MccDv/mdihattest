@@ -1,6 +1,18 @@
 #ifndef UNITEST_H
 #define UNITEST_H
 
+#ifndef HAT_03
+
+#define HAT_ID_MCC_134 0x0143
+
+#endif
+
+#ifndef HAT_04
+
+#define HAT_ID_MCC_152 0x0144
+
+#endif
+
 #ifndef HAT_05
 enum SourceType
 {

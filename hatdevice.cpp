@@ -137,7 +137,7 @@ void HatDevice::updateParameters()
 
     ui->lblStatus->clear();
     this->setWindowTitle(mFuncName + ": " + mDevName);
-    if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172)) {
+    if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172) | (mHatID == HAT_ID_MCC_134)) {
         maInMinCode = hatInterface->getAInCodeMin(mHatID);
         maInMaxCode = hatInterface->getAInCodeMax(mHatID);
         maInMinRange = hatInterface->getAInRangeMin(mHatID);
