@@ -524,6 +524,12 @@ double HatInterface::getAInRangeMax(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxRange = mcc118_info()->AI_MAX_RANGE;
         break;
+#ifdef HAT_03
+    case HAT_ID_MCC_134:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxRange = (mcc134_info()->AI_MAX_RANGE) * 1000;
+        break;
+#endif
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -561,6 +567,12 @@ double HatInterface::getAInRangeMin(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minRange = mcc118_info()->AI_MIN_RANGE;
         break;
+#ifdef HAT_03
+    case HAT_ID_MCC_134:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minRange = (mcc134_info()->AI_MIN_RANGE) * 1000;
+        break;
+#endif
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -600,6 +612,12 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxVolts = mcc118_info()->AI_MAX_VOLTAGE;
         break;
+#ifdef HAT_03
+    case HAT_ID_MCC_134:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxVolts = (mcc134_info()->AI_MAX_VOLTAGE) * 1000;
+        break;
+#endif
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         prec = 12;
@@ -641,6 +659,12 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minVolts = mcc118_info()->AI_MIN_VOLTAGE;
         break;
+#ifdef HAT_03
+    case HAT_ID_MCC_134:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minVolts = (mcc134_info()->AI_MIN_VOLTAGE) * 1000;
+        break;
+#endif
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         prec = 12;
