@@ -1,7 +1,6 @@
 #include "hatdevice.h"
 #include "ui_hatdevice.h"
 #include "mainwindow.h"
-//#include "childwindow.h"
 
 HatDevice::HatDevice(QWidget *parent) :
     QWidget(parent),
@@ -1282,7 +1281,8 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
     int curScan, samplesToPrint, sampleLimit, totalSamps;
     //int sampleNum = 0;
     int increment = 0;
-    bool floatValue;
+    int prec;
+    bool floatValue, intValue;
     long long samplePerChanel = mChanCount * ui->leNumSamples->text().toLongLong();;
     //ui->textEdit->setText(QString("Chans: %1, perChan: %2").arg(mChanCount).arg(samplePerChanel));
 
@@ -1290,6 +1290,17 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
     if(!buffer)
         return;
     floatValue = (!(mScanOptions & OPTS_NOSCALEDATA));
+    intValue = (!(mScanOptions & OPTS_NOCALIBRATEDATA));
+
+    prec = 6;
+    if (floatValue) {
+        if (maInMaxCode > 65535)
+            prec = 8;
+    } else {
+        prec = 3;
+        if (intValue)
+            prec = 0;
+    }
 
     totalSamps = mSamplesPerChan;
     ui->teShowValues->clear();
@@ -1311,9 +1322,9 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
             curSample = buffer[increment + chan];
             if (floatValue) {
                 val = QString("%1%2").arg((curSample < 0) ? "" : "+")
-                        .arg(curSample, 2, 'f', 5, '0');
+                        .arg(curSample, 2, 'f', prec, '0');
             } else {
-                val = QString("%1").arg(curSample);
+                val = QString("%1").arg(curSample, 0, 'f', prec);
             }
             dataText.append("<td>" + val + "</td>");
         }

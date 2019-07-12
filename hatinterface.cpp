@@ -450,6 +450,12 @@ int32_t HatInterface::getAInCodeMax(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxCode = mcc118_info()->AI_MAX_CODE;
         break;
+#ifdef HAT_03
+    case HAT_ID_MCC_134:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxCode = mcc134_info()->AI_MAX_CODE;
+        break;
+#endif
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -487,6 +493,12 @@ int32_t HatInterface::getAInCodeMin(uint16_t devType)
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minCode = mcc118_info()->AI_MIN_CODE;
         break;
+#ifdef HAT_03
+    case HAT_ID_MCC_134:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minCode = mcc134_info()->AI_MIN_CODE;
+        break;
+#endif
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -796,8 +808,9 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
     QString sStartTime;
     QString hatName;
     int multiplier, prec;
-    double data;
+    double data = 0.0;
 
+    value = 0.0;
     multiplier = 1;
     prec = 6;
     hatName = getHatTypeName(devType);
@@ -833,7 +846,8 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
-    value = data * multiplier;
+    if(mResponse == RESULT_SUCCESS)
+        value = data * multiplier;
     return mResponse;
 }
 
@@ -1243,9 +1257,10 @@ int HatInterface::boardTemp(uint16_t devType, uint8_t address, uint8_t chan, dou
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
-    double data;
     QString hatName;
+    double data = 0.0;
 
+    temp = -9090.0;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": ReadCJC");
     funcArgs = "(mAddress, curChan, &data)\n";
@@ -1271,7 +1286,8 @@ int HatInterface::boardTemp(uint16_t devType, uint8_t address, uint8_t chan, dou
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
-    temp = data;
+    if(mResponse == RESULT_SUCCESS)
+        temp = data;
     return mResponse;
 }
 
@@ -1280,9 +1296,10 @@ int HatInterface::tInRead(uint16_t devType, uint8_t address, uint8_t chan, doubl
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
-    double data;
     QString hatName;
+    double data = 0.0;
 
+    temp = -9090.0;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": TInRead");
     funcArgs = "(mAddress, curChan, &data)\n";
@@ -1307,7 +1324,8 @@ int HatInterface::tInRead(uint16_t devType, uint8_t address, uint8_t chan, doubl
                 .arg(data);
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
-    temp = data;
+    if(mResponse == RESULT_SUCCESS)
+        temp = data;
     return mResponse;
 }
 
