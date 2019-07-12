@@ -164,7 +164,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="6,3,3,2,3,3,3,3,1">
+     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="6,2,2,1,2,3,3,3,1">
       <property name="leftMargin">
        <number>1</number>
       </property>

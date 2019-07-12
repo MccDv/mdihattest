@@ -137,6 +137,12 @@ void HatDevice::updateParameters()
 
     ui->lblStatus->clear();
     this->setWindowTitle(mFuncName + ": " + mDevName);
+    if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172)) {
+        maInMinCode = hatInterface->getAInCodeMin(mHatID);
+        maInMaxCode = hatInterface->getAInCodeMax(mHatID);
+        maInMinRange = hatInterface->getAInRangeMin(mHatID);
+        maInMaxRange = hatInterface->getAInRangeMax(mHatID);
+    }
 }
 
 void HatDevice::showQueueConfig()
@@ -1371,7 +1377,7 @@ void HatDevice::updateData()
 void HatDevice::updatePlot()
 {
     bool setTCRange = false;
-    bool autoScale, bipolar;
+    bool autoScale;
     double rangeBuf;
     double rangeUpper, rangeLower;
     int ctlIndex;
@@ -1397,16 +1403,16 @@ void HatDevice::updatePlot()
             rangeLower = 10;
         } else {
             if (mScanOptions & OPTS_NOSCALEDATA) {
-                long fsCount = qPow(2, mAiResolution);
+                long fsCount = (maInMaxCode - maInMinCode);
                 rangeBuf = fsCount / 10;
-                rangeUpper = fsCount;
-                rangeLower = 0;
+                rangeUpper = maInMaxCode;
+                rangeLower = maInMinCode;
             } else {
-                bipolar = true; //mRange < 100;
-                double rangeVolts = 20; //getRangeVolts(mRange);
+                //bipolar = true; //mRange < 100;
+                double rangeVolts = (maInMaxRange - maInMinRange);
                 rangeBuf = rangeVolts / 10;
-                rangeUpper = bipolar? rangeVolts / 2 : rangeVolts;
-                rangeLower = bipolar? rangeUpper * -1 : 0;
+                rangeUpper = maInMaxRange; //bipolar? rangeVolts / 2 : rangeVolts;
+                rangeLower = maInMinRange; //bipolar? rangeUpper * -1 : 0;
             }
         }
         ui->AiPlot->xAxis->rescale();

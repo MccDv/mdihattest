@@ -564,13 +564,13 @@ void InfoForm::writeScanParams()
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {
-        ui->teShowValues->append(QString("\nScan rate set to: %1 (if 172, source set to %2)")
+        ui->teShowValues->setText(QString("\nScan rate set to: %1 (if 172, source set to %2)")
                                   .arg(rate)
                                   .arg(sourceName));
     } else {
         QString errText;
         errText = getErrorDescription(mResponse);
-        ui->teShowValues->append("\n\nsetAInScanParameters() returned error " + errText);
+        ui->teShowValues->setText("\n\nsetAInScanParameters() returned error " + errText);
     }
 }
 

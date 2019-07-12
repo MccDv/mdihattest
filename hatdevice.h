@@ -70,6 +70,10 @@ private:
     struct HatInfo hatInfoList[MAX_NUMBER_HATS];
     QString mOptNames = "";
     bool mBackgroundScan = true;
+    int32_t maInMinCode;
+    int32_t maInMaxCode;
+    double maInMaxRange;
+    double maInMinRange;
 
     QMap<int, int> mChanList;
     bool mQueueEnabled = false;
