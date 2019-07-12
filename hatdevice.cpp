@@ -459,6 +459,7 @@ void HatDevice::runAinFunction()
     uint8_t aInChan, aInLastChan;
     uint32_t samplesToRead;
     int curIndex;
+    uint8_t curChan;
     double data;
 
     data = 0.0;
@@ -497,8 +498,7 @@ void HatDevice::runAinFunction()
         memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
     }
 
-    uint8_t curChan;
-    curIndex = 0;
+    //curIndex = 0;
     mRunning = true;
     for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
         foreach(curChan, mChanList) {
@@ -508,6 +508,8 @@ void HatDevice::runAinFunction()
                 buffer[curIndex] = data;
                 curIndex++;
             } else {
+                mTotalRead = 0;
+                mUseTimer = false;
                 return;
             }
         }
@@ -1446,7 +1448,7 @@ void HatDevice::runTinFunction()
     int curIndex, addChan, chan;
     double data;
     bool showVolts;
-    uint8_t cjcChans[3];
+    uint8_t cjcChans[4];
 
     data = 0.0;
     addChan = 0;
@@ -1522,6 +1524,7 @@ void HatDevice::runTinFunction()
                     mChanCount++;
                     chanMask = chanMask | 0x01 << 3;
                 }
+                break;
             default:
                 break;
             }
@@ -1553,29 +1556,27 @@ void HatDevice::runTinFunction()
         memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
     }
 
-    if(false) {         // !showVolts & mBackgroundScan
-        for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
-            mResponse = hatInterface->tInReadBackground(mHatID, mAddress, chanMask);
-            //int sampsRead = mTotalRead;
+    mRunning = true;
+    for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
+        foreach(curChan, mChanList) {
+            if(showVolts)
+                mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, 0, data);
+            else
+                mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
+            ui->lblInfo->setText(hatInterface->getStatus());
             if(mResponse == RESULT_SUCCESS) {
-                //tmrBGResultRead->start(200);
-                mRunning = true;
-                do {
-                    //runBackgrndResult();
-                    delay(200);
-                    //QApplication::processEvents(QEventLoop::AllEvents, 100);
-                }
-                while (mRunning);
+                buffer[curIndex] = data;
+                curIndex++;
+            } else {
+                mTotalRead = 0;
+                mUseTimer = false;
+                return;
             }
         }
-    } else {
-        mRunning = true;
-        for (uint32_t sampleNum = 0; sampleNum < samplesToRead; sampleNum++) {
-            foreach(curChan, mChanList) {
-                if(showVolts)
-                    mResponse = hatInterface->aInRead(mHatID, mAddress, curChan, 0, data);
-                else
-                    mResponse = hatInterface->tInRead(mHatID, mAddress, curChan, data);
+        for(curChan = 0; curChan < 3; curChan++) {
+            cjcChan = cjcChans[curChan];
+            if(cjcChan != 8) {
+                mResponse = hatInterface->boardTemp(mHatID, mAddress, cjcChan, data);
                 ui->lblInfo->setText(hatInterface->getStatus());
                 if(mResponse == RESULT_SUCCESS) {
                     buffer[curIndex] = data;
@@ -1584,39 +1585,26 @@ void HatDevice::runTinFunction()
                     return;
                 }
             }
-            for(curChan = 0; curChan < 3; curChan++) {
-                cjcChan = cjcChans[curChan];
-                if(cjcChan != 8) {
-                    mResponse = hatInterface->boardTemp(mHatID, mAddress, cjcChan, data);
-                    ui->lblInfo->setText(hatInterface->getStatus());
-                    if(mResponse == RESULT_SUCCESS) {
-                        buffer[curIndex] = data;
-                        curIndex++;
-                    } else {
-                        return;
-                    }
-                }
-            }
-            mTotalRead += 1;
         }
-        if(mOneSampPerForTotalSamps) {
-            QString timerRate = ".";
-            if(mTimerConfigured)
-                timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
-            ui->lblStatus->setText(QString("%1 samples read%2")
-                                   .arg(mTotalRead).arg(timerRate));
-        }
+        mTotalRead += 1;
+    }
+    if(mOneSampPerForTotalSamps) {
+        QString timerRate = ".";
+        if(mTimerConfigured)
+            timerRate = QString(" at %1 second rate.").arg(mTmrInterval / 1000);
+        ui->lblStatus->setText(QString("%1 samples read%2")
+                               .arg(mTotalRead).arg(timerRate));
+    }
 
-        mRunning = false;
-        if(mPlot)
-            plotScan(0, 0, mTotalRead);
-        else {
-            mTextIndex = 0;
-            printData(0, 0, mTotalRead);
-        }
-        if(mTotalRead == mSamplesPerChan) {
-            mUseTimer = false;
-        }
+    mRunning = false;
+    if(mPlot)
+        plotScan(0, 0, mTotalRead);
+    else {
+        mTextIndex = 0;
+        printData(0, 0, mTotalRead);
+    }
+    if(mTotalRead == mSamplesPerChan) {
+        mUseTimer = false;
     }
 }
 

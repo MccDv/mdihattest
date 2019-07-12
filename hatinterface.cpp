@@ -794,9 +794,12 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
-    double data;
     QString hatName;
+    int multiplier, prec;
+    double data;
 
+    multiplier = 1;
+    prec = 6;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": AInRead");
     funcArgs = "(mAddress, curChan, mScanOptions, &data)\n";
@@ -807,6 +810,7 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
         break;
 #ifdef HAT_03
     case HAT_ID_MCC_134:
+        multiplier = 1000;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc134_a_in_read(address, chan, options, &data);
         break;
@@ -824,12 +828,12 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
                 .arg(address)
                 .arg(chan)
                 .arg(options)
-                .arg(data);
+                .arg(data * multiplier, 0, 'f', prec);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
-    value = data;
+    value = data * multiplier;
     return mResponse;
 }
 
