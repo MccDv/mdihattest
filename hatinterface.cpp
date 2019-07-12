@@ -614,6 +614,7 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
         break;
 #ifdef HAT_03
     case HAT_ID_MCC_134:
+        prec = 9;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         maxVolts = (mcc134_info()->AI_MAX_VOLTAGE) * 1000;
         break;
@@ -635,7 +636,7 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
     mStatusString = nameOfFunc + argVals + QString(" = %1").arg(maxVolts);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1")
-            .arg(maxVolts, 0, 'e', prec);
+            .arg(maxVolts, 0, 'f', prec);
     reportResult(RESULT_SUCCESS, sStartTime + funcStr);
     return maxVolts;
 }
@@ -661,6 +662,7 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
         break;
 #ifdef HAT_03
     case HAT_ID_MCC_134:
+        prec = 9;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         minVolts = (mcc134_info()->AI_MIN_VOLTAGE) * 1000;
         break;
@@ -680,7 +682,7 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
     }
     argVals = "()";
     mStatusString = nameOfFunc + argVals + QString(" = %1")
-            .arg(minVolts, 0, 'e', prec);
+            .arg(minVolts, 0, 'f', prec);
 
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals + QString(" = %1").arg(minVolts);
     reportResult(RESULT_SUCCESS, sStartTime + funcStr);

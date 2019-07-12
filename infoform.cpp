@@ -737,6 +737,8 @@ void InfoForm::showBoardParameters()
     prec = 6;
     if(mHatID == HAT_ID_MCC_172)
         prec = 12;
+    if(mHatID == HAT_ID_MCC_134)
+        prec = 9;
     if(mHatID == 0) {
         ui->teShowValues->setText(QString("%1 device is not supported in this software version.")
                                   .arg(mDevName));
@@ -767,8 +769,8 @@ void InfoForm::showBoardParameters()
         aInMinVolts = hatInterface->getAInVoltsMin(mHatID);
         aInMaxVolts = hatInterface->getAInVoltsMax(mHatID);
         ui->teShowValues->append(QString("Volts: %1 to %2")
-                                 .arg(aInMinVolts, 0, 'e', prec)
-                                 .arg(aInMaxVolts, 0, 'e', prec));
+                                 .arg(aInMinVolts, 0, 'f', prec)
+                                 .arg(aInMaxVolts, 0, 'f', prec));
     }
 
 #ifdef HAT_04
