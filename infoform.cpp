@@ -46,7 +46,7 @@ InfoForm::InfoForm(QWidget *parent) :
     connect(ui->cmdReadCal, SIGNAL(clicked(bool)), this, SLOT(readCalClicked()));
     connect(ui->cmdLoadCal, SIGNAL(clicked(bool)), this, SLOT(loadCalClicked()));
     //connect(ui->cmdFlashLED, SIGNAL(clicked(bool)), this, SLOT(flashLEDClicked()));
-    //connect(ui->cmdCleanup, SIGNAL(clicked(bool)), this, SLOT(runCleanScan()));
+    connect(ui->cmdCleanup, SIGNAL(clicked(bool)), this, SLOT(runCleanScan()));
     connect(ui->cmbUtilFunc, SIGNAL(currentIndexChanged(int)), this, SLOT(functionChanged(int)));
     findHats();
 }
@@ -240,7 +240,7 @@ void InfoForm::functionChanged(int utFunction)
     int lowLimit, spinVal;
     bool calVisible, readVisible, dblOneVisible;
     bool tcTypeVisible, writeVisible, spinVisible;
-    bool flashVisible;
+    bool flashVisible, scanCleanVisible;
 
     (void)utFunction;
     ui->cmbTcType->clear();
@@ -252,7 +252,7 @@ void InfoForm::functionChanged(int utFunction)
     writeVisible = true;
     dblOneVisible = false;
     flashVisible = false;
-    //scanCleanVisible = false;
+    scanCleanVisible = false;
     tcTypeVisible = false;
     lowLimit = 0;
     spinVal = 0;
@@ -271,6 +271,7 @@ void InfoForm::functionChanged(int utFunction)
         lowLimit = -12;
         break;
     case UL_GET_STATUS:
+        scanCleanVisible = true;
         writeVisible = false;
         spinVisible = false;
         break;
@@ -281,12 +282,14 @@ void InfoForm::functionChanged(int utFunction)
         ui->cmbTcType->addItem("Master", SOURCE_MASTER);
         ui->cmbTcType->addItem("Slave", SOURCE_SLAVE);
 #endif
+        scanCleanVisible = true;
         spinVisible = true;
         dblOneVisible = true;
         spnToolTip = "Channel count";
         dblOneToolTip = "Rate";
         break;
     case UL_AI_INFO:
+        scanCleanVisible = true;
         calVisible = true;
         spnToolTip = "Cal channel";
         dblOneToolTip = "Cal Slope";
@@ -306,7 +309,6 @@ void InfoForm::functionChanged(int utFunction)
         readStoredTypes();
 #endif
         spnToolTip = "TC channel (-1 loads saved configuration)";
-        //scanCleanVisible = false;
         calVisible = false;
         tcTypeVisible = true;
         lowLimit = -1;
@@ -325,6 +327,7 @@ void InfoForm::functionChanged(int utFunction)
         lowLimit = -1;
         break;
     case UL_SCAN_CLEAN:
+        scanCleanVisible = true;
         spinVisible = false;
         readVisible = false;
         break;
@@ -335,7 +338,7 @@ void InfoForm::functionChanged(int utFunction)
     }
     ui->leOffset->setVisible(calVisible);
     ui->leSlope->setVisible(calVisible | dblOneVisible);
-    //ui->cmdCleanup->setVisible(false);
+    ui->cmdCleanup->setVisible(scanCleanVisible);
     ui->spnCalChan->setVisible(spinVisible);
     ui->cmdReadCal->setVisible(readVisible);
     ui->cmdLoadCal->setVisible(writeVisible);
@@ -506,7 +509,7 @@ void InfoForm::readIntStatus()
 void InfoForm::readScanParams()
 {
     QString sourceName;
-    uint8_t chanCount, source, sync;
+    uint8_t chanCount, source, alias, sync;
     uint32_t bufferSize;
     double rateReturned;
 
@@ -536,14 +539,16 @@ void InfoForm::readScanParams()
 
     chanCount = ui->spnCalChan->value();
     rateReturned = ui->leSlope->text().toDouble();
-    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
+    alias = 0;
+    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, alias, rateReturned, sync);
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {
-        ui->teShowValues->append(QString("\nActual scan rate: %1 (if 172, source = %2, sync = %3)")
-                                  .arg(rateReturned)
-                                  .arg(sourceName)
-                                  .arg(sync));
+        ui->teShowValues->append(QString("\nActual scan rate: %1 (if 172, source = %2, alias = %3, sync = %4)")
+                                 .arg(rateReturned)
+                                 .arg(sourceName)
+                                 .arg(alias)
+                                 .arg(sync));
         ui->leSlope->setText(QString("%1").arg(rateReturned));
     } else {
         QString errText;
@@ -555,12 +560,13 @@ void InfoForm::readScanParams()
 void InfoForm::writeScanParams()
 {
     QString sourceName;
-    uint8_t source;
+    uint8_t source, alias;
     double rate;
 
     rate = ui->leSlope->text().toDouble();
     source = ui->cmbTcType->currentData().toUInt();
-    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, source, rate);
+    alias = ALIAS_NORMAL;
+    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, source, alias, rate);
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {

@@ -34,6 +34,7 @@ private slots:
     void loadCalClicked();
     //void flashLEDClicked();
     void showErrorMessage();
+    void runCleanScan();
 
 private:
 #define READ_CAL            1
@@ -80,7 +81,6 @@ private:
     void readIntStatus();
     void readScanParams();
     void writeScanParams();
-    void runCleanScan();
     void readStoredTypes();
     void readIEPEConfig();
     void writeIEPEConfig();

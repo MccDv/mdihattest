@@ -1131,18 +1131,21 @@ int HatInterface::getBufferSize(uint16_t devType, uint8_t address, uint32_t &buf
     return mResponse;
 }
 
-int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_t chanCount, uint8_t &source, double &rate, uint8_t &value)
+int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_t chanCount,
+                                       uint8_t &source, uint8_t &aliasMode, double &rate, uint8_t &value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
     uint8_t sync = 0;
     uint8_t sourceReturned;
+    uint8_t alias_mode;
     double rateReturned = 0.0;
     QString hatName;
 
     hatName = getHatTypeName(devType);
     sourceReturned = 0;
+    alias_mode = 0;
     sync = 0;
     switch (devType) {
     case HAT_ID_MCC_118:
@@ -1159,13 +1162,15 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         nameOfFunc = hatName.append(": ainClockConfigRead");
-        funcArgs = "(mAddress, source, rate, &sync)\n";
+        funcArgs = "(mAddress, source, aliasMode, rate, &sync)\n";
         sourceReturned = SOURCE_LOCAL;
+        alias_mode = ALIAS_NORMAL;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &rateReturned, &sync);
-        argVals = QStringLiteral("(%1, %2, %3, %4)")
+        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &alias_mode, &rateReturned, &sync);
+        argVals = QStringLiteral("(%1, %2, %3, %4, %5)")
                 .arg(address)
                 .arg(sourceReturned)
+                .arg(alias_mode)
                 .arg(rateReturned)
                 .arg(sync);
         break;
@@ -1183,6 +1188,7 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
     source = sourceReturned;
+    aliasMode = alias_mode;
     rate = rateReturned;
     value = sync;
     return mResponse;
@@ -2628,7 +2634,7 @@ int HatInterface::disableCallback()
 
 #ifdef HAT_05
 
-int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
+int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, uint8_t alias_mode, double rate)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -2641,7 +2647,7 @@ int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t
     switch (devType) {
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc172_a_in_clock_config_write(address, source, rate);
+        mResponse = mcc172_a_in_clock_config_write(address, source, alias_mode, rate);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -2723,6 +2729,52 @@ int HatInterface::iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t cha
     return mResponse;
 }
 
+int HatInterface::readTestSignals(uint16_t devType, uint8_t address, uint8_t &clock, uint8_t &sync, uint8_t &trig)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+    uint8_t clockVal, syncVal, trigVal;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": testSignalsRead");
+    funcArgs = "(mAddress, clockVal, syncVal, trigVal)\n";
+    switch (devType) {
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_test_signals_read(address, &clockVal, &syncVal, &trigVal);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3, %4)")
+            .arg(address)
+            .arg(clockVal)
+            .arg(syncVal)
+            .arg(trigVal);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    clock = clockVal;
+    sync = syncVal;
+    trig = trigVal;
+    return mResponse;
+}
+
+int HatInterface::writeTestSignals(uint16_t devType, uint8_t address, uint8_t mode, uint8_t clock, uint8_t sync)
+{
+    (void)devType;
+    (void)address;
+    (void)mode;
+    (void)clock;
+    (void)sync;
+    return 0;
+}
+
 #else
 
 int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
@@ -2751,4 +2803,25 @@ int HatInterface::iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t cha
     (void)value;
     return RESULT_INVALID_DEVICE;
 }
+
+int HatInterface::readTestSignals(uint16_t devType, uint8_t address, uint8_t &clock, uint8_t &sync, uint8_t &trig)
+{
+    (void)devType;
+    (void)address;
+    (void)clock;
+    (void)sync;
+    (void)trig;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::writeTestSignals(uint16_t devType, uint8_t address, uint8_t mode, uint8_t clock, uint8_t sync)
+{
+    (void)devType;
+    (void)address;
+    (void)mode;
+    (void)clock;
+    (void)sync;
+    return RESULT_INVALID_DEVICE;
+}
+
 #endif

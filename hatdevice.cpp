@@ -628,9 +628,9 @@ void HatDevice::runAInScanFunc()
     if (mResponse!=RESULT_SUCCESS) {
         mStatusTimerEnabled = false;
     } else {
-        uint8_t source, value;
+        uint8_t source, value, alias;
         mRunning = true;
-        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, rate, value);
+        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, alias, rate, value);
         mRateReturned = rate;
         ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
         mResponse = hatInterface->getBufferSize(mHatID, mAddress, bufferSize);
@@ -747,7 +747,7 @@ void HatDevice::runAInScan172Func()
 
     mSamplesPerChan = ui->leNumSamples->text().toLong();
     double rate = ui->leRate->text().toDouble();
-    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, SOURCE_LOCAL, rate);
+    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, SOURCE_LOCAL, ALIAS_NORMAL, rate);
     ui->lblInfo->setText(hatInterface->getStatus());
     if(mResponse != RESULT_SUCCESS)
         return;
@@ -786,8 +786,9 @@ void HatDevice::runAInScan172Func()
 
     uint8_t source;
     uint8_t value;
+    uint8_t alias;
     //mResponse = hatInterface->ainClockConfigRead(mHatID, mAddress, source, mRateReturned, value);
-    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, mRateReturned, value);
+    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, alias, mRateReturned, value);
     ui->lblInfo->setText(hatInterface->getStatus());
     if(mResponse != RESULT_SUCCESS)
         return;
@@ -1290,7 +1291,7 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
     if(!buffer)
         return;
     floatValue = (!(mScanOptions & OPTS_NOSCALEDATA));
-    intValue = (!(mScanOptions & OPTS_NOCALIBRATEDATA));
+    intValue = (mScanOptions & OPTS_NOCALIBRATEDATA);
 
     prec = 6;
     if (floatValue) {
