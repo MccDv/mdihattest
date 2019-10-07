@@ -565,7 +565,7 @@ void InfoForm::writeScanParams()
 
     rate = ui->leSlope->text().toDouble();
     source = ui->cmbTcType->currentData().toUInt();
-    alias = ALIAS_NORMAL;
+    alias = 0;  //ALIAS_NORMAL
     mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, source, alias, rate);
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);

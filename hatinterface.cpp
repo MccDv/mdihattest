@@ -2654,9 +2654,10 @@ int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t
         mResponse = RESULT_INVALID_DEVICE;
         break;
     }
-    argVals = QStringLiteral("(%1, %2, %3)")
+    argVals = QStringLiteral("(%1, %2, %3, %4)")
             .arg(address)
             .arg(source)
+            .arg(alias_mode)
             .arg(rate);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
@@ -2777,11 +2778,12 @@ int HatInterface::writeTestSignals(uint16_t devType, uint8_t address, uint8_t mo
 
 #else
 
-int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
+int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, uint8_t alias_mode, double rate)
 {
     (void)devType;
     (void)address;
     (void)source;
+    (void)alias_mode;
     (void)rate;
     return RESULT_INVALID_DEVICE;
 }
