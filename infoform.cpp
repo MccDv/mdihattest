@@ -91,7 +91,7 @@ void InfoForm::findHats()
                                  .arg(mHatIDList.value(hatAddress)));
     }
     ui->cmbDevList->addItem("MCC118");
-    ui->cmbDevList->addItem("MCC132");
+    ui->cmbDevList->addItem("MCC134");
     ui->cmbDevList->addItem("MCC152");
     delay(200);
     devSelectedChanged();
