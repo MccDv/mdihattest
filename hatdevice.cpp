@@ -45,6 +45,7 @@ HatDevice::HatDevice(QWidget *parent) :
     //connect(tmrBGResultRead, SIGNAL(timeout()), this, SLOT(runBackgrndResult()));
     connect(ui->cmdGo, SIGNAL(clicked(bool)), this, SLOT(goCmdClicked()));
     connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(stopCmdClicked()));
+    connect(ui->chkVolts, SIGNAL(clicked(bool)), this, SLOT());
 
     connect(ui->AiPlot->xAxis, SIGNAL(rangeChanged(QCPRange)),
             ui->AiPlot->xAxis2, SLOT(setRange(QCPRange)));
@@ -234,7 +235,7 @@ void HatDevice::setUiForFunction()
     ui->chkVolts->setVisible(true); //voltCheckVisible
     if(!voltCheckVisible) {
         ui->chkVolts->setText("Trap");
-        mTimeout = ui->leTimeout->text().toDouble();
+        mTimeout = 10.0;
         ui->leTimeout->setText("0.9");
         mTrapVal = 0.9;
     } else {
@@ -392,6 +393,19 @@ void HatDevice::stopCmdClicked()
 {
     stopScan();
     mUseTimer = false;
+}
+
+void HatDevice::trapVoltsChecked(){
+
+    if (ui->chkVolts->isChecked()) {
+        mTimeout = 10.0;
+        ui->leTimeout->setText("0.9");
+        mTrapVal = 0.9;
+    } else {
+        mTimeout = 0.0;
+        ui->leTimeout->setText("10");
+        mTrapVal = 500;
+    }
 }
 
 void HatDevice::runSelectedFunction()

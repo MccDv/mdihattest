@@ -40,6 +40,7 @@ private slots:
     void writeStoredTcValues();
     void updateTcValues();
     void setInterval();
+    void trapVoltsChecked();
     //void runBackgrndResult();
 
 private:
