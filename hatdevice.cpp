@@ -979,6 +979,10 @@ void HatDevice::checkStatus()
         timeout = ui->leTimeout->text().toDouble();
     else
         timeout = mTimeout;
+    mTimerIteration += 1;
+    itString = QString("%1").arg(mTimerIteration);
+    ui->lblTimerIteration->setText(itString);
+
     overrunDetected = false;
     readTime = mBlockSize / mRateReturned;
     loopStatus = (readTime > 0.2);
@@ -1093,9 +1097,6 @@ void HatDevice::checkStatus()
     goFont.setBold(makeBold);
     ui->cmdGo->setFont(goFont);
 
-    mTimerIteration += 1;
-    itString = QString("%1").arg(mTimerIteration);
-    ui->lblTimerIteration->setText(itString);
 }
 
 void HatDevice::stopScan()
