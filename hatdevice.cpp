@@ -135,6 +135,8 @@ void HatDevice::updateParameters()
         trigString.append("  Source: " + sourceString);
     ui->lblInfo->setText(QString("Options: %1,  Trigger: %2")
                          .arg(mOptNames).arg(trigString));
+    if (mUseTimer)
+        ui->lblTimerIteration->setText("Tmr On");
 
     ui->lblStatus->clear();
     this->setWindowTitle(mFuncName + ": " + mDevName);
