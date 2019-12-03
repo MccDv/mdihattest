@@ -40,6 +40,7 @@ HatDevice::HatDevice(QWidget *parent) :
     ui->lblBufferSize->setStyleSheet("QLabel { background-color : white; color : grey; }" );
     ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
+    ui->lblTimerIteration->setStyleSheet("QLabel { color : blue; }" );
 
     connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(checkStatus()));
     //connect(tmrBGResultRead, SIGNAL(timeout()), this, SLOT(runBackgrndResult()));
@@ -379,10 +380,12 @@ void HatDevice::goCmdClicked()
     bool tmrIsEnabled;
 
     mHaltAction = false;
-    mTimerIteration = 0;
+    if (!mUseTimer) {
+        mTimerIteration = 0;
+        ui->lblTimerIteration->setText("");
+    }
     mTotalRead = 0;
     mAbort = false;
-    ui->lblTimerIteration->setText("");
     tmrIsEnabled = parentWindow->tmrEnabled();
     mUseTimer = tmrIsEnabled;
     mTimerConfigured = tmrIsEnabled;
