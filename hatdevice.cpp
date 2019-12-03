@@ -1288,8 +1288,10 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
             yChans[chan][y] = buffer[curScan + chan];
             sampleNum++;
             if(checkValue)
-                if ((yChans[chan][y] > mTrapVal) | (yChans[chan][y] < mTrapVal))
+                if ((yChans[chan][y] > mTrapVal) | (yChans[chan][y] < mTrapVal)) {
                     mHaltAction = true;
+                    mUseTimer = false;
+                }
        }
         increment +=mChanCount;
     }
