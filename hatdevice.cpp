@@ -379,8 +379,10 @@ void HatDevice::goCmdClicked()
     bool tmrIsEnabled;
 
     mHaltAction = false;
+    mTimerIteration = 0;
     mTotalRead = 0;
     mAbort = false;
+    ui->lblTimerIteration->setText("");
     tmrIsEnabled = parentWindow->tmrEnabled();
     mUseTimer = tmrIsEnabled;
     mTimerConfigured = tmrIsEnabled;
@@ -408,10 +410,12 @@ void HatDevice::trapVoltsChecked(){
             mTrapVal = 0.9;
         }
         ui->leTimeout->setText(trapString);
+        ui->leTimeout->setToolTip("Trap value");
     } else {
         mTimeout = 0.0;
         ui->leTimeout->setText("10");
         mTrapVal = 500;
+        ui->leTimeout->setToolTip("Timeout (s)");
     }
 }
 
@@ -955,7 +959,7 @@ void HatDevice::checkStatus()
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
-    QString sStartTime, statString;
+    QString sStartTime, statString, itString;
     QFont goFont = ui->cmdGo->font();
     bool makeBold, loopStatus;
     bool trigWait, overrunDetected;
@@ -1083,6 +1087,9 @@ void HatDevice::checkStatus()
     makeBold = !ui->cmdGo->font().bold();
     goFont.setBold(makeBold);
     ui->cmdGo->setFont(goFont);
+    mTimerIteration += 1;
+    itString = QString("%1").arg(mTimerIteration);
+    ui->lblTimerIteration->setText(itString);
 }
 
 void HatDevice::stopScan()

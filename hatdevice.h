@@ -115,6 +115,7 @@ private:
     double mTimeout = 10;
     double mTrapVal = 1.5;
     bool mHaltAction = false;
+    long mTimerIteration = 0;
 
     QStringList mFuncHistoryList;
     int mHistListSize = 50;
