@@ -231,7 +231,17 @@ void HatDevice::setUiForFunction()
         break;
     }
     ui->fraScan->setVisible(scanVisible);
-    ui->chkVolts->setVisible(voltCheckVisible);
+    ui->chkVolts->setVisible(true); //voltCheckVisible
+    if(voltCheckVisible) {
+        ui->chkVolts->setText("Trap");
+        mTimeout = ui->leTimeout->text().toDouble();
+        ui->leTimeout->setText("0.9");
+        mTrapVal = 0.9;
+    } else {
+        ui->chkVolts->setText("Volts");
+        ui->leTimeout->setText("10");
+        mTimeout = 0.0;
+    }
     ui->fraCJC->setVisible(cjcCheckVisible);
     ui->fraChan->setVisible(cjcCheckVisible);
     ui->fraChanScan->setVisible(!cjcCheckVisible);
@@ -367,11 +377,14 @@ void HatDevice::goCmdClicked()
     parentWindow = qobject_cast<ChildWindow *>(this->parent());
     bool tmrIsEnabled;
 
+    mHaltAction = false;
     mTotalRead = 0;
     mAbort = false;
     tmrIsEnabled = parentWindow->tmrEnabled();
     mUseTimer = tmrIsEnabled;
     mTimerConfigured = tmrIsEnabled;
+    if(ui->chkVolts->isChecked())
+        mTrapVal = ui->leTimeout->text().toDouble();
     runSelectedFunction();
 }
 
@@ -523,14 +536,16 @@ void HatDevice::runAinFunction()
     }
 
     mRunning = false;
-    if(mPlot)
-        plotScan(0, 0, mTotalRead);
-    else {
-        mTextIndex = 0;
-        printData(0, 0, mTotalRead);
-    }
-    if(mTotalRead == mSamplesPerChan) {
-        mUseTimer = false;
+    if (!mHaltAction) {
+        if(mPlot)
+            plotScan(0, 0, mTotalRead);
+        else {
+            mTextIndex = 0;
+            printData(0, 0, mTotalRead);
+        }
+        if(mTotalRead == mSamplesPerChan) {
+            mUseTimer = false;
+        }
     }
 }
 
@@ -642,7 +657,10 @@ void HatDevice::runAInScanFunc()
             uint16_t status;
             double timeout;
             uint32_t sampsReadPerChan;
-            timeout = ui->leTimeout->text().toDouble();
+            if(mTimeout == 0.0)
+                timeout = ui->leTimeout->text().toDouble();
+            else
+                timeout = mTimeout;
             nameOfFunc = "118: AInScanRead";
             funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -691,11 +709,13 @@ void HatDevice::runAInScanFunc()
             }
             if(sampsReadPerChan) {
                 ui->lblStatus->setText(QString("%1 samples read  Status: %2").arg(sampsReadPerChan).arg(statString));
-                if(mPlot)
-                    plotScan(0, 0, sampsReadPerChan);
-                else {
-                    mTextIndex = 0;
-                    printData(0, 0, sampsReadPerChan);
+                if (!mHaltAction) {
+                    if(mPlot)
+                        plotScan(0, 0, sampsReadPerChan);
+                    else {
+                        mTextIndex = 0;
+                        printData(0, 0, sampsReadPerChan);
+                    }
                 }
             }
             stopScan();
@@ -840,7 +860,10 @@ void HatDevice::runAInScan172Func()
             uint16_t status;
             double timeout;
             uint32_t sampsReadPerChan;
-            timeout = ui->leTimeout->text().toDouble();
+            if(mTimeout == 0.0)
+                timeout = ui->leTimeout->text().toDouble();
+            else
+                timeout = mTimeout;
             nameOfFunc = "172: AInScanRead";
             funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -916,7 +939,10 @@ void HatDevice::checkStatus()
     uint16_t status;
     double timeout, readTime;
     uint32_t samplesPerChanRead, samplesAvailable;
-    timeout = ui->leTimeout->text().toDouble();
+    if(mTimeout == 0.0)
+        timeout = ui->leTimeout->text().toDouble();
+    else
+        timeout = mTimeout;
     overrunDetected = false;
     readTime = mBlockSize / mRateReturned;
     loopStatus = (readTime > 0.2);
@@ -1010,11 +1036,13 @@ void HatDevice::checkStatus()
     if(samplesPerChanRead) {
         mPlotSize = samplesPerChanRead;
         mTotalRead += samplesPerChanRead;
-        if(mPlot)
-            plotScan(0, 0, samplesPerChanRead);
-        else {
-            mTextIndex = 0;
-            printData(0, 0, samplesPerChanRead);
+        if (!mHaltAction) {
+            if(mPlot)
+                plotScan(0, 0, samplesPerChanRead);
+            else {
+                mTextIndex = 0;
+                printData(0, 0, samplesPerChanRead);
+            }
         }
     }
     mRunning = (status & STATUS_RUNNING);
@@ -1120,13 +1148,15 @@ void HatDevice::readBuffer()
 
         funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
         qApp->processEvents();
-        if(samplesPerChanRead) {
-            mPlotSize = samplesPerChanRead;
-            mTotalRead += samplesPerChanRead;
-            if(mPlot)
-                plotScan(0, 0, samplesPerChanRead);
-            else
-                printData(0, 0, samplesPerChanRead);
+        if (!mHaltAction) {
+            if(samplesPerChanRead) {
+                mPlotSize = samplesPerChanRead;
+                mTotalRead += samplesPerChanRead;
+                if(mPlot)
+                    plotScan(0, 0, samplesPerChanRead);
+                else
+                    printData(0, 0, samplesPerChanRead);
+            }
         }
     }
 }
@@ -1241,7 +1271,9 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
     int sampleNum = 0;
     int increment = 0;
     long long totalSamples;
+    bool checkValue;
 
+    checkValue = ui->chkVolts->isChecked();
     totalSamples = mChanCount * ui->leNumSamples->text().toLong();
 
     for (int y = 0; y < blockSize; y++) {
@@ -1255,6 +1287,9 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
         for (int chan = 0; chan < mChanCount; chan++) {
             yChans[chan][y] = buffer[curScan + chan];
             sampleNum++;
+            if(checkValue)
+                if ((yChans[chan][y] > mTrapVal) | (yChans[chan][y] < mTrapVal))
+                    mHaltAction = true;
        }
         increment +=mChanCount;
     }

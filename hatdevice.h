@@ -111,6 +111,9 @@ private:
     int32_t mBlockSize = 0;
     long long mBufSize = 0;
     long long mFinalCount = 0;
+    double mTimeout = 10;
+    double mTrapVal = 1.5;
+    bool mHaltAction = false;
 
     QStringList mFuncHistoryList;
     int mHistListSize = 50;
