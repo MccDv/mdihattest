@@ -45,7 +45,7 @@ HatDevice::HatDevice(QWidget *parent) :
     //connect(tmrBGResultRead, SIGNAL(timeout()), this, SLOT(runBackgrndResult()));
     connect(ui->cmdGo, SIGNAL(clicked(bool)), this, SLOT(goCmdClicked()));
     connect(ui->cmdStop, SIGNAL(clicked(bool)), this, SLOT(stopCmdClicked()));
-    connect(ui->chkVolts, SIGNAL(clicked(bool)), this, SLOT());
+    connect(ui->chkVolts, SIGNAL(clicked(bool)), this, SLOT(trapVoltsChecked()));
 
     connect(ui->AiPlot->xAxis, SIGNAL(rangeChanged(QCPRange)),
             ui->AiPlot->xAxis2, SLOT(setRange(QCPRange)));
