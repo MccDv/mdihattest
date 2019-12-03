@@ -236,7 +236,7 @@ void HatDevice::setUiForFunction()
     if(!voltCheckVisible) {
         ui->chkVolts->setText("Trap");
         mTimeout = 10.0;
-        ui->leTimeout->setText("0.9");
+        //ui->leTimeout->setText("0.9");
         mTrapVal = 0.9;
     } else {
         ui->chkVolts->setText("Volts");
@@ -397,10 +397,17 @@ void HatDevice::stopCmdClicked()
 
 void HatDevice::trapVoltsChecked(){
 
+    QString trapString;
+
     if (ui->chkVolts->isChecked()) {
         mTimeout = 10.0;
-        ui->leTimeout->setText("0.9");
-        mTrapVal = 0.9;
+        if (mTrapVal < 500)
+            trapString = QString("%1").arg(mTrapVal);
+        else {
+            trapString = "0.9";
+            mTrapVal = 0.9;
+        }
+        ui->leTimeout->setText(trapString);
     } else {
         mTimeout = 0.0;
         ui->leTimeout->setText("10");
