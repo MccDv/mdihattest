@@ -39,8 +39,11 @@ HatDevice::HatDevice(QWidget *parent) :
     ui->lblBufferSize->setFont(QFont ("Courier", 8));
     ui->lblBufferSize->setStyleSheet("QLabel { background-color : white; color : grey; }" );
     ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
+    ui->lblStatus->setFont(QFont ("Courier", 8));
     ui->lblInfo->setStyleSheet("QLabel { color : blue; }" );
+    ui->lblInfo->setFont(QFont ("Courier", 8));
     ui->lblTimerIteration->setStyleSheet("QLabel { color : blue; }" );
+    ui->lblTimerIteration->setFont(QFont ("Courier", 8));
 
     connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(checkStatus()));
     //connect(tmrBGResultRead, SIGNAL(timeout()), this, SLOT(runBackgrndResult()));
