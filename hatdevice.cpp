@@ -232,7 +232,7 @@ void HatDevice::setUiForFunction()
     }
     ui->fraScan->setVisible(scanVisible);
     ui->chkVolts->setVisible(true); //voltCheckVisible
-    if(voltCheckVisible) {
+    if(!voltCheckVisible) {
         ui->chkVolts->setText("Trap");
         mTimeout = ui->leTimeout->text().toDouble();
         ui->leTimeout->setText("0.9");
