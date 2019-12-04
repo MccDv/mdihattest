@@ -1462,7 +1462,7 @@ void HatDevice::updateData()
     }
     dataText.append("</td></tr>");
     ui->teShowValues->setHtml(dataText);
-    if (mTextIndex >= (blockSize * mChanCount))
+    if (mTextIndex >= blockSize)
         mTextIndex = 0;
     else
         ui->teShowValues->append("... (F6)");
