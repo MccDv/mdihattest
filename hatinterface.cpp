@@ -1255,6 +1255,10 @@ void HatInterface::updateAppStatus(UtFunctionGroup funcGroup, QString statusText
     mMainWindow->setStatusLabel(groupName + ": " +  statusText);
 }
 
+void HatInterface::updatePlotMenu(bool plotEnabled)
+{
+    mMainWindow->setPlotChecked(plotEnabled);
+}
 
 #ifdef HAT_03
 

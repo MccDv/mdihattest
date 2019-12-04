@@ -105,6 +105,7 @@ public:
     void removeFromMenu(uint8_t address);
     void reportResult(int response, QString description);
     void updateAppStatus(UtFunctionGroup funcGroup, QString statusText);
+    void updatePlotMenu(bool plotEnabled);
 
 private:
     MainWindow *mMainWindow;

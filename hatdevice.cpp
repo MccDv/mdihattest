@@ -1230,6 +1230,7 @@ void HatDevice::showPlotWindow(bool showIt)
             printData(0, 0, mTotalRead);
         }
     }
+    hatInterface->updatePlotMenu(showIt);
 }
 
 void HatDevice::setupPlot(QCustomPlot *dataPlot, int chanCount)

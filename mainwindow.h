@@ -17,6 +17,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     Q_PROPERTY(QHash<uint8_t, QString> hatList READ hatList WRITE setHatList NOTIFY hatListChanged)
     Q_PROPERTY(QHash<uint8_t, uint16_t> hatIDList READ hatIDList WRITE setHatIDList NOTIFY hatIDListChanged)
+    Q_PROPERTY(bool plotChecked READ plotChecked WRITE setPlotChecked NOTIFY plotCheckedChanged)
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -35,8 +36,15 @@ public:
         emit hatIDListChanged(hatIDList);
     }
 
+    void setPlotChecked(bool trueFalse)
+    {
+        mPlotIsChecked = trueFalse;
+        emit plotCheckedChanged(trueFalse);
+    }
+
     QHash<uint8_t, QString> hatList() { return mHatList; }
     QHash<uint8_t, uint16_t> hatIDList() { return mHatIDList; }
+    bool plotChecked() { return mPlotIsChecked; }
 
     void addFunction(QString funcString);
     void setError(int curError, QString funcText);
@@ -92,6 +100,7 @@ private:
     QStringList mFuncHistoryList;
     int mHistListSize;
     bool mAutoConnect;
+    bool mPlotIsChecked;
 
     void createFuncMenus();
     void readWindowPosition();
@@ -104,6 +113,7 @@ private:
 signals:
     void hatListChanged(QHash<uint8_t, QString>);
     void hatIDListChanged(QHash<uint8_t, uint16_t>);
+    void plotCheckedChanged(bool);
 };
 
 #endif // MAINWINDOW_H
