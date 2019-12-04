@@ -259,6 +259,7 @@ void HatDevice::setUiForFunction()
     ui->leBlockSize->setToolTip(blockToolTip);
     //ui->cmdStop->setEnabled(false);
     showPlotWindow(mPlot);
+    hatInterface->updatePlotMenu(mPlot);
     this->setWindowTitle(mFuncName + ": " + mDevName);
 }
 

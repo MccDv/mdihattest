@@ -72,6 +72,7 @@ private slots:
     void showPlot(bool showIt);
     void configureQueue();
     void setTimer();
+    void updatePlotMenu(bool enabled);
 
 private:
     Ui::MainWindow *ui;

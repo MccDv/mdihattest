@@ -80,6 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionNOCALIBRATEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
     connect(ui->actionNOSCALEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
     connect(ui->actionBACKGROUND, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
+    connect(this, SIGNAL(plotCheckedChanged(bool)), this, SLOT(updatePlotMenu(bool)));
 
     mHatList.clear();
 
@@ -901,3 +902,7 @@ void MainWindow::writeWindowPosition()
     windowSettings.endGroup();
 }
 
+void MainWindow::updatePlotMenu(bool enabled)
+{
+    ui->menuPlot->setProperty("checked", enabled);
+}
