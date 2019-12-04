@@ -1432,7 +1432,7 @@ void HatDevice::updateData()
     double curSample;
 
     //blockSize = 1000;
-    blockSize = mSamplesPerChan;
+    blockSize = mSamplesPerChan * mChanCount;
     if (!buffer)
         return;
     floatValue = (!(mScanOptions & OPTS_NOSCALEDATA));
