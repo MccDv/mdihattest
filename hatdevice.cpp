@@ -1331,10 +1331,10 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
             increment = 0;
         }
         xData[y] = currentCount + sampleNum;
+        diffSamp = y + mChanCount;
         for (int chan = 0; chan < mChanCount; chan++) {
             if(checkValue) {
                 //trap differential outside value
-                diffSamp = y + mChanCount;
                 if(diffSamp < blockSize) {
                     diffValue = buffer[curScan + chan + diffSamp] - buffer[curScan + chan];
                 }
@@ -1381,10 +1381,12 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
     int curScan, samplesToPrint, sampleLimit, totalSamps;
     //int sampleNum = 0;
     int increment = 0;
-    int prec;
+    int prec, diffSamp;
     bool floatValue, intValue;
     long long samplePerChanel = mChanCount * ui->leNumSamples->text().toLongLong();;
     //ui->textEdit->setText(QString("Chans: %1, perChan: %2").arg(mChanCount).arg(samplePerChanel));
+    bool checkValue;
+    double diffValue = 0.0;
 
     (void)currentCount;
     if(!buffer)
@@ -1404,6 +1406,7 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
 
     totalSamps = mSamplesPerChan;
     ui->teShowValues->clear();
+    checkValue = ui->chkVolts->isChecked();
     dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
     sampleLimit = mRunning? 100 : 1000 / mChanCount;
     samplesToPrint = blockSize < sampleLimit? blockSize : sampleLimit;
@@ -1418,8 +1421,21 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
             //sampleNum = 0;
         }
         dataText.append("<td>" + str.setNum(increment) + "</td>");
+        diffSamp = y + mChanCount;
         for (int chan = 0; chan < mChanCount; chan++) {
-            curSample = buffer[increment + chan];
+            if(checkValue) {
+                //trap differential outside value
+                if(diffSamp < blockSize) {
+                    diffValue = buffer[curScan + chan + diffSamp] - buffer[curScan + chan];
+                }
+                if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
+                    mHaltAction = true;
+                    mUseTimer = false;
+                }
+                curSample = diffValue;
+            } else
+                curSample = buffer[increment + chan];
+
             if (floatValue) {
                 val = QString("%1%2").arg((curSample < 0) ? "" : "+")
                         .arg(curSample, 2, 'f', prec, '0');
