@@ -1331,7 +1331,7 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
             increment = 0;
         }
         xData[y] = currentCount + sampleNum;
-        diffSamp = y + mChanCount;
+        diffSamp = mChanCount;
         for (int chan = 0; chan < mChanCount; chan++) {
             if(checkValue) {
                 //trap differential outside value
@@ -1421,7 +1421,7 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
             //sampleNum = 0;
         }
         dataText.append("<td>" + str.setNum(increment) + "</td>");
-        diffSamp = y + mChanCount;
+        diffSamp = mChanCount;
         for (int chan = 0; chan < mChanCount; chan++) {
             if(checkValue) {
                 //trap differential outside value
@@ -1433,12 +1433,6 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
                     mUseTimer = false;
                 }
                 curSample = diffValue;
-                if (floatValue) {
-                    val = QString("%1%2").arg((curSample < 0) ? "" : "+")
-                            .arg(curSample, 2, 'f', prec, '0');
-                } else {
-                    val = QString("%1").arg(curSample, 0, 'f', prec);
-                }
             } else
                 curSample = buffer[increment + chan];
 
