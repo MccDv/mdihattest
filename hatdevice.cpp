@@ -1466,6 +1466,9 @@ void HatDevice::updateData()
     int increment = mTextIndex;
     int samplesToPrint, sampleLimit, blockSize;
     double curSample;
+    double diffValue = 0.0;
+    int diffSamp = 0;
+    bool checkValue;
 
     //blockSize = 1000;
     blockSize = mSamplesPerChan * mChanCount;
@@ -1480,11 +1483,24 @@ void HatDevice::updateData()
     if (((samplesToPrint * mChanCount) + mTextIndex) > (blockSize))
         samplesToPrint = (blockSize) - (mTextIndex / mChanCount);
     ui->teShowValues->clear();
+    checkValue = ui->chkVolts->isChecked();
     dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
     for (int y = 0; y < samplesToPrint; y++) {
         dataText.append("<td>" + str.setNum(increment) + "</td>");
         for (int chan = 0; chan < mChanCount; chan++) {
-            curSample = buffer[increment + chan];
+            if(checkValue) {
+                //trap differential outside value
+                if((y + diffSamp) < samplesToPrint) {
+                    diffValue = buffer[increment + chan + diffSamp] - buffer[increment + chan];
+                }
+                if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
+                    mHaltAction = true;
+                    mUseTimer = false;
+                }
+                curSample = diffValue;
+            } else
+                curSample = buffer[increment + chan];
+
             if (floatValue)
                 val = QString("%1%2").arg((curSample < 0) ? "" : "+")
                         .arg(curSample, 2, 'f', 5, '0');
