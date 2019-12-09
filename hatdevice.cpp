@@ -1335,7 +1335,7 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
             if(checkValue) {
                 //trap differential outside value
                 diffSamp = y + mChanCount;
-                if(!(diffSamp < blockSize)) {
+                if(diffSamp < blockSize) {
                     diffValue = buffer[curScan + chan + diffSamp] - buffer[curScan + chan];
                 }
                 if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
