@@ -1313,11 +1313,12 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
         yChans[chan].resize(blockSize);
 
     int curScan, plotData, curChanCount;
-    int listIndex;
+    int listIndex, diffSamp;
     int sampleNum = 0;
     int increment = 0;
     long long totalSamples;
     bool checkValue;
+    double diffValue = 0.0;
 
     checkValue = ui->chkVolts->isChecked();
     totalSamples = mChanCount * ui->leNumSamples->text().toLong();
@@ -1331,13 +1332,28 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
         }
         xData[y] = currentCount + sampleNum;
         for (int chan = 0; chan < mChanCount; chan++) {
-            yChans[chan][y] = buffer[curScan + chan];
+            if(checkValue) {
+                //trap differential outside value
+                diffSamp = y + mChanCount;
+                if(!(diffSamp < blockSize)) {
+                    diffValue = buffer[curScan + chan + diffSamp] - buffer[curScan + chan];
+                }
+                if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
+                    mHaltAction = true;
+                    mUseTimer = false;
+                }
+                yChans[chan][y] = diffValue;
+            } else
+                yChans[chan][y] = buffer[curScan + chan];
             sampleNum++;
+            /*
             if(checkValue)
+                //trap value outside range
                 if ((yChans[chan][y] > mTrapVal) | (yChans[chan][y] < (mTrapVal * -1))) {
                     mHaltAction = true;
                     mUseTimer = false;
                 }
+            */
        }
         increment +=mChanCount;
     }
