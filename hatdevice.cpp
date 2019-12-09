@@ -44,6 +44,8 @@ HatDevice::HatDevice(QWidget *parent) :
     ui->lblInfo->setFont(QFont ("Courier", 8));
     ui->lblTimerIteration->setStyleSheet("QLabel { color : blue; }" );
     ui->lblTimerIteration->setFont(QFont ("Courier", 8));
+    ui->leTimeout->setFont(QFont ("Courier", 8));
+    ui->leBlockSize->setFont(QFont ("Courier", 8));
 
     connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(checkStatus()));
     //connect(tmrBGResultRead, SIGNAL(timeout()), this, SLOT(runBackgrndResult()));
@@ -1425,7 +1427,7 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
         for (int chan = 0; chan < mChanCount; chan++) {
             if(checkValue) {
                 //trap differential outside value
-                if((y + diffSamp) < blockSize) {
+                if((y + diffSamp) < samplesToPrint) {
                     diffValue = buffer[increment + chan + diffSamp] - buffer[increment + chan];
                 }
                 if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
