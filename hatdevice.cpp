@@ -1426,13 +1426,19 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
             if(checkValue) {
                 //trap differential outside value
                 if(diffSamp < blockSize) {
-                    diffValue = buffer[curScan + chan + diffSamp] - buffer[curScan + chan];
+                    diffValue = buffer[increment + chan + diffSamp] - buffer[increment + chan];
                 }
                 if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
                     mHaltAction = true;
                     mUseTimer = false;
                 }
                 curSample = diffValue;
+                if (floatValue) {
+                    val = QString("%1%2").arg((curSample < 0) ? "" : "+")
+                            .arg(curSample, 2, 'f', prec, '0');
+                } else {
+                    val = QString("%1").arg(curSample, 0, 'f', prec);
+                }
             } else
                 curSample = buffer[increment + chan];
 
