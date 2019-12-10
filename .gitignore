@@ -4,3 +4,4 @@ mdihattest
 moc_*
 ui_*
 *.stash
+Makefile
