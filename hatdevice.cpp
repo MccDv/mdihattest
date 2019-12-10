@@ -1427,9 +1427,9 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
         for (int chan = 0; chan < mChanCount; chan++) {
             if(checkValue) {
                 //trap differential outside value
-                if((y + diffSamp) < samplesToPrint) {
+                //if((y + diffSamp) < samplesToPrint) {
                     diffValue = buffer[increment + chan + diffSamp] - buffer[increment + chan];
-                }
+                //}
                 if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
                     mHaltAction = true;
                     mUseTimer = false;
@@ -1487,12 +1487,13 @@ void HatDevice::updateData()
     dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
     for (int y = 0; y < samplesToPrint; y++) {
         dataText.append("<td>" + str.setNum(increment) + "</td>");
+        diffSamp = mChanCount;
         for (int chan = 0; chan < mChanCount; chan++) {
             if(checkValue) {
                 //trap differential outside value
-                if((y + diffSamp) < samplesToPrint) {
+                //if((y + diffSamp) < samplesToPrint) {
                     diffValue = buffer[increment + chan + diffSamp] - buffer[increment + chan];
-                }
+                //}
                 if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
                     mHaltAction = true;
                     mUseTimer = false;
