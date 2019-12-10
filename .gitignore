@@ -1,2 +1,6 @@
 mdihattest.pro.user
 mdihattest
+*.o
+moc_*
+ui_*
+*.stash
