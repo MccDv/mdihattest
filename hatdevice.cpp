@@ -208,11 +208,13 @@ void HatDevice::setUiForFunction()
     intervalSetVisible = false;
     scanParamsVisible = false;
     blockToolTip = "Block size";
+    disconnect(tmrGoTimer, SIGNAL(timeout()));
 
     switch (mCurFunction) {
     case UL_AIN:
         mFuncName = "ulAIn";
         ui->leNumSamples->setText("10");
+        connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
         break;
     case UL_TIN:
         mFuncName = "ulTIn";
@@ -235,6 +237,7 @@ void HatDevice::setUiForFunction()
         ui->leRate->setText("1000");
         ui->leNumSamples->setText("1000");
         ui->leBlockSize->setText("1000");
+        connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(checkStatus()));
         break;
     default:
         break;
