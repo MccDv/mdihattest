@@ -227,6 +227,7 @@ void HatDevice::setUiForFunction()
         intervalSetVisible = true;
         blockToolTip = "Interval";
         checkCurTcConfig(false);
+        connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
         break;
     case UL_AINSCAN:
         mFuncName = "ulAInScan";
@@ -809,7 +810,7 @@ void HatDevice::runAInScan172Func()
 
     mSamplesPerChan = ui->leNumSamples->text().toLong();
     double rate = ui->leRate->text().toDouble();
-    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, SOURCE_LOCAL, ALIAS_NORMAL, rate);
+    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, SOURCE_LOCAL, rate);
     ui->lblInfo->setText(hatInterface->getStatus());
     if(mResponse != RESULT_SUCCESS)
         return;

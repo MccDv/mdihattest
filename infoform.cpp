@@ -560,13 +560,12 @@ void InfoForm::readScanParams()
 void InfoForm::writeScanParams()
 {
     QString sourceName;
-    uint8_t source, alias;
+    uint8_t source;
     double rate;
 
     rate = ui->leSlope->text().toDouble();
     source = ui->cmbTcType->currentData().toUInt();
-    alias = 0;  //ALIAS_NORMAL
-    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, source, alias, rate);
+    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, source, rate);
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {

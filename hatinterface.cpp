@@ -1162,15 +1162,13 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
 #ifdef HAT_05
     case HAT_ID_MCC_172:
         nameOfFunc = hatName.append(": ainClockConfigRead");
-        funcArgs = "(mAddress, source, aliasMode, rate, &sync)\n";
+        funcArgs = "(mAddress, source, rate, &sync)\n";
         sourceReturned = SOURCE_LOCAL;
-        alias_mode = ALIAS_NORMAL;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &alias_mode, &rateReturned, &sync);
+        mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &rateReturned, &sync);
         argVals = QStringLiteral("(%1, %2, %3, %4, %5)")
                 .arg(address)
                 .arg(sourceReturned)
-                .arg(alias_mode)
                 .arg(rateReturned)
                 .arg(sync);
         break;
@@ -2638,7 +2636,7 @@ int HatInterface::disableCallback()
 
 #ifdef HAT_05
 
-int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, uint8_t alias_mode, double rate)
+int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
@@ -2651,17 +2649,16 @@ int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t
     switch (devType) {
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc172_a_in_clock_config_write(address, source, alias_mode, rate);
+        mResponse = mcc172_a_in_clock_config_write(address, source, rate);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
         break;
     }
-    argVals = QStringLiteral("(%1, %2, %3, %4)")
+    argVals = QStringLiteral("(%1, %2, %3)")
             .arg(address)
             .arg(source)
-            .arg(alias_mode)
             .arg(rate);
     mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
 
@@ -2782,12 +2779,11 @@ int HatInterface::writeTestSignals(uint16_t devType, uint8_t address, uint8_t mo
 
 #else
 
-int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, uint8_t alias_mode, double rate)
+int HatInterface::ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate)
 {
     (void)devType;
     (void)address;
     (void)source;
-    (void)alias_mode;
     (void)rate;
     return RESULT_INVALID_DEVICE;
 }

@@ -90,7 +90,7 @@ public:
     int dioIntStatusPort(uint16_t devType, uint8_t address, uint8_t &value);
 
     //int ainClockConfigRead(uint16_t devType, uint8_t address, uint8_t &source, double &rate, uint8_t &value);
-    int ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, uint8_t alias_mode, double rate);
+    int ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate);
     int iepeConfigRead(uint16_t devType, uint8_t address, uint8_t channel, uint8_t &value);
     int iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t channel, uint8_t value);
     int readTestSignals(uint16_t devType, uint8_t address, uint8_t &clock, uint8_t &sync, uint8_t &trig);
