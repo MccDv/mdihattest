@@ -686,9 +686,9 @@ void HatDevice::runAInScanFunc()
     if (mResponse!=RESULT_SUCCESS) {
         mStatusTimerEnabled = false;
     } else {
-        uint8_t source, value, alias;
+        uint8_t source, value;
         mRunning = true;
-        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, alias, rate, value);
+        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, rate, value);
         mRateReturned = rate;
         ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
         mResponse = hatInterface->getBufferSize(mHatID, mAddress, bufferSize);
@@ -849,9 +849,8 @@ void HatDevice::runAInScan172Func()
 
     uint8_t source;
     uint8_t value;
-    uint8_t alias;
     //mResponse = hatInterface->ainClockConfigRead(mHatID, mAddress, source, mRateReturned, value);
-    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, alias, mRateReturned, value);
+    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, mRateReturned, value);
     ui->lblInfo->setText(hatInterface->getStatus());
     if(mResponse != RESULT_SUCCESS)
         return;

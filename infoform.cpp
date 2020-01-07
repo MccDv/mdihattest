@@ -509,7 +509,7 @@ void InfoForm::readIntStatus()
 void InfoForm::readScanParams()
 {
     QString sourceName;
-    uint8_t chanCount, source, alias, sync;
+    uint8_t chanCount, source, sync;
     uint32_t bufferSize;
     double rateReturned;
 
@@ -539,15 +539,13 @@ void InfoForm::readScanParams()
 
     chanCount = ui->spnCalChan->value();
     rateReturned = ui->leSlope->text().toDouble();
-    alias = 0;
-    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, alias, rateReturned, sync);
+    mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {
-        ui->teShowValues->append(QString("\nActual scan rate: %1 (if 172, source = %2, alias = %3, sync = %4)")
+        ui->teShowValues->append(QString("\nActual scan rate: %1 (if 172, source = %2, sync = %3)")
                                  .arg(rateReturned)
                                  .arg(sourceName)
-                                 .arg(alias)
                                  .arg(sync));
         ui->leSlope->setText(QString("%1").arg(rateReturned));
     } else {

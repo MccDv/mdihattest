@@ -84,7 +84,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mHatList.clear();
 
-#ifdef HAT_04
+#ifdef HAT_05
+    this->setWindowTitle("MCC HAT Test [0.5]");
+    ui->cmdAOut->setEnabled(true);
+    ui->cmdDIn->setEnabled(true);
+    ui->cmdDOut->setEnabled(true);
+    ui->cmdMisc->setEnabled(true);
+#elif HAT_04
     this->setWindowTitle("MCC HAT Test [0.4]");
     ui->cmdAOut->setEnabled(true);
     ui->cmdDIn->setEnabled(true);

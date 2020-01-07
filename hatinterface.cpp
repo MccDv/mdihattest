@@ -1132,20 +1132,18 @@ int HatInterface::getBufferSize(uint16_t devType, uint8_t address, uint32_t &buf
 }
 
 int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_t chanCount,
-                                       uint8_t &source, uint8_t &aliasMode, double &rate, uint8_t &value)
+                                       uint8_t &source, double &rate, uint8_t &value)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime;
     uint8_t sync = 0;
     uint8_t sourceReturned;
-    uint8_t alias_mode;
     double rateReturned = 0.0;
     QString hatName;
 
     hatName = getHatTypeName(devType);
     sourceReturned = 0;
-    alias_mode = 0;
     sync = 0;
     switch (devType) {
     case HAT_ID_MCC_118:
@@ -1186,7 +1184,6 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
     funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
     reportResult(mResponse, sStartTime + funcStr);
     source = sourceReturned;
-    aliasMode = alias_mode;
     rate = rateReturned;
     value = sync;
     return mResponse;
