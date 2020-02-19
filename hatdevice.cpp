@@ -979,7 +979,8 @@ void HatDevice::checkStatus()
     bool trigWait, overrunDetected;
 
     uint16_t status;
-    double timeout, readTime;
+    double timeout;
+    //double readTime;
     uint32_t samplesPerChanRead, samplesAvailable;
 
     if (mHaltAction)
@@ -993,8 +994,8 @@ void HatDevice::checkStatus()
     ui->lblTimerIteration->setText(itString);
 
     overrunDetected = false;
-    readTime = mBlockSize / mRateReturned;
-    loopStatus = (readTime > 0.2);
+    //readTime = mBlockSize / mRateReturned;
+    loopStatus = false; //(readTime > 0.2);
 
     //check if the scan is triggered - if not, wait here
     if(loopStatus | ((mScanOptions & OPTS_EXTTRIGGER) && !mTriggered)) {
@@ -1046,6 +1047,7 @@ void HatDevice::checkStatus()
 #ifdef HAT_05
         case HAT_ID_MCC_172:
             nameOfFunc = "172: AInScanRead2";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             mResponse = mcc172_a_in_scan_read(mAddress, &status, mBlockSize,
                 timeout, buffer, mBufSize, &samplesPerChanRead);
             break;
