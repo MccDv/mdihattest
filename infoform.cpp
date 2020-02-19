@@ -508,12 +508,13 @@ void InfoForm::readIntStatus()
 
 void InfoForm::readScanParams()
 {
-    QString sourceName;
+    QString sourceName, mcc172Args;
     uint8_t chanCount, source, sync;
     uint32_t bufferSize;
     double rateReturned;
 
     int numChans = 0;
+    mcc172Args = "";
 
     numChans = hatInterface->aInScanChanCount(mHatID, mAddress);
     if(numChans)
@@ -543,10 +544,10 @@ void InfoForm::readScanParams()
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {
-        ui->teShowValues->append(QString("\nActual scan rate: %1 (if 172, source = %2, sync = %3)")
-                                 .arg(rateReturned)
-                                 .arg(sourceName)
-                                 .arg(sync));
+        if (mHatID == 0x0145) //172
+            mcc172Args = QString(", source = %2, sync = %3").arg(sourceName).arg(sync);
+        ui->teShowValues->append(QString("\nActual scan rate: %1")
+                                 .arg(rateReturned) + mcc172Args);
         ui->leSlope->setText(QString("%1").arg(rateReturned));
     } else {
         QString errText;

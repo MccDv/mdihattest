@@ -1164,7 +1164,7 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
         sourceReturned = SOURCE_LOCAL;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_a_in_clock_config_read(address, &sourceReturned, &rateReturned, &sync);
-        argVals = QStringLiteral("(%1, %2, %3, %4, %5)")
+        argVals = QStringLiteral("(%1, %2, %3, %4)")
                 .arg(address)
                 .arg(sourceReturned)
                 .arg(rateReturned)
