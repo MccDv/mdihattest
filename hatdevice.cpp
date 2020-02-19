@@ -208,13 +208,13 @@ void HatDevice::setUiForFunction()
     intervalSetVisible = false;
     scanParamsVisible = false;
     blockToolTip = "Block size";
-    disconnect(tmrGoTimer, SIGNAL(timeout()));
+    //disconnect(tmrGoTimer, SIGNAL(timeout()));
 
     switch (mCurFunction) {
     case UL_AIN:
         mFuncName = "ulAIn";
         ui->leNumSamples->setText("10");
-        connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
+        //connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
         break;
     case UL_TIN:
         mFuncName = "ulTIn";
@@ -227,7 +227,7 @@ void HatDevice::setUiForFunction()
         intervalSetVisible = true;
         blockToolTip = "Interval";
         checkCurTcConfig(false);
-        connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
+        //connect(tmrGoTimer, SIGNAL(timeout()), this, SLOT(runSelectedFunction()));
         break;
     case UL_AINSCAN:
         mFuncName = "ulAInScan";
@@ -1197,6 +1197,7 @@ void HatDevice::readBuffer()
                              mOptNames + QString(" [Error = %1]").arg(mResponse));
 
         funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+        hatInterface->reportResult(mResponse, sStartTime + funcStr);
         qApp->processEvents();
         if (!mHaltAction) {
             if(samplesPerChanRead) {
