@@ -906,7 +906,7 @@ void HatDevice::runAInScan172Func()
                 timeout = ui->leTimeout->text().toDouble();
             else
                 timeout = mTimeout;
-            nameOfFunc = "172: AInScanRead1";
+            nameOfFunc = "172: AInScanRead";
             funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             do {
@@ -1046,7 +1046,7 @@ void HatDevice::checkStatus()
             break;
 #ifdef HAT_05
         case HAT_ID_MCC_172:
-            nameOfFunc = "172: AInScanRead2";
+            nameOfFunc = "172: AInScanRead";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             mResponse = mcc172_a_in_scan_read(mAddress, &status, mBlockSize,
                 timeout, buffer, mBufSize, &samplesPerChanRead);
@@ -1122,6 +1122,7 @@ void HatDevice::stopScan()
     mStatusTimerEnabled = false;
     if (mResponse == RESULT_SUCCESS) {
         delay(200);
+        mRunning = false;
         runReadScanStatus();
     }
 }
@@ -1168,7 +1169,7 @@ void HatDevice::readBuffer()
     mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
     ui->lblInfo->setText(hatInterface->getStatus());
     statString = getStatusText(status);
-    ui->lblStatus->setText(QString("Total samples read: %1  Status: %2   [Current options: %3]")
+    ui->lblStatus->setText(QString("Total samples read3: %1  Status: %2   [Current options: %3]")
                            .arg(mTotalRead).arg(statString).arg(mOptNames));
     if(samplesAvailable > 0) {
         //checkStatus();
@@ -1182,7 +1183,7 @@ void HatDevice::readBuffer()
             break;
 #ifdef HAT_05
         case HAT_ID_MCC_172:
-            nameOfFunc = "172: AInScanRead3";
+            nameOfFunc = "172: AInScanRead";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             mResponse = mcc172_a_in_scan_read(mAddress, &status, mBlockSize,
                 timeout, buffer, mBufSize, &samplesPerChanRead);
