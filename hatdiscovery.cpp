@@ -131,7 +131,7 @@ void HatDiscovery::showBoardParameters()
     ui->textEdit->setText(QString("Index %1").arg(mDevIndex));
     ui->textEdit->append(QString("Address: %1").arg(address));
     ui->textEdit->append(QString("ID: %1").arg(hatInfoList[mDevIndex].id));
-    ui->textEdit->append(QString("Version: %1\n").arg(hatInfoList[mDevIndex].version));
+    ui->textEdit->append(QString("HW Version: %1\n").arg(hatInfoList[mDevIndex].version));
 
     devId = hatInfoList[mDevIndex].id;
     switch (devId) {
@@ -159,7 +159,7 @@ void HatDiscovery::showBoardParameters()
         ui->lblInfo->setText(hatInterface->getStatus());
 
         if(mResponse == RESULT_SUCCESS) {
-            ui->textEdit->append(QString("Version %1.%2").arg((version) >> 8, 1, 16)
+            ui->textEdit->append(QString("FW Version %1.%2").arg((version) >> 8, 1, 16)
                                  .arg((uint8_t)version, 2, 16, QChar('0')));
             ui->textEdit->append(QString("Boot %1.%2").arg(boot >> 8, 1, 16, QChar('0'))
                                  .arg((uint8_t)boot, 2, 16, QChar('0')));
