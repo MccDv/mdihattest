@@ -906,7 +906,7 @@ void HatDevice::runAInScan172Func()
                 timeout = ui->leTimeout->text().toDouble();
             else
                 timeout = mTimeout;
-            nameOfFunc = "172: AInScanRead";
+            nameOfFunc = "172: AInScanRead1";
             funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             do {
@@ -1045,7 +1045,7 @@ void HatDevice::checkStatus()
             break;
 #ifdef HAT_05
         case HAT_ID_MCC_172:
-            nameOfFunc = "172: AInScanRead";
+            nameOfFunc = "172: AInScanRead2";
             mResponse = mcc172_a_in_scan_read(mAddress, &status, mBlockSize,
                 timeout, buffer, mBufSize, &samplesPerChanRead);
             break;
@@ -1180,7 +1180,7 @@ void HatDevice::readBuffer()
             break;
 #ifdef HAT_05
         case HAT_ID_MCC_172:
-            nameOfFunc = "172: AInScanRead";
+            nameOfFunc = "172: AInScanRead3";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             mResponse = mcc172_a_in_scan_read(mAddress, &status, mBlockSize,
                 timeout, buffer, mBufSize, &samplesPerChanRead);
