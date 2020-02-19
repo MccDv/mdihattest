@@ -985,6 +985,8 @@ void HatDevice::checkStatus()
 
     if (mHaltAction)
         return;
+    if (!mStatusTimerEnabled)
+        return;
     if(mTimeout == 0.0)
         timeout = ui->leTimeout->text().toDouble();
     else
@@ -1096,8 +1098,8 @@ void HatDevice::checkStatus()
     if(samplesAvailable) {
         mPlotSize = samplesPerChanRead;
         mTotalRead += samplesPerChanRead;
-        funcStr = QString("spc: %1, total: %2").arg(samplesPerChanRead).arg(mTotalRead);
-        hatInterface->reportResult(mResponse, sStartTime + funcStr);
+        //funcStr = QString("spc: %1, total: %2").arg(samplesAvailable).arg(mTotalRead);
+        //hatInterface->reportResult(mResponse, sStartTime + funcStr);
         if (!mHaltAction) {
             if(mPlot)
                 plotScan(0, 0, samplesPerChanRead);
@@ -1150,7 +1152,6 @@ void HatDevice::runReadScanStatus()
     ui->lblStatus->setText(QString("Total samples read: %1  Status: %2   [Current options: %3]")
                            .arg(mTotalRead).arg(statString).arg(mOptNames));
 
-    return;
     if(samplesAvailable) {
         mBlockSize = -1;
         checkStatus();
