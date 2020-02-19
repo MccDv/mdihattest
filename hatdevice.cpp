@@ -997,6 +997,15 @@ void HatDevice::checkStatus()
     //readTime = mBlockSize / mRateReturned;
     loopStatus = false; //(readTime > 0.2);
 
+    mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
+    mTriggered = (status & STATUS_TRIGGERED);
+    if (mResponse!=RESULT_SUCCESS) {
+        //mMainWindow->setError(mResponse, sStartTime + funcStr);
+        trigWait = false;
+        //stopScan();
+        //return;
+    }
+
     //check if the scan is triggered - if not, wait here
     if(loopStatus | ((mScanOptions & OPTS_EXTTRIGGER) && !mTriggered)) {
         do {
@@ -1084,9 +1093,11 @@ void HatDevice::checkStatus()
         }
     }
 
-    if(samplesPerChanRead) {
+    if(samplesAvailable) {
         mPlotSize = samplesPerChanRead;
         mTotalRead += samplesPerChanRead;
+        funcStr = QString("spc: %1, total: %2").arg(samplesPerChanRead).arg(mTotalRead);
+        hatInterface->reportResult(mResponse, sStartTime + funcStr);
         if (!mHaltAction) {
             if(mPlot)
                 plotScan(0, 0, samplesPerChanRead);
