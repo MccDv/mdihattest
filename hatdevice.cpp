@@ -801,13 +801,21 @@ void HatDevice::runAInScan172Func()
         source = SOURCE_LOCAL;
         mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
         ui->lblStatus->setText(hatInterface->getStatus());
+        mRateReturned = rateReturned;
+        ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
         if (source != SOURCE_LOCAL)
             setConfiguration = false;
+    } else {
+        rateReturned = 0.0;
+        source = SOURCE_LOCAL;
+        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
+        ui->lblStatus->setText(hatInterface->getStatus());
+        mRateReturned = rateReturned;
+        ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
     }
 
     if(mScanOptions & OPTS_EXTTRIGGER) {
-        if (setConfiguration)
-            runSetTriggerFunc();
+        runSetTriggerFunc();
         mTriggered = false;
     }
 
