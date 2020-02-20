@@ -794,11 +794,6 @@ void HatDevice::runAInScan172Func()
         buffer = NULL;
     }
 
-    if(mScanOptions & OPTS_EXTTRIGGER) {
-        runSetTriggerFunc();
-        mTriggered = false;
-    }
-
     chanCount = hatInterface->aInScanChanCount(mHatID, mAddress);
     if(chanCount == 0) {
         //no scan thread running - check configuration
@@ -808,6 +803,12 @@ void HatDevice::runAInScan172Func()
         ui->lblStatus->setText(hatInterface->getStatus());
         if (source != SOURCE_LOCAL)
             setConfiguration = false;
+    }
+
+    if(mScanOptions & OPTS_EXTTRIGGER) {
+        if (setConfiguration)
+            runSetTriggerFunc();
+        mTriggered = false;
     }
 
     //backgroundScan = ui->actionBACKGROUND->isChecked();

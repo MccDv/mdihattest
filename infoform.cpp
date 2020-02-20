@@ -598,7 +598,7 @@ void InfoForm::writeScanParams()
 
 void InfoForm::writeTrigConfig()
 {
-    QString trigString, sourceString;
+    QString trigString, sourceString, mcc172Args;
     uint8_t source;
     TriggerMode triggerType;
 
@@ -608,9 +608,17 @@ void InfoForm::writeTrigConfig()
     ui->lblStatus->setText(hatInterface->getStatus());
 
     trigString = getTrigText(triggerType);
-    if(triggerType > 0) {
-        sourceString = getSourceText(source);
-        trigString.append(" as " + sourceString);
+    sourceString = getSourceText(source);
+
+    if(mResponse == RESULT_SUCCESS) {
+        if (mHatID == 0x0145) //172
+            mcc172Args = QString(", trigger source set to: %1").arg(sourceString);
+        ui->teShowValues->setText(QString("\nTrigger type set to: %1")
+                                  .arg(triggerType) + mcc172Args);
+    } else {
+        QString errText;
+        errText = getErrorDescription(mResponse);
+        ui->teShowValues->setText("\n\nsetTrigger() returned error " + errText);
     }
 }
 
