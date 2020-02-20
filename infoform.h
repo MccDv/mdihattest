@@ -52,7 +52,7 @@ private:
 #define READ_IEPE_CONFIG    13
 #define WRITE_IEPE_CONFIG   14
 #define WRITE_SCAN_PARAMS   15
-
+#define WRITE_TRIG          16
 
     Ui::InfoForm *ui;
     HatInterface *hatInterface;
@@ -81,6 +81,7 @@ private:
     void readIntStatus();
     void readScanParams();
     void writeScanParams();
+    void writeTrigConfig();
     void readStoredTypes();
     void readIEPEConfig();
     void writeIEPEConfig();

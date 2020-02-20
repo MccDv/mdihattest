@@ -35,6 +35,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbUtilFunc->addItem("Calibration", UL_AI_INFO);
     ui->cmbUtilFunc->addItem("Thermocouples", UL_TEMP_INFO);
     ui->cmbUtilFunc->addItem("Trig/Clock Test", UL_TEST);
+    ui->cmbUtilFunc->addItem("Trig Config", UL_TRIG_CFG);
     ui->cmbUtilFunc->addItem("IEPE Config", UL_IEPE);
     ui->cmbUtilFunc->addItem("Clean scan", UL_SCAN_CLEAN);
     ui->cmbUtilFunc->addItem("Interrupt State", UL_DIO_INFO);
@@ -162,6 +163,9 @@ void InfoForm::loadCalClicked()
     case UL_TEST:
         mSelectedFunction = CLOCK_TEST;
         break;
+    case UL_TRIG_CFG:
+        mSelectedFunction = WRITE_TRIG;
+        break;
     case UL_SCAN_CLEAN:
         mSelectedFunction = WRITE_SCAN_CLEAN;
         break;
@@ -197,6 +201,9 @@ void InfoForm::runSelectedFunction()
         break;
     case CLOCK_TEST:
         readClkTrg();
+        break;
+    case WRITE_TRIG:
+        writeTrigConfig();
         break;
     case NUM_SCAN_CHANS:
         readNumScanChans();
@@ -294,6 +301,15 @@ void InfoForm::functionChanged(int utFunction)
         spnToolTip = "Cal channel";
         dblOneToolTip = "Cal Slope";
         dblTwoToolTip = "Cal Offset";
+        break;
+    case UL_TRIG_CFG:
+        readVisible = false;
+#ifdef HAT_05
+        tcTypeVisible = true;
+        ui->cmbTcType->addItem("Local", SOURCE_LOCAL);
+        ui->cmbTcType->addItem("Master", SOURCE_MASTER);
+        ui->cmbTcType->addItem("Slave", SOURCE_SLAVE);
+#endif
         break;
     case UL_TEMP_INFO:
 #ifdef HAT_03
@@ -572,12 +588,29 @@ void InfoForm::writeScanParams()
         if (mHatID == 0x0145) //172
             mcc172Args = QString(", source set to: %1").arg(sourceName);
         ui->teShowValues->setText(QString("\nScan rate set to: %1")
-                                  .arg(rate)
-                                  .arg(sourceName) + mcc172Args);
+                                  .arg(rate) + mcc172Args);
     } else {
         QString errText;
         errText = getErrorDescription(mResponse);
         ui->teShowValues->setText("\n\nsetAInScanParameters() returned error " + errText);
+    }
+}
+
+void InfoForm::writeTrigConfig()
+{
+    QString trigString, sourceString;
+    uint8_t source;
+    TriggerMode triggerType;
+
+    triggerType = (TriggerMode)ui->spnCalChan->value();
+    source = ui->cmbTcType->currentData().toUInt();
+    mResponse = hatInterface->setTrigger(mHatID, mAddress, source, triggerType);
+    ui->lblStatus->setText(hatInterface->getStatus());
+
+    trigString = getTrigText(triggerType);
+    if(triggerType > 0) {
+        sourceString = getSourceText(source);
+        trigString.append(" as " + sourceString);
     }
 }
 

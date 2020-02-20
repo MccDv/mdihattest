@@ -363,9 +363,9 @@ QString getConfigItemName(uint8_t configItem)
 
 #ifdef HAT_05
 
-QString getSourceText(uint8_t trigSource)
+QString getSourceText(uint8_t sourceClockTrig)
 {
-    switch (trigSource) {
+    switch (sourceClockTrig) {
     case SOURCE_LOCAL:
         return "Local";
         break;
@@ -382,9 +382,9 @@ QString getSourceText(uint8_t trigSource)
 
 #else
 
-QString getSourceText(uint8_t trigSource)
+QString getSourceText(uint8_t sourceClockTrig)
 {
-    (void)trigSource;
+    (void)sourceClockTrig;
     return "";
 }
 
