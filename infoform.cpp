@@ -614,7 +614,7 @@ void InfoForm::writeTrigConfig()
         if (mHatID == 0x0145) //172
             mcc172Args = QString(", trigger source set to: %1").arg(sourceString);
         ui->teShowValues->setText(QString("\nTrigger type set to: %1")
-                                  .arg(triggerType) + mcc172Args);
+                                  .arg(trigString) + mcc172Args);
     } else {
         QString errText;
         errText = getErrorDescription(mResponse);

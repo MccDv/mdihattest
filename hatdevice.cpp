@@ -854,11 +854,11 @@ void HatDevice::runAInScan172Func()
     buffer = new double[bufSize];
     memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
 
-    uint8_t value;
+    /*uint8_t value;
     mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, mRateReturned, value);
     ui->lblInfo->setText(hatInterface->getStatus());
     if(mResponse != RESULT_SUCCESS)
-        return;
+        return;*/
     nameOfFunc = "172: AInScanStart";
     funcArgs = "(mAddress, chanMask, mSamplesPerChan, mScanOptions)\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
