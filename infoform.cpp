@@ -538,7 +538,7 @@ void InfoForm::readScanParams()
         ui->teShowValues->append("\n\ngetBufferSize() returned error " + errText);
     }
 
-    chanCount = ui->spnCalChan->value();
+    chanCount = ui->spnCalChan->value(); //unused for 172
     rateReturned = ui->leSlope->text().toDouble();
     mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
     ui->lblStatus->setText(hatInterface->getStatus());
@@ -558,19 +558,22 @@ void InfoForm::readScanParams()
 
 void InfoForm::writeScanParams()
 {
-    QString sourceName;
+    QString sourceName, mcc172Args;
     uint8_t source;
     double rate;
 
+    mcc172Args = "";
     rate = ui->leSlope->text().toDouble();
     source = ui->cmbTcType->currentData().toUInt();
     mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, source, rate);
     ui->lblStatus->setText(hatInterface->getStatus());
     sourceName = getSourceText(source);
     if(mResponse == RESULT_SUCCESS) {
-        ui->teShowValues->setText(QString("\nScan rate set to: %1 (if 172, source set to %2)")
+        if (mHatID == 0x0145) //172
+            mcc172Args = QString(", source set to: %1").arg(sourceName);
+        ui->teShowValues->setText(QString("\nScan rate set to: %1")
                                   .arg(rate)
-                                  .arg(sourceName));
+                                  .arg(sourceName) + mcc172Args);
     } else {
         QString errText;
         errText = getErrorDescription(mResponse);

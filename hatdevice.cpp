@@ -769,9 +769,11 @@ void HatDevice::runAInScanFunc()
 void HatDevice::runAInScan172Func()
 {
     int lowChan, highChan;
-    uint8_t chanMask;
+    uint8_t chanMask, chanCount, source, sync;;
     int32_t sampsToRead;
     uint32_t bufferSize;
+    bool setConfiguration;
+    double rateReturned;
     QString nameOfFunc, funcArgs, argVals, funcStr;
     QTime t;
     QString sStartTime, statString;
@@ -784,6 +786,7 @@ void HatDevice::runAInScan172Func()
         return;
     }
     bufferSize = 0;
+    setConfiguration = true;
 
     if (buffer) {
         mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
@@ -795,6 +798,18 @@ void HatDevice::runAInScan172Func()
         runSetTriggerFunc();
         mTriggered = false;
     }
+
+    chanCount = hatInterface->aInScanChanCount(mHatID, mAddress);
+    if(chanCount == 0) {
+        //no scan thread running - check configuration
+        rateReturned = 0.0;
+        source = SOURCE_LOCAL;
+        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
+        ui->lblStatus->setText(hatInterface->getStatus());
+        if (source != SOURCE_LOCAL)
+            setConfiguration = false;
+    }
+
     //backgroundScan = ui->actionBACKGROUND->isChecked();
     mBlockSize = ui->leBlockSize->text().toLongLong();
     if(!mQueueEnabled) {
@@ -805,15 +820,18 @@ void HatDevice::runAInScan172Func()
         for(int chan = 0; chan < mChanCount; chan++)
             mChanList[chan] = lowChan + chan;
     }
+
     //if queue is enabled, mChanCount is set in setupQueue
     if(mChanCount < 1) mChanCount = 1;
 
     mSamplesPerChan = ui->leNumSamples->text().toLong();
-    double rate = ui->leRate->text().toDouble();
-    mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, SOURCE_LOCAL, rate);
-    ui->lblInfo->setText(hatInterface->getStatus());
-    if(mResponse != RESULT_SUCCESS)
-        return;
+    if (setConfiguration) {
+        double rate = ui->leRate->text().toDouble();
+        mResponse = hatInterface->ainClockConfigWrite(mHatID, mAddress, SOURCE_LOCAL, rate);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        if(mResponse != RESULT_SUCCESS)
+            return;
+    }
 
     chanMask = 0;
     uint8_t curChan;
@@ -826,30 +844,16 @@ void HatDevice::runAInScan172Func()
     if(mPlot)
         setupPlot(ui->AiPlot, mChanCount);
 
-    //mFunctionFlag = (AInScanFlag)mAiFlags;
     if (mStopOnStart) {
         nameOfFunc = "ulAInScanStop";
         funcArgs = "(mDaqDeviceHandle)";
-        //sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        //err = ulAInScanStop(mDaqDeviceHandle);
-        //argVals = QString("(%1)").arg(mDaqDeviceHandle);
-/*
-        funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
-        if (!err==ERR_NO_ERROR) {
-            mMainWindow->setError(err, sStartTime + funcStr);
-        } else {
-            mMainWindow->addFunction(sStartTime + funcStr);
-        }
-  */
     }
 
     mBufSize = bufSize;
     buffer = new double[bufSize];
     memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
 
-    uint8_t source;
     uint8_t value;
-    //mResponse = hatInterface->ainClockConfigRead(mHatID, mAddress, source, mRateReturned, value);
     mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, mChanCount, source, mRateReturned, value);
     ui->lblInfo->setText(hatInterface->getStatus());
     if(mResponse != RESULT_SUCCESS)
