@@ -806,6 +806,7 @@ void HatDevice::runAInScan172Func()
         if (source != SOURCE_LOCAL)
             setConfiguration = false;
     } else {
+        mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
         rateReturned = 0.0;
         source = SOURCE_LOCAL;
         mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
