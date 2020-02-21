@@ -840,6 +840,9 @@ void HatDevice::runAInScan172Func()
         ui->lblInfo->setText(hatInterface->getStatus());
         if(mResponse != RESULT_SUCCESS)
             return;
+        mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
+        mRateReturned = rateReturned;
+        ui->lblRateReturned->setText(QString("%1").arg(mRateReturned, 1, 'f', 4, '0'));
     }
 
     chanMask = 0;
