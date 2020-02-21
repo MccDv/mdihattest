@@ -1195,6 +1195,7 @@ void HatDevice::readBuffer()
         return;
     }
 
+    timeout = ui->leTimeout->text().toDouble();
     mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
     ui->lblInfo->setText(hatInterface->getStatus());
     statString = getStatusText(status);
