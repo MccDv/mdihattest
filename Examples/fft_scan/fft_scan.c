@@ -149,7 +149,7 @@ int main(void)
     // mcc172_a_in_scan_start to specify the channels to acquire.
     // The functions below, will parse the channel mask into a
     // character string for display purposes.
-    uint8_t channel_mask = {CHAN0};
+    uint8_t channel_mask = {CHAN0 | CHAN1};
     convert_chan_mask_to_string(channel_mask, channel_string);
 
     int max_channel_array_length = mcc172_info()->NUM_AI_CHANNELS;
@@ -171,6 +171,8 @@ int main(void)
     uint8_t synced;
     uint8_t clock_source;
     uint8_t iepe_enable;
+    uint8_t channel;
+    char logname[64];
 
     FILE* logfile;
     
@@ -197,7 +199,7 @@ int main(void)
     result = mcc172_open(address);
     STOP_ON_ERROR(result);
 
-    // Turn on IEPE supply?
+    /*/ Turn on IEPE supply?
     printf("Enable IEPE power [y or n]?  ");
     scanf("%c", &c);
     if ((c == 'y') || (c == 'Y'))
@@ -214,7 +216,8 @@ int main(void)
         mcc172_close(address);
         return 1;
     }
-    flush_stdin();
+    flush_stdin();*/
+    iepe_enable = 0;
     
     for (i = 0; i < num_channels; i++)
     {
@@ -238,7 +241,7 @@ int main(void)
 
     convert_options_to_string(options, options_str);
 
-    printf("\nMCC 172 FFT example\n");
+    printf("\nMCC 172 Multi channel FFT example\n");
     printf("    Functions demonstrated:\n");
     printf("        mcc172_iepe_config_write\n");
     printf("        mcc172_a_in_clock_config_write\n");
@@ -248,7 +251,7 @@ int main(void)
     printf("        mcc172_a_in_scan_stop\n");
     printf("        mcc172_a_in_scan_cleanup\n");
     printf("    IEPE power: %s\n", iepe_enable ? "on" : "off");
-    printf("    Channel %s\n", channel_string);
+    printf("    Channels %s\n", channel_string);
     printf("    Samples per channel: %d\n", samples_per_channel);
     printf("    Requested scan rate: %-10.2f\n", scan_rate);
     printf("    Actual scan rate: %-10.2f\n", actual_scan_rate);
@@ -257,100 +260,125 @@ int main(void)
     printf("\nPress ENTER to continue\n");
     scanf("%c", &c);
 
-    // Configure and start the scan.
-    result = mcc172_a_in_scan_start(address, channel_mask, samples_per_channel,
-        options);
-    STOP_ON_ERROR(result);
+    for (int iter = 0; iter < 12; iter++) {
+        // Configure and start the scan.
+        result = mcc172_a_in_scan_start(address, channel_mask, samples_per_channel,
+            options);
+        STOP_ON_ERROR(result);
 
-    printf("Scanning input...\n\n");
+        printf("Scanning inputs...\n\n");
 
-    // Read the specified number of samples.
-    result = mcc172_a_in_scan_read(address, &read_status, samples_per_channel,
-        timeout, read_buf, buffer_size, &samples_read_per_channel);
-    STOP_ON_ERROR(result);
+        // Read the specified number of samples.
+        result = mcc172_a_in_scan_read(address, &read_status, samples_per_channel,
+            timeout, read_buf, buffer_size, &samples_read_per_channel);
+        STOP_ON_ERROR(result);
 
-    if (read_status & STATUS_HW_OVERRUN)
-    {
-        printf("\n\nHardware overrun\n");
-        goto stop;
-    }
-    else if (read_status & STATUS_BUFFER_OVERRUN)
-    {
-        printf("\n\nBuffer overrun\n");
-        goto stop;
-    }
-
-    if (samples_read_per_channel >= samples_per_channel)
-    {
-        // Calculate and display the FFT.
-        spectrum = (double*)malloc(sizeof(double) * 
-            (samples_per_channel/2 + 1));
-        calculate_real_fft(read_buf, samples_per_channel, 
-            mcc172_info()->AI_MAX_RANGE, spectrum);
-
-        // Calculate dBFS and find peak
-        logfile = fopen("fft_scan.csv", "wt");
-        fprintf(logfile, "Time data (V), Frequency (Hz), Spectrum (dBFS)\n");
-        
-        f_i = 0.0;
-        peak_index = 0;
-        peak_val = -1000.0;
-        
-        for (i = 0; i < (samples_per_channel/2 + 1); i++)
+        if (read_status & STATUS_HW_OVERRUN)
         {
-            // Find the peak value and index.
-            if (spectrum[i] > peak_val)
+            printf("\n\nHardware overrun\n");
+            goto stop;
+        }
+        else if (read_status & STATUS_BUFFER_OVERRUN)
+        {
+            printf("\n\nBuffer overrun\n");
+            goto stop;
+        }
+
+        if (samples_read_per_channel >= samples_per_channel)
+        {
+            // allocate buffers
+            double* channel_data = (double*)malloc(sizeof(double) * 
+                samples_per_channel);
+            spectrum = (double*)malloc(sizeof(double) * 
+                (samples_per_channel/2 + 1));
+
+            for (channel = 0; channel < num_channels; channel++)
             {
-                peak_val = spectrum[i];
-                peak_index = i;
+                printf("===== Channel %d:\n", channel);
+                
+                // separate the data
+                for (i = 0; i < samples_per_channel; i++)
+                {
+                    channel_data[i] = read_buf[i*num_channels + channel];
+                }
+
+                // open the log file
+                sprintf(logname, "fft_scan_%d.csv", channel);
+                logfile = fopen(logname, "wt");
+                fprintf(logfile, 
+                    "Time data (V), Frequency (Hz), Spectrum (dBFS)\n");
+
+                // Calculate and display the FFT.
+                calculate_real_fft(channel_data, samples_per_channel, 
+                    mcc172_info()->AI_MAX_RANGE, spectrum);
+
+                // Calculate dBFS and find peak
+                f_i = 0.0;
+                peak_index = 0;
+                peak_val = -1000.0;
+                
+                for (i = 0; i < (samples_per_channel/2 + 1); i++)
+                {
+                    // Find the peak value and index.
+                    if (spectrum[i] > peak_val)
+                    {
+                        peak_val = spectrum[i];
+                        peak_index = i;
+                    }
+                    
+                    // Save to the CSV file.
+                    fprintf(logfile, "%f,%f,%f\n", read_buf[i], f_i, spectrum[i]);
+                    
+                    f_i += scan_rate / samples_per_channel;
+                }
+            
+                fclose(logfile);
+
+                if ((peak_index > 0) && (peak_index < (samples_per_channel/2)))
+                {
+                    // Interpolate for a more precise peak frequency.
+                    peak_offset = quadratic_interpolate(spectrum[peak_index - 1], 
+                        spectrum[peak_index], spectrum[peak_index + 1]);
+                    peak_freq = (peak_index + peak_offset) * scan_rate / 
+                        samples_per_channel;
+                }
+                else
+                {
+                    peak_freq = peak_index * scan_rate / samples_per_channel;
+                }
+                printf("Peak: %.1f dBFS at %.1f Hz\n", peak_val, peak_freq);
+            
+                // Find and display harmonic levels.
+                i = 2;
+                do
+                {
+                    h_freq = peak_freq * i;
+                    if (h_freq <= (scan_rate / 2.0))
+                    {
+                        h_index = (uint32_t)(h_freq * samples_per_channel / scan_rate +
+                            0.5);
+                        h_val = spectrum[h_index];
+                        printf("%d%s harmonic: %.1f dBFS at %.1f Hz\n", i, 
+                            order_suffix(i), h_val, h_freq);
+                    }
+                    i++;
+                    // Stop when frequency exceeds Nyquist rate or at the 8th harmonic.
+                } while ((i < 8) && (h_freq <= (scan_rate / 2.0)));
+                
+                printf("Data and FFT saved in %s.\n\n", logname);
             }
             
-            // Save to the CSV file.
-            fprintf(logfile, "%f,%f,%f\n", read_buf[i], f_i, spectrum[i]);
-            
-            f_i += scan_rate / samples_per_channel;
-        }
-        
-        fclose(logfile);
+            free(spectrum);
+            printf("\nPress ENTER to continue\n");
+            scanf("%c", &c);
 
-        if ((peak_index > 0) && (peak_index < (samples_per_channel/2)))
-        {
-            // Interpolate for a more precise peak frequency.
-            peak_offset = quadratic_interpolate(spectrum[peak_index - 1], 
-                spectrum[peak_index], spectrum[peak_index + 1]);
-            peak_freq = (peak_index + peak_offset) * scan_rate / 
-                samples_per_channel;
         }
         else
         {
-            peak_freq = peak_index * scan_rate / samples_per_channel;
+            printf("Error, %d samples read.\n", samples_read_per_channel);
         }
-        printf("Peak: %.1f dBFS at %.1f Hz\n", peak_val, peak_freq);
-        
-        // Find and display harmonic levels.
-        i = 2;
-        do
-        {
-            h_freq = peak_freq * i;
-            if (h_freq <= (scan_rate / 2.0))
-            {
-                h_index = (uint32_t)(h_freq * samples_per_channel / scan_rate +
-                    0.5);
-                h_val = spectrum[h_index];
-                printf("%d%s harmonic: %.1f dBFS at %.1f Hz\n", i, 
-                    order_suffix(i), h_val, h_freq);
-            }
-            i++;
-            // Stop when frequency exceeds Nyquist rate or at the 8th harmonic.
-        } while ((i < 8) && (h_freq <= (scan_rate / 2.0)));
-        
-        free(spectrum);
-
-        printf("Data and FFT saved in fft_scan.csv.\n");
-    }
-    else
-    {
-        printf("Error, %d samples read.\n", samples_read_per_channel);
+        print_error(mcc172_a_in_scan_stop(address));
+        print_error(mcc172_a_in_scan_cleanup(address));
     }
  
 
