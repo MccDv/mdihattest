@@ -247,13 +247,11 @@ void HatDevice::setUiForFunction()
     ui->chkVolts->setVisible(true); //voltCheckVisible
     if(!voltCheckVisible) {
         ui->chkVolts->setText("Trap");
-        mTimeout = 10.0;
         //ui->leTimeout->setText("0.9");
         mTrapVal = 0.9;
     } else {
         ui->chkVolts->setText("Volts");
-        ui->leTimeout->setText("10");
-        mTimeout = 0.0;
+        ui->leTimeout->setText("5");
     }
     ui->fraCJC->setVisible(cjcCheckVisible);
     ui->fraChan->setVisible(cjcCheckVisible);
@@ -417,7 +415,6 @@ void HatDevice::trapVoltsChecked(){
     QString trapString;
 
     if (ui->chkVolts->isChecked()) {
-        mTimeout = 10.0;
         if (mTrapVal < 500)
             trapString = QString("%1").arg(mTrapVal);
         else {
@@ -427,8 +424,7 @@ void HatDevice::trapVoltsChecked(){
         ui->leTimeout->setText(trapString);
         ui->leTimeout->setToolTip("Trap value");
     } else {
-        mTimeout = 0.0;
-        ui->leTimeout->setText("10");
+        ui->leTimeout->setText("5");
         mTrapVal = 500;
         ui->leTimeout->setToolTip("Timeout (s)");
     }
@@ -700,10 +696,7 @@ void HatDevice::runAInScanFunc()
             uint16_t status;
             double timeout;
             uint32_t sampsReadPerChan;
-            if(mTimeout == 0.0)
-                timeout = ui->leTimeout->text().toDouble();
-            else
-                timeout = mTimeout;
+            timeout = ui->leTimeout->text().toDouble();
             nameOfFunc = "118: AInScanRead";
             funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -806,6 +799,7 @@ void HatDevice::runAInScan172Func()
         if (source != SOURCE_LOCAL)
             setConfiguration = false;
     } else {
+        mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
         rateReturned = 0.0;
         source = SOURCE_LOCAL;
         mResponse = hatInterface->getAInScanParameters(mHatID, mAddress, chanCount, source, rateReturned, sync);
@@ -918,10 +912,7 @@ void HatDevice::runAInScan172Func()
             uint16_t status;
             double timeout;
             uint32_t sampsReadPerChan;
-            if(mTimeout == 0.0)
-                timeout = ui->leTimeout->text().toDouble();
-            else
-                timeout = mTimeout;
+            timeout = ui->leTimeout->text().toDouble();
             nameOfFunc = "172: AInScanRead";
             funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1003,10 +994,7 @@ void HatDevice::checkStatus()
         return;
     if (!mStatusTimerEnabled)
         return;
-    if(mTimeout == 0.0)
-        timeout = ui->leTimeout->text().toDouble();
-    else
-        timeout = mTimeout;
+    timeout = ui->leTimeout->text().toDouble();
     mTimerIteration += 1;
     itString = QString("%1").arg(mTimerIteration);
     ui->lblTimerIteration->setText(itString);
@@ -1194,6 +1182,7 @@ void HatDevice::readBuffer()
         return;
     }
 
+    timeout = ui->leTimeout->text().toDouble();
     mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
     ui->lblInfo->setText(hatInterface->getStatus());
     statString = getStatusText(status);
