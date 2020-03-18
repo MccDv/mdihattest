@@ -714,7 +714,7 @@ void InfoForm::readSensitivity()
         mResponse = hatInterface->aiSensitivityRead(mHatID, mAddress, channel, value);
         ui->lblStatus->setText(hatInterface->getStatus());
         if(mResponse == RESULT_SUCCESS) {
-            ui->teShowValues->append(QString("Value read from channel %1: %2)")
+            ui->teShowValues->append(QString("Value read from channel %1: %2")
                                       .arg(channel)
                                       .arg(value));
         }
@@ -742,7 +742,7 @@ void InfoForm::writeSensitivity()
         mResponse = hatInterface->aiSensitivityWrite(mHatID, mAddress, channel, value);
         ui->lblStatus->setText(hatInterface->getStatus());
         if(mResponse == RESULT_SUCCESS) {
-            ui->teShowValues->append(QString("Value written to channel %1: %2)")
+            ui->teShowValues->append(QString("Value written to channel %1: %2")
                                       .arg(channel)
                                       .arg(value));
         }
