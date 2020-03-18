@@ -2728,6 +2728,70 @@ int HatInterface::iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t cha
     return mResponse;
 }
 
+int HatInterface::aiSensitivityRead(uint16_t devType, uint8_t address, uint8_t channel, double &sensValue)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    double value;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": aiSensitivityRead");
+    funcArgs = "(mAddress, channel, &value)\n";
+    switch (devType) {
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_a_in_sensitivity_read(address, channel, &value);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3)")
+            .arg(address)
+            .arg(channel)
+            .arg(value);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    sensValue = value;
+    return mResponse;
+}
+
+int HatInterface::aiSensitivityWrite(uint16_t devType, uint8_t address, uint8_t channel, double sensValue)
+{
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
+
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": aiSensitivityWrite");
+    funcArgs = "(mAddress, channel, value)\n";
+    switch (devType) {
+    case HAT_ID_MCC_172:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc172_a_in_sensitivity_write(address, channel, sensValue);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2, %3)")
+            .arg(address)
+            .arg(channel)
+            .arg(sensValue);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
+}
+
 int HatInterface::readTestSignals(uint16_t devType, uint8_t address, uint8_t &clock, uint8_t &sync, uint8_t &trig)
 {
     QString nameOfFunc, funcArgs, argVals, funcStr;

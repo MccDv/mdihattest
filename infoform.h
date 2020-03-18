@@ -85,6 +85,8 @@ private:
     void readStoredTypes();
     void readIEPEConfig();
     void writeIEPEConfig();
+    void readSensitivity();
+    void writeSensitivity();
 
 };
 

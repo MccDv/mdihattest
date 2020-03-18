@@ -93,6 +93,8 @@ public:
     int ainClockConfigWrite(uint16_t devType, uint8_t address, uint8_t source, double rate);
     int iepeConfigRead(uint16_t devType, uint8_t address, uint8_t channel, uint8_t &value);
     int iepeConfigWrite(uint16_t devType, uint8_t address, uint8_t channel, uint8_t value);
+    int aiSensitivityRead(uint16_t devType, uint8_t address, uint8_t channel, double &sensValue);
+    int aiSensitivityWrite(uint16_t devType, uint8_t address, uint8_t channel, double sensValue);
     int readTestSignals(uint16_t devType, uint8_t address, uint8_t &clock, uint8_t &sync, uint8_t &trig);
     int writeTestSignals(uint16_t devType, uint8_t address, uint8_t mode, uint8_t clock, uint8_t sync);
 

@@ -676,6 +676,62 @@ void InfoForm::writeIEPEConfig()
     }
 }
 
+void InfoForm::readSensitivity()
+{
+    uint8_t channel;
+    uint8_t firstChan, lastChan;
+    double value;
+    int chanSelected;
+
+    chanSelected = ui->spnCalChan->value();
+    value = 1;
+    ui->teShowValues->setText("Sensitivity:\n\n");
+    if(chanSelected == -1) {
+        firstChan = 0;
+        lastChan = 1;
+    } else {
+        firstChan = chanSelected;
+        lastChan = chanSelected;
+    }
+    for(channel = firstChan; channel <= lastChan; channel++) {
+        mResponse = hatInterface->aiSensitivityRead(mHatID, mAddress, channel, value);
+        ui->lblStatus->setText(hatInterface->getStatus());
+        if(mResponse == RESULT_SUCCESS) {
+            ui->teShowValues->append(QString("Value read from channel %1: %2)")
+                                      .arg(channel)
+                                      .arg(value));
+        }
+    }
+}
+
+void InfoForm::writeSensitivity()
+{
+    uint8_t channel;
+    uint8_t firstChan, lastChan;
+    double value;
+    int chanSelected;
+
+    chanSelected = ui->spnCalChan->value();
+    value = ui->leFlashCount->text().toDouble();
+    ui->teShowValues->setText("Sensitivity:\n\n");
+    if(chanSelected == -1) {
+        firstChan = 0;
+        lastChan = 1;
+    } else {
+        firstChan = chanSelected;
+        lastChan = chanSelected;
+    }
+    for(channel = firstChan; channel <= lastChan; channel++) {
+        mResponse = hatInterface->aiSensitivityWrite(mHatID, mAddress, channel, value);
+        ui->lblStatus->setText(hatInterface->getStatus());
+        if(mResponse == RESULT_SUCCESS) {
+            ui->teShowValues->append(QString("Value written to channel %1: %2)")
+                                      .arg(channel)
+                                      .arg(value));
+        }
+    }
+}
+
 void InfoForm::readClkTrg()
 {
     uint8_t clockState, mode, trigState;
