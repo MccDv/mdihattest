@@ -355,6 +355,10 @@ void InfoForm::functionChanged(int utFunction)
         flashVisible = true;
         lowLimit = -1;
         break;
+    case UL_AI_SENSE:
+        flashVisible = true;
+        lowLimit = 0;
+        break;
     case UL_SCAN_CLEAN:
         scanCleanVisible = true;
         spinVisible = false;
