@@ -80,6 +80,12 @@ int HatInterface::openDevice(uint16_t devType, uint8_t address)
         mResponse = mcc172_open(address);
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_open(address);
+        break;
+#endif
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = RESULT_INVALID_DEVICE;
@@ -124,6 +130,12 @@ int HatInterface::closeDevice(uint16_t devType, uint8_t address)
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_close(address);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_close(address);
         break;
 #endif
     default:
@@ -171,6 +183,12 @@ bool HatInterface::deviceIsOpen(uint16_t devType, uint8_t address)
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         isOpen = mcc172_is_open(address);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        isOpen = mcc128_is_open(address);
         break;
 #endif
     default:
@@ -226,6 +244,12 @@ int HatInterface::getSerialNumber(uint16_t devType, uint8_t address, QString &se
         mResponse = mcc172_serial(address, serNum);
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_serial(address, serNum);
+        break;
+#endif
     default:
         funcArgs = "(~)\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -270,6 +294,12 @@ int HatInterface::getFirmwareVersion(uint16_t devType, uint8_t address, uint16_t
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_firmware_version(address, &version);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_firmware_version(address, &version);
         break;
 #endif
     default:
@@ -317,6 +347,12 @@ int HatInterface::blinkLED(uint16_t devType, uint8_t address, uint8_t count)
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_blink_led(address, count);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_blink_led(address, count);
         break;
 #endif
     default:
@@ -368,6 +404,12 @@ int HatInterface::readCalDate(uint16_t devType, uint8_t address, QString &calDat
         mResponse = mcc172_calibration_date(address, dateReturned);
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_calibration_date(address, dateReturned);
+        break;
+#endif
     default:
         funcArgs = "(~)\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -417,6 +459,12 @@ int HatInterface::getNumAInChans(uint16_t devType)
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         numChans = mcc172_info()->NUM_AI_CHANNELS;
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        numChans = mcc128_info()->NUM_AI_CHANNELS;
         break;
 #endif
     default:

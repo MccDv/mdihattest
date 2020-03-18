@@ -27,6 +27,7 @@ QMAKE_CXXFLAGS += -Wno-psabi
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+# MCC 128 development: HAT_06
 # MCC 172 development: HAT_05
 # MCC 152 development: HAT_04
 # MCC 134 development: HAT_03
@@ -34,6 +35,7 @@ QMAKE_CXXFLAGS += -Wno-psabi
 DEFINES += HAT_03
 DEFINES += HAT_04
 DEFINES += HAT_05
+#DEFINES += HAT_06
 
 SOURCES += \
     main.cpp \
