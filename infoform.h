@@ -53,6 +53,8 @@ private:
 #define WRITE_IEPE_CONFIG   14
 #define WRITE_SCAN_PARAMS   15
 #define WRITE_TRIG          16
+#define READ_SENSITIVITY    17
+#define WRITE_SENSITIVITY   18
 
     Ui::InfoForm *ui;
     HatInterface *hatInterface;

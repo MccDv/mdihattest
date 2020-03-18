@@ -34,6 +34,7 @@ InfoForm::InfoForm(QWidget *parent) :
     ui->cmbUtilFunc->addItem("AinScan Params", UL_AI_PARAMS);
     ui->cmbUtilFunc->addItem("Calibration", UL_AI_INFO);
     ui->cmbUtilFunc->addItem("Thermocouples", UL_TEMP_INFO);
+    ui->cmbUtilFunc->addItem("Sensitivity", UL_AI_SENSE);
     ui->cmbUtilFunc->addItem("Trig/Clock Test", UL_TEST);
     ui->cmbUtilFunc->addItem("Trig Config", UL_TRIG_CFG);
     ui->cmbUtilFunc->addItem("IEPE Config", UL_IEPE);
@@ -130,6 +131,9 @@ void InfoForm::readCalClicked()
     case UL_TEMP_INFO:
         mSelectedFunction = READ_TC_TYPES;
         break;
+    case UL_AI_SENSE:
+        mSelectedFunction = READ_SENSITIVITY;
+        break;
     /*case UL_TEST:
         mSelectedFunction = NUM_SCAN_CHANS;
         break;*/
@@ -159,6 +163,9 @@ void InfoForm::loadCalClicked()
         break;
     case UL_TEMP_INFO:
         mSelectedFunction = WRITE_TC_TYPE;
+        break;
+    case UL_AI_SENSE:
+        mSelectedFunction = WRITE_SENSITIVITY;
         break;
     case UL_TEST:
         mSelectedFunction = CLOCK_TEST;
@@ -196,8 +203,14 @@ void InfoForm::runSelectedFunction()
     case READ_TC_TYPES:
         readTcTypes();
         break;
+    case READ_SENSITIVITY:
+        readSensitivity();
+        break;
     case WRITE_TC_TYPE:
         writeTcType();
+        break;
+    case WRITE_SENSITIVITY:
+        writeSensitivity();
         break;
     case CLOCK_TEST:
         readClkTrg();

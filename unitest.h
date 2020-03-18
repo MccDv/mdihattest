@@ -134,7 +134,8 @@ typedef enum
     UL_IEPE = 11,
     UL_AI_PARAMS = 12,
     UL_SCAN_CLEAN = 13,
-    UL_TRIG_CFG = 14
+    UL_TRIG_CFG = 14,
+    UL_AI_SENSE = 15
 }UtMiscFunctions;
 
 #endif // UNITEST_H
