@@ -501,9 +501,8 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
         }
         foreach (QAction *trigAct, trigTypeGroup->actions()) {
             trigAct->setChecked(false);
-            if (trigAct->data() == mTriggerType) {
+            //if (trigAct->data() == mTriggerType)
                 trigAct->setChecked(true);
-            }
         }
     }
 }
