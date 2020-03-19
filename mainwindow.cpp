@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    connect(ui->mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(setBoardMenuSelect(QMdiSubWindow*)));
+
     connect(ui->cmdDiscover, SIGNAL(clicked(bool)), this, SLOT(createDiscChild()));
     connect(ui->cmdConfig, SIGNAL(clicked(bool)), this, SLOT(createInfoChild()));
     connect(ui->cmdAIn, SIGNAL(clicked(bool)), this, SLOT(createAiChild()));
@@ -469,214 +471,21 @@ void MainWindow::createFuncMenus()
     ui->menuRange->menuAction()->setVisible(rangeVisible);
 }
 
-void MainWindow::setBoardMenuSelect(QMdiSubWindow * childWind)
+void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
 {
-    bool optionVisible, rangeVisible, trigVisible;
-    bool plotShowing, plotVisible;
-    int curFunc;
-    QString curBoard;
-    uint8_t curAddress;
     QString actionName;
     ChildWindow *curChild;
 
-    trigVisible = true;
-    plotVisible = true;
-    optionVisible = false;
-    plotShowing = false;
-    rangeVisible = false;
-    //curChild = activeMdiChild();
     curChild = qobject_cast<ChildWindow *>(childWind);
-    ui->lblAppStatus->clear();
     if (curChild) {
-        curBoard = curChild->devName();
-        UtFunctionGroup functionGroup = curChild->curFunctionGroup();
-        curFunctionGroupName = getFuncGroupName(functionGroup);
-        if (curBoard == "") {
-            ui->lblAppStatus->setText(curFunctionGroupName + ": No device name obtained");
-            return;
-        } else {
-            ui->lblAppStatus->setText(curFunctionGroupName + ": " + curBoard);
-        }
-        curAddress = curChild->devAddress();
-        //QString tempString;
-        createFuncMenus();
-        foreach (QAction *boardAction, ui->menuBoards->actions()) {
-            QString bdName = boardAction->text();
-            if (bdName == curBoard) {
-                uint8_t curMenuAddress = boardAction->data().toUInt();
-                if (curAddress == curMenuAddress) {
-                    boardAction->setChecked(true);
-                    mCurBoardName = curBoard;
-                    mCurAddress = curAddress;
-                } else
-                    boardAction->setChecked(false);
-            } else
-                boardAction->setChecked(false);
-        }
-        UtFunctionGroup curFuncGroup = curChild->curFunctionGroup();
-        curFunc = curChild->curFunction();
-        curFunctionGroupName = getFuncGroupName(curFuncGroup);
-        //mScanOptions = curChild->scanOptions();
-        switch (curFuncGroup) {
-        case FUNC_GROUP_AIN:
-            optionVisible = true;
-            rangeVisible = true;
-            switch (curFunc) {
-            case UL_AIN:
-                actionName = "AIn";
-                break;
-            case UL_AINSCAN:
-                actionName = "AInScan";
-                break;
-            case UL_TIN:
-                actionName = "TIn";
-                break;
-            default:
-                actionName = "AIn";
-                break;
-            }
-            break;
-        case FUNC_GROUP_AOUT:
-            optionVisible = true;
-            rangeVisible = true;
-            trigVisible = false;
-            plotVisible = false;
-            switch (curFunc) {
-            case UL_AOUT:
-                actionName = "AOut";
-                break;
-            case UL_AOUT_SCAN:
-                actionName = "AOutScan";
-                break;
-            default:
-                actionName = "AOut";
-                break;
-            }
-            break;
-        case FUNC_GROUP_DIN:
-            optionVisible = true;
-            trigVisible = false;
-            plotVisible = false;
-            switch (curFunc) {
-            case UL_D_CONFIG_PORT:
-                actionName = "Configure Port";
-                break;
-            case UL_D_CONFIG_BIT:
-                actionName = "Configure Bits";
-                break;
-            case UL_D_IN:
-                actionName = "Read Port";
-                break;
-            case UL_D_BIT_IN:
-                actionName = "Read Bits";
-                break;
-            case UL_D_INT_PORT:
-                actionName = "Interrupt Port Read";
-                break;
-            case UL_D_INT_BIT:
-                actionName = "Interrupt Bit Read";
-                break;
-            case UL_D_INT_WAIT:
-                actionName = "Interrupt Wait";
-                break;
-            default:
-                actionName = "PortConfig";
-                break;
-            }
-            break;
-        case FUNC_GROUP_DOUT:
-            optionVisible = true;
-            trigVisible = false;
-            plotVisible = false;
-            switch (curFunc) {
-            case UL_D_CONFIG_PORT:
-                actionName = "Configure Port";
-                break;
-            case UL_D_CONFIG_BIT:
-                actionName = "Configure Bits";
-                break;
-            case UL_D_OUT:
-                actionName = "Write Port";
-                break;
-            case UL_D_BIT_OUT:
-                actionName = "Write Bits";
-                break;
-            default:
-                actionName = "Configure Port";
-                break;
-            }
-            break;
-        case FUNC_GROUP_MISC:
-            optionVisible = false;
-            trigVisible = false;
-            plotVisible = false;
-            switch (curFunc) {
-            default:
-                break;
-            }
-            break;
-        case FUNC_GROUP_CONFIG:
-            optionVisible = true;
-            trigVisible = false;
-            plotVisible = false;
-            switch (curFunc) {
-            case UL_D_CONFIG_PORT:
-                actionName = "PortConfig";
-                break;
-            case UL_D_CONFIG_BIT:
-                actionName = "BitConfig";
-                break;
-            case UL_D_IN:
-                actionName = "DIn";
-                break;
-            case UL_D_BIT_IN:
-                actionName = "DBitIn";
-                break;
-            default:
-                actionName = "PortConfig";
-                break;
-            }
-            break;
-        case FUNC_GROUP_DISC:
-            optionVisible = false;
-            break;
-        case FUNC_GROUP_STATUS:
-            optionVisible = true;
-        default:
-            break;
-        }
-        foreach (QAction *funcAction, ui->menuFunction->actions()) {
-            if (funcAction->text() == actionName) {
-                funcAction->setChecked(true);
+        mRange = curChild->aiRange();
+        foreach (QAction *rangeAct, ui->menuRange->actions()) {
+            if (rangeAct->data() == mRange) {
+                rangeAct->setChecked(true);
                 break;
             }
         }
-        if (optionVisible) {
-            uint32_t childOption = curChild->scanOptions();
-            foreach (QAction *ioMode, ui->menuOptions->actions()) {
-                uint32_t curMenuVal = (uint32_t)(ioMode->data().toInt());
-                //tempString += QString("%1, %2;").arg(curMenuVal).arg(childOption);
-                //ui->lblAppStatus->setText(tempString);
-                //if(ioMode->text() != "BACKGROUND")
-                ioMode->setChecked(false);
-                if (curMenuVal & childOption) {
-                    ioMode->setChecked(true);
-                }
-            }
-        }
-        TriggerMode childTrig = curChild->triggerType();
-        foreach (QAction *trigMode, ui->menuTriggering->actions()) {
-            TriggerMode curMenuTrig = (TriggerMode)(trigMode->data().toInt());
-            if(curMenuTrig == childTrig)
-                trigMode->setChecked(true);
-        }
-        plotShowing = curChild->showPlot();
     }
-    ui->actionVolts_vs_Time->setChecked(plotShowing);
-    ui->menuOptions->menuAction()->setVisible(optionVisible);
-    ui->menuRange->menuAction()->setVisible(rangeVisible);
-    ui->menuTriggering->menuAction()->setVisible(trigVisible);
-    ui->menuPlot->menuAction()->setVisible(plotVisible);
 }
 
 void MainWindow::setSelectedDevice()
@@ -699,13 +508,6 @@ void MainWindow::setSelectedDevice()
         mdiChild->setDevName(mCurBoardName);
         mdiChild->setDevId(mCurID);
         ui->lblAppStatus->setText(curFunctionGroupName + ": " + mCurBoardName + QString(" {%1}").arg(mCurID));
-        mRange = mdiChild->aiRange();
-        foreach (QAction *rangeAct, ui->menuRange->actions()) {
-            if (rangeAct->data() == mRange) {
-                rangeAct->setChecked(true);
-                break;
-            }
-        }
     }
 }
 
