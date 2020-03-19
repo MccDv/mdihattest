@@ -480,6 +480,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
         mRange = curChild->aiRange();
         mScanOptions = curChild->scanOptions();
         mCurFunction = curChild->curFunction();
+        mTriggerType = curChild->triggerType();
         foreach (QAction *rangeAct, ui->menuRange->actions()) {
             if (rangeAct->data() == mRange) {
                 rangeAct->setChecked(true);
