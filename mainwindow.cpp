@@ -699,6 +699,13 @@ void MainWindow::setSelectedDevice()
         mdiChild->setDevName(mCurBoardName);
         mdiChild->setDevId(mCurID);
         ui->lblAppStatus->setText(curFunctionGroupName + ": " + mCurBoardName + QString(" {%1}").arg(mCurID));
+        mRange = mdiChild->aiRange();
+        foreach (QAction *rangeAct, ui->menuRange->actions()) {
+            if (rangeAct->data() == mRange) {
+                rangeAct->setChecked(true);
+                break;
+            }
+        }
     }
 }
 
