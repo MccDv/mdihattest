@@ -473,16 +473,22 @@ void MainWindow::createFuncMenus()
 
 void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
 {
-    QString actionName;
     ChildWindow *curChild;
 
     curChild = qobject_cast<ChildWindow *>(childWind);
     if (curChild) {
         mRange = curChild->aiRange();
+        mScanOptions = curChild->scanOptions();
         foreach (QAction *rangeAct, ui->menuRange->actions()) {
             if (rangeAct->data() == mRange) {
                 rangeAct->setChecked(true);
                 break;
+            }
+        }
+        foreach (QAction *scanOpt, ui->menuOptions->actions()) {
+            uint32_t curMenuVal = scanOpt->data().toULongLong();
+            if (curMenuVal & mScanOptions) {
+                scanOpt->setChecked(true);
             }
         }
     }
