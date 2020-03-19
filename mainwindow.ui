@@ -232,6 +232,11 @@
     <property name="title">
      <string>Range</string>
     </property>
+    <addaction name="actionBIP10V"/>
+    <addaction name="actionBIP5V"/>
+    <addaction name="actionBIP2V"/>
+    <addaction name="actionBIP1V"/>
+    <addaction name="separator"/>
     <addaction name="actionLoad_Queue"/>
    </widget>
    <addaction name="menuBoards"/>
@@ -455,6 +460,61 @@
    </property>
    <property name="text">
     <string>SOURCE_SLAVE</string>
+   </property>
+  </action>
+  <action name="actionBIP10V">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>BIP10V</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionBIP5V">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>BIP5V</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionBIP2V">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>BIP2V</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionBIP1V">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>BIP1V</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
  </widget>

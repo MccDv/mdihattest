@@ -3050,3 +3050,61 @@ int HatInterface::writeTestSignals(uint16_t devType, uint8_t address, uint8_t mo
 }
 
 #endif
+
+#ifdef HAT_06
+
+int HatInterface::aInModeRead(uint16_t devType, uint8_t address, uint8_t &value)
+{
+
+}
+
+int HatInterface::aInModeWrite(uint16_t devType, uint8_t address, uint8_t value)
+{
+
+}
+
+int HatInterface::aInRangeRead(uint16_t devType, uint8_t address, uint8_t &value)
+{
+
+}
+
+int HatInterface::aInRangeWrite(uint16_t devType, uint8_t address, uint8_t value)
+{
+
+}
+
+#else
+
+int HatInterface::aInModeRead(uint16_t devType, uint8_t address, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::aInModeWrite(uint16_t devType, uint8_t address, uint8_t value)
+{
+    (void)devType;
+    (void)address;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::aInRangeRead(uint16_t devType, uint8_t address, uint8_t &value)
+{
+    (void)devType;
+    (void)address;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+int HatInterface::aInRangeWrite(uint16_t devType, uint8_t address, uint8_t value)
+{
+    (void)devType;
+    (void)address;
+    (void)value;
+    return RESULT_INVALID_DEVICE;
+}
+
+#endif

@@ -73,11 +73,13 @@ private slots:
     void configureQueue();
     void setTimer();
     void updatePlotMenu(bool enabled);
+    void changeRange();
 
 private:
     Ui::MainWindow *ui;
     QActionGroup *functionGroup;
     QActionGroup *optionGroup;
+    QActionGroup *rangeGroup;
     QActionGroup *trigTypeGroup;
     QActionGroup *trigSourceGroup;
     ChildWindow *activeMdiChild() const;
@@ -90,6 +92,7 @@ private:
     int mCurFunction;
     TriggerMode mTriggerType;
     uint8_t mTriggerSource;
+    uint8_t mRange;
     uint32_t mScanOptions;
     QString mOptNames;
 

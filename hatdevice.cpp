@@ -125,6 +125,7 @@ void HatDevice::updateParameters()
     mBackgroundScan = ((uint32_t)(allOptions & OPTS_IFC_BACKGROUND) != 0);
     mTriggerType = parentWindow->triggerType();
     mTriggerSource = parentWindow->triggerSource();
+    mRange = parentWindow->aiRange();
 
     mUseTimer = parentWindow->tmrEnabled();
     mStopOnStart = parentWindow->tmrStopOnStart();

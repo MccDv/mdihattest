@@ -55,6 +55,7 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     mTriggerType = TRIG_RISING_EDGE;
     mTriggerSource = SOURCE_LOCAL;
     mAiResolution = 12;
+    mRange = AI_RANGE_BIP_10V;
     mCurFunctionGroup = funcGroup;
     tmrRunFunc = new QTimer(this);
     mTmrEnabled = false;
@@ -71,6 +72,7 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     connect(this, SIGNAL(showPlotChanged(bool)), subwidget, SLOT(showPlotWindow(bool)));
     connect(this, SIGNAL(scanOptionsChanged(u_int32_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(triggerTypeChanged(TriggerMode)), subwidget, SLOT(updateParameters()));
+    connect(this, SIGNAL(aiRangeChanged(uint8_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(triggerSourceChanged(uint8_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(configQueue()), subwidget, SLOT(showQueueConfig()));
     connect(tmrRunFunc, SIGNAL(timeout()), subwidget, SLOT(runSelectedFunction()));

@@ -121,11 +121,26 @@ void HatDiscovery::showBoardParameters()
     uint16_t devId;
     QString serNum;
     bool hat134Support;
+    bool hat152Support;
+    bool hat172Support;
+    bool hat128Support;
 
     hat134Support = true;
+    hat152Support = true;
+    hat172Support = true;
+    hat128Support = true;
 
 #ifndef HAT_03
     hat134Support = false;
+#endif
+#ifndef HAT_04
+    hat152Support = false;
+#endif
+#ifndef HAT_05
+    hat172Support = false;
+#endif
+#ifndef HAT_06
+    hat128Support = false;
 #endif
 
     version = 0;
@@ -143,6 +158,24 @@ void HatDiscovery::showBoardParameters()
     switch (devId) {
     case 323:
         if(!hat134Support) {
+            ui->textEdit->append("This software version does not support this device");
+            return;
+        }
+        break;
+    case 324:
+        if(!hat152Support) {
+            ui->textEdit->append("This software version does not support this device");
+            return;
+        }
+        break;
+    case 325:
+        if(!hat172Support) {
+            ui->textEdit->append("This software version does not support this device");
+            return;
+        }
+        break;
+    case 326:
+        if(!hat128Support) {
             ui->textEdit->append("This software version does not support this device");
             return;
         }

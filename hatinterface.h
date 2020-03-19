@@ -30,6 +30,7 @@ public:
     int getSerialNumber(uint16_t devType, uint8_t address, QString &serialNum);
     int blinkLED(uint16_t devType, uint8_t address, uint8_t count);
     int readCalDate(uint16_t devType, uint8_t address, QString &calDate);
+
     int getNumAInChans(uint16_t devType);
     double getAInVoltsMax(uint16_t devType, uint8_t index);
     double getAInVoltsMin(uint16_t devType, uint8_t index);
@@ -47,6 +48,11 @@ public:
     int aInScanChanCount(uint16_t devType, uint8_t address);
     int getAInScanParameters(uint16_t devType, uint8_t address, uint8_t chanCount, uint8_t &source, double &rate, uint8_t &value);
     int aInScanCleanup(uint16_t devType, uint8_t address);
+    int aInModeRead(uint16_t devType, uint8_t address, uint8_t &value);
+    int aInRangeRead(uint16_t devType, uint8_t address, uint8_t &value);
+    int aInModeWrite(uint16_t devType, uint8_t address, uint8_t value);
+    int aInRangeWrite(uint16_t devType, uint8_t address, uint8_t value);
+
     int testClock(uint16_t devType, uint8_t address, uint8_t mode, uint8_t &value);
     int testTrig(uint16_t devType, uint8_t address, uint8_t &value);
 

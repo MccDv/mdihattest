@@ -43,6 +43,12 @@ MainWindow::MainWindow(QWidget *parent) :
     */
     //functionGroup->actions().clear();
 
+    rangeGroup = new QActionGroup(this);
+    rangeGroup->addAction(ui->actionBIP10V);
+    rangeGroup->addAction(ui->actionBIP5V);
+    rangeGroup->addAction(ui->actionBIP2V);
+    rangeGroup->addAction(ui->actionBIP1V);
+
     trigTypeGroup = new QActionGroup(this);
     trigTypeGroup->addAction(ui->actionRISING_EDGE);
     trigTypeGroup->addAction(ui->actionFALLING_EDGE);
@@ -53,6 +59,12 @@ MainWindow::MainWindow(QWidget *parent) :
     trigSourceGroup->addAction(ui->action_SOURCE_LOCAL);
     trigSourceGroup->addAction(ui->actionSOURCE_MASTER);
     trigSourceGroup->addAction(ui->actionSOURCE_SLAVE);
+
+    ui->actionBIP10V->setData(AI_RANGE_BIP_10V);
+    ui->actionBIP5V->setData(AI_RANGE_BIP_5V);
+    ui->actionBIP2V->setData(AI_RANGE_BIP_2V);
+    ui->actionBIP1V->setData(AI_RANGE_BIP_1V);
+    connect(rangeGroup, SIGNAL(triggered(QAction*)), this, SLOT(changeRange()));
 
     ui->actionRISING_EDGE->setData(TRIG_RISING_EDGE);
     ui->actionFALLING_EDGE->setData(TRIG_FALLING_EDGE);
@@ -911,4 +923,15 @@ void MainWindow::writeWindowPosition()
 void MainWindow::updatePlotMenu(bool enabled)
 {
     ui->menuPlot->setProperty("checked", enabled);
+}
+
+void MainWindow::changeRange()
+{
+    ChildWindow *curChild = activeMdiChild();
+
+    QVariant rangeSetVal = rangeGroup->checkedAction()->data();
+    mRange = (AnalogInputRange)rangeSetVal.toLongLong();
+
+    if (curChild)
+        curChild->setAiRange(mRange);
 }
