@@ -499,7 +499,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
                 funcAct->setChecked(true);
             }
         }
-        foreach (QAction *trigAct, ui->menuTriggering->actions()) {
+        foreach (QAction *trigAct, trigTypeGroup->actions()) {
             trigAct->setChecked(false);
             if (trigAct->data() == mTriggerType) {
                 trigAct->setChecked(true);
