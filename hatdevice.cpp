@@ -148,8 +148,8 @@ void HatDevice::updateParameters()
     if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172) | (mHatID == HAT_ID_MCC_134)) {
         maInMinCode = hatInterface->getAInCodeMin(mHatID);
         maInMaxCode = hatInterface->getAInCodeMax(mHatID);
-        maInMinRange = hatInterface->getAInRangeMin(mHatID);
-        maInMaxRange = hatInterface->getAInRangeMax(mHatID);
+        maInMinRange = hatInterface->getAInRangeMin(mHatID, 0);
+        maInMaxRange = hatInterface->getAInRangeMax(mHatID, 0);
     }
 }
 

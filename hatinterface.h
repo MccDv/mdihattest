@@ -11,12 +11,6 @@
 #include "mainwindow.h"
 #include "daqhats/daqhats.h"
 
-#ifndef HAT_03
-
-#define TC_DISABLED  (0xFF)
-
-#endif
-
 class HatInterface
 {
 public:
@@ -37,14 +31,14 @@ public:
     int blinkLED(uint16_t devType, uint8_t address, uint8_t count);
     int readCalDate(uint16_t devType, uint8_t address, QString &calDate);
     int getNumAInChans(uint16_t devType);
-    double getAInVoltsMax(uint16_t devType);
-    double getAInVoltsMin(uint16_t devType);
-    double getAInRangeMax(uint16_t devType);
-    double getAInRangeMin(uint16_t devType);
+    double getAInVoltsMax(uint16_t devType, uint8_t index);
+    double getAInVoltsMin(uint16_t devType, uint8_t index);
+    double getAInRangeMax(uint16_t devType, uint8_t index);
+    double getAInRangeMin(uint16_t devType, uint8_t index);
     int32_t getAInCodeMax(uint16_t devType);
     int32_t getAInCodeMin(uint16_t devType);
-    int readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double &slope, double &offset);
-    int writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double slope, double offset);
+    int readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, uint8_t mode, uint8_t range, double &slope, double &offset);
+    int writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, uint8_t mode, uint8_t range, double slope, double offset);
     int aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint32_t options, double &value);
     int setTrigger(uint16_t devType, uint8_t address, uint8_t source, TriggerMode trigType);
     int stopAInScan(uint16_t devType, uint8_t address);

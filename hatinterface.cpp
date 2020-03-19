@@ -510,6 +510,12 @@ int32_t HatInterface::getAInCodeMax(uint16_t devType)
         maxCode = mcc172_info()->AI_MAX_CODE;
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxCode = mcc128_info()->AI_MAX_CODE;
+        break;
+#endif
     default:
         funcArgs = "(~) = 0\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -553,6 +559,12 @@ int32_t HatInterface::getAInCodeMin(uint16_t devType)
         minCode = mcc172_info()->AI_MIN_CODE;
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minCode = mcc128_info()->AI_MIN_CODE;
+        break;
+#endif
     default:
         funcArgs = "(~) = 0\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -567,7 +579,7 @@ int32_t HatInterface::getAInCodeMin(uint16_t devType)
     return minCode;
 }
 
-double HatInterface::getAInRangeMax(uint16_t devType)
+double HatInterface::getAInRangeMax(uint16_t devType, uint8_t index)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
@@ -576,6 +588,7 @@ double HatInterface::getAInRangeMax(uint16_t devType)
     double maxRange;
     QString hatName;
 
+    (void)index;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMaxRange");
     funcArgs = "() = maxRange\n";
@@ -596,6 +609,12 @@ double HatInterface::getAInRangeMax(uint16_t devType)
         maxRange = mcc172_info()->AI_MAX_RANGE;
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxRange = mcc128_info()->AI_MAX_RANGE[index];
+        break;
+#endif
     default:
         funcArgs = "(~) = 0\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -610,7 +629,7 @@ double HatInterface::getAInRangeMax(uint16_t devType)
     return maxRange;
 }
 
-double HatInterface::getAInRangeMin(uint16_t devType)
+double HatInterface::getAInRangeMin(uint16_t devType, uint8_t index)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
@@ -619,6 +638,7 @@ double HatInterface::getAInRangeMin(uint16_t devType)
     double minRange;
     QString hatName;
 
+    (void)index;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMinRange");
     funcArgs = "() = minRange\n";
@@ -639,6 +659,12 @@ double HatInterface::getAInRangeMin(uint16_t devType)
         minRange = mcc172_info()->AI_MIN_RANGE;
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minRange = mcc128_info()->AI_MIN_RANGE[index];
+        break;
+#endif
     default:
         funcArgs = "(~) = 0\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -653,7 +679,7 @@ double HatInterface::getAInRangeMin(uint16_t devType)
     return minRange;
 }
 
-double HatInterface::getAInVoltsMax(uint16_t devType)
+double HatInterface::getAInVoltsMax(uint16_t devType, uint8_t index)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
@@ -663,6 +689,7 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
     int prec;
     double maxVolts;
 
+    (void)index;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMaxVolts");
     funcArgs = "() = maxVolts\n";
@@ -686,6 +713,13 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
         maxVolts = mcc172_info()->AI_MAX_VOLTAGE;
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        prec = 12;
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        maxVolts = mcc128_info()->AI_MAX_VOLTAGE[index];
+        break;
+#endif
     default:
         funcArgs = "(~) = 0\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -701,7 +735,7 @@ double HatInterface::getAInVoltsMax(uint16_t devType)
     return maxVolts;
 }
 
-double HatInterface::getAInVoltsMin(uint16_t devType)
+double HatInterface::getAInVoltsMin(uint16_t devType, uint8_t index)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
@@ -711,6 +745,7 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
     int prec;
     double minVolts;
 
+    (void)index;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": aInMinVolts");
     funcArgs = "() = minVolts\n";
@@ -734,6 +769,13 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
         minVolts = mcc172_info()->AI_MIN_VOLTAGE;
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        prec = 12;
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        minVolts = mcc128_info()->AI_MIN_VOLTAGE[index];
+        break;
+#endif
     default:
         funcArgs = "(~) = 0\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -749,7 +791,7 @@ double HatInterface::getAInVoltsMin(uint16_t devType)
     return minVolts;
 }
 
-int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double &slope, double &offset)
+int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, uint8_t mode, uint8_t range, double &slope, double &offset)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
@@ -758,6 +800,8 @@ int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan,
     double chanSlope, chanOffset;
     QString hatName;
 
+    (void)mode;
+    (void)range;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": readCalCoeffs");
     funcArgs = "(address, chan, &slope, &offset)\n";
@@ -776,6 +820,12 @@ int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan,
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_calibration_coefficient_read(address, chan, &chanSlope, &chanOffset);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_calibration_coefficient_read(address, chan, mode, range, &chanSlope, &chanOffset);
         break;
 #endif
     default:
@@ -801,7 +851,7 @@ int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan,
     return mResponse;
 }
 
-int HatInterface::writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, double slope, double offset)
+int HatInterface::writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan, uint8_t mode, uint8_t range, double slope, double offset)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
@@ -809,6 +859,8 @@ int HatInterface::writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan
     QString sStartTime;
     QString hatName;
 
+    (void)mode;
+    (void)range;
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": WriteCal");
     funcArgs = "(address, chan, slope, offset)\n";
@@ -827,6 +879,12 @@ int HatInterface::writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_calibration_coefficient_write(address, chan, slope, offset);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_calibration_coefficient_write(address, chan, mode, range, slope, offset);
         break;
 #endif
     default:
@@ -874,6 +932,13 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
         multiplier = 1000;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc134_a_in_read(address, chan, options, &data);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        multiplier = 1000;
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_read(address, chan, options, &data);
         break;
 #endif
     default:
@@ -995,6 +1060,12 @@ int HatInterface::setTrigger(uint16_t devType, uint8_t address, uint8_t source, 
         mResponse = mcc172_trigger_config(address, source, trigType);
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_trigger_config(address, source, trigType);
+        break;
+#endif
     default:
         funcArgs = "(~)\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1034,6 +1105,12 @@ int HatInterface::readAInScanStatus(uint16_t devType, uint8_t address, uint16_t 
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_a_in_scan_status(address, &statReturned, &numRead);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_scan_status(address, &statReturned, &numRead);
         break;
 #endif
     default:
@@ -1084,6 +1161,12 @@ int HatInterface::stopAInScan(uint16_t devType, uint8_t address)
         mResponse = mcc172_a_in_scan_stop(address);
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_scan_stop(address);
+        break;
+#endif
     default:
         funcArgs = "(~)\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1121,6 +1204,12 @@ int HatInterface::aInScanChanCount(uint16_t devType, uint8_t address)
         chanCount = mcc172_a_in_scan_channel_count(address);
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        chanCount = mcc128_a_in_scan_channel_count(address);
+        break;
+#endif
     default:
         funcArgs = "(~)\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
@@ -1156,6 +1245,12 @@ int HatInterface::getBufferSize(uint16_t devType, uint8_t address, uint32_t &buf
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_a_in_scan_buffer_size(address, &bufSize);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_scan_buffer_size(address, &bufSize);
         break;
 #endif
     default:
@@ -1219,6 +1314,19 @@ int HatInterface::getAInScanParameters(uint16_t devType, uint8_t address, uint8_
                 .arg(sync);
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        (void)address;
+        nameOfFunc = hatName.append(": ainScanRate");
+        funcArgs = "(chanCount, rate, &rateReturned)\n";
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_scan_actual_rate(chanCount, rate, &rateReturned);
+        argVals = QStringLiteral("(%1, %2, %3)")
+                .arg(chanCount)
+                .arg(rate)
+                .arg(rateReturned);
+        break;
+#endif
     default:
         nameOfFunc = hatName.append(": getAinScanParameters");
         funcArgs = "(~)\n";
@@ -1257,6 +1365,12 @@ int HatInterface::aInScanCleanup(uint16_t devType, uint8_t address)
     case HAT_ID_MCC_172:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc172_a_in_scan_cleanup(address);
+        break;
+#endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_scan_cleanup(address);
         break;
 #endif
     default:

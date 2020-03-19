@@ -20,10 +20,10 @@ QString getHatTypeName(uint16_t hatType);
 QString setTcTypeInString(QString tcTypes, uint8_t chan, uint8_t newType);
 uint16_t getHatIdFromName(QString hatName);
 QVector<uint8_t> getTcTypesFromString(QString tcTypes);
-#endif // TESTUTILITIES_H
 
 #ifndef HAT_03
 
+#define TC_DISABLED  (0xFF)
 #define HAT_ID_MCC_134       0x0143
 
 #define TC_TYPE_J   0
@@ -57,3 +57,22 @@ QVector<uint8_t> getTcTypesFromString(QString tcTypes);
 #define DIO_INT_MASK         6
 
 #endif
+
+#ifndef HAT_06
+
+#define HAT_ID_MCC_128       0x0146
+
+enum AnalogInputMode {
+    AI_MODE_SE = 0,
+    AI_MODE_DIFF = 1
+};
+
+enum AnalogInputRange {
+    AI_RANGE_BIP_10V = 0,
+    AI_RANGE_BIP_5V = 1,
+    AI_RANGE_BIP_2V = 2,
+    AI_RANGE_BIP_1V = 3
+};
+#endif
+
+#endif // TESTUTILITIES_H

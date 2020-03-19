@@ -26,6 +26,12 @@ HatDiscovery::HatDiscovery(QWidget *parent) :
 #ifdef HAT_04
     ui->cmbFilter->addItem("MCC152", HAT_ID_MCC_152);
 #endif
+#ifdef HAT_05
+    ui->cmbFilter->addItem("MCC172", HAT_ID_MCC_172);
+#endif
+#ifdef HAT_06
+    ui->cmbFilter->addItem("MCC128", HAT_ID_MCC_128);
+#endif
 
     connect(ui->cmdDiscover, SIGNAL(clicked(bool)), this, SLOT(readHatList()));
     connect(ui->cmdOpen, SIGNAL(clicked(bool)), this, SLOT(openCmdClicked()));

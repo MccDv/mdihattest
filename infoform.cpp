@@ -789,10 +789,15 @@ void InfoForm::readCal()
 {
     QString dataText;
     uint8_t chan, curChan;
+    uint8_t mode, range;
     int numChans;
     double slope, offset;
     QString calDate;
 
+    mode = AI_MODE_SE;
+    range = AI_RANGE_BIP_10V;
+    (void)mode;
+    (void)range;
     curChan = ui->spnCalChan->value();
     ui->teShowValues->clear();
 
@@ -808,7 +813,7 @@ void InfoForm::readCal()
     numChans = hatInterface->getNumAInChans(mHatID);
 
     for(chan = 0; chan < numChans; chan++) {
-        mResponse = hatInterface->readCalCoeffs(mHatID, mAddress, chan, slope, offset);
+        mResponse = hatInterface->readCalCoeffs(mHatID, mAddress, chan, mode, range, slope, offset);
         ui->lblInfo->setText(hatInterface->getStatus());
         /*mResponse = mcc118_calibration_coefficient_read(mAddress, chan, &slope, &offset);
         argVals = QStringLiteral("(%1, %2, %3, %4)")
@@ -832,14 +837,18 @@ void InfoForm::readCal()
 
 void InfoForm::writeCal()
 {
-    uint8_t chan;
+    uint8_t chan, mode, range;
     double slope, offset;
 
+    mode = AI_MODE_SE;
+    range = AI_RANGE_BIP_10V;
+    (void)mode;
+    (void)range;
     chan = ui->spnCalChan->value();
     slope = ui->leSlope->text().toDouble();
     offset = ui->leOffset->text().toDouble();
     ui->teShowValues->clear();
-    hatInterface->writeCalCoeffs(mHatID, mAddress, chan, slope, offset);
+    hatInterface->writeCalCoeffs(mHatID, mAddress, chan, mode, range, slope, offset);
     delay(300);
     readCal();
 }
@@ -882,13 +891,13 @@ void InfoForm::showBoardParameters()
         ui->teShowValues->append(QString("Code range: %1 to %2")
                                  .arg(aInMinCode)
                                  .arg(aInMaxCode));
-        aInMinRange = hatInterface->getAInRangeMin(mHatID);
-        aInMaxRange = hatInterface->getAInRangeMax(mHatID);
+        aInMinRange = hatInterface->getAInRangeMin(mHatID, 0);
+        aInMaxRange = hatInterface->getAInRangeMax(mHatID, 0);
         ui->teShowValues->append(QString("Range: %1 to %2")
                                  .arg(aInMinRange)
                                  .arg(aInMaxRange));
-        aInMinVolts = hatInterface->getAInVoltsMin(mHatID);
-        aInMaxVolts = hatInterface->getAInVoltsMax(mHatID);
+        aInMinVolts = hatInterface->getAInVoltsMin(mHatID, 0);
+        aInMaxVolts = hatInterface->getAInVoltsMax(mHatID, 0);
         ui->teShowValues->append(QString("Volts: %1 to %2")
                                  .arg(aInMinVolts, 0, 'f', prec)
                                  .arg(aInMaxVolts, 0, 'f', prec));
