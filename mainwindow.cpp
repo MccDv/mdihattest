@@ -486,6 +486,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
             }
         }
         foreach (QAction *scanOpt, ui->menuOptions->actions()) {
+            scanOpt->setChecked(false);
             uint32_t curMenuVal = scanOpt->data().toULongLong();
             if (curMenuVal & mScanOptions) {
                 scanOpt->setChecked(true);
