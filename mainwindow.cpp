@@ -479,6 +479,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
     if (curChild) {
         mRange = curChild->aiRange();
         mScanOptions = curChild->scanOptions();
+        mCurFunction = curChild->curFunction();
         foreach (QAction *rangeAct, ui->menuRange->actions()) {
             if (rangeAct->data() == mRange) {
                 rangeAct->setChecked(true);
@@ -490,6 +491,12 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
             uint32_t curMenuVal = scanOpt->data().toULongLong();
             if (curMenuVal & mScanOptions) {
                 scanOpt->setChecked(true);
+            }
+        }
+        foreach (QAction *funcAct, ui->menuFunction->actions()) {
+            funcAct->setChecked(false);
+            if (funcAct->data() == mCurFunction) {
+                funcAct->setChecked(true);
             }
         }
     }
