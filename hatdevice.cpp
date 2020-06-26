@@ -466,8 +466,10 @@ void HatDevice::runSelectedFunction()
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 
 #ifdef HAT_06
-    if (mHatID == HAT_ID_MCC_128)
+    if (mHatID == HAT_ID_MCC_128) {
+        setMode();
         setRange();
+    }
 #endif
 
     switch (mCurFunction) {
