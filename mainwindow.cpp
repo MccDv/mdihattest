@@ -94,6 +94,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionNOCALIBRATEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
     connect(ui->actionNOSCALEDATA, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
     connect(ui->actionBACKGROUND, SIGNAL(triggered(bool)), this, SLOT(curOptionChanged()));
+    connect(ui->actionDifferential_Mode, SIGNAL(toggled(bool)), this, SLOT(changeInputMode(bool)));
     connect(this, SIGNAL(plotCheckedChanged(bool)), this, SLOT(updatePlotMenu(bool)));
 
     mHatList.clear();
@@ -762,4 +763,18 @@ void MainWindow::changeRange()
 
     if (curChild)
         curChild->setAiRange(mRange);
+}
+
+void MainWindow::changeInputMode(bool modeSet)
+{
+    uint8_t inputMode;
+
+    ChildWindow *curChild = activeMdiChild();
+
+    inputMode = A_IN_MODE_SE;
+    if (modeSet)
+        inputMode = A_IN_MODE_DIFF;
+
+    if (curChild)
+        curChild->setAiMode(inputMode);
 }

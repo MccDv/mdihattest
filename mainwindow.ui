@@ -193,6 +193,7 @@
     <addaction name="actionBACKGROUND"/>
     <addaction name="separator"/>
     <addaction name="actionTmrloop"/>
+    <addaction name="actionDifferential_Mode"/>
    </widget>
    <widget class="QMenu" name="menuTriggering">
     <property name="title">
@@ -515,6 +516,14 @@
     <font>
      <pointsize>10</pointsize>
     </font>
+   </property>
+  </action>
+  <action name="actionDifferential_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Differential Mode</string>
    </property>
   </action>
  </widget>

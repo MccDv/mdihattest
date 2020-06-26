@@ -73,6 +73,7 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     connect(this, SIGNAL(scanOptionsChanged(u_int32_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(triggerTypeChanged(TriggerMode)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(aiRangeChanged(uint8_t)), subwidget, SLOT(updateParameters()));
+    connect(this, SIGNAL(aiModeChanged(uint8_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(triggerSourceChanged(uint8_t)), subwidget, SLOT(updateParameters()));
     connect(this, SIGNAL(configQueue()), subwidget, SLOT(showQueueConfig()));
     connect(tmrRunFunc, SIGNAL(timeout()), subwidget, SLOT(runSelectedFunction()));

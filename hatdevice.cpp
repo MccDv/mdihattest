@@ -126,6 +126,7 @@ void HatDevice::updateParameters()
     mTriggerType = parentWindow->triggerType();
     mTriggerSource = parentWindow->triggerSource();
     mRange = parentWindow->aiRange();
+    mMode = parentWindow->aiMode();
 
     mUseTimer = parentWindow->tmrEnabled();
     mStopOnStart = parentWindow->tmrStopOnStart();
@@ -146,7 +147,10 @@ void HatDevice::updateParameters()
 
     ui->lblStatus->clear();
     this->setWindowTitle(mFuncName + ": " + mDevName);
-    if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172) | (mHatID == HAT_ID_MCC_134)) {
+    if((mHatID == HAT_ID_MCC_118)
+            | (mHatID == HAT_ID_MCC_172)
+            | (mHatID == HAT_ID_MCC_134)
+            | (mHatID == HAT_ID_MCC_128)) {
         maInMinCode = hatInterface->getAInCodeMin(mHatID);
         maInMaxCode = hatInterface->getAInCodeMax(mHatID);
         maInMinRange = hatInterface->getAInRangeMin(mHatID, 0);
@@ -357,6 +361,14 @@ void HatDevice::setRange()
 {
 #ifdef HAT_06
     mResponse = hatInterface->aInRangeWrite(mHatID, mAddress, mRange);
+    ui->lblStatus->setText(hatInterface->getStatus());
+#endif
+}
+
+void HatDevice::setMode()
+{
+#ifdef HAT_06
+    mResponse = hatInterface->aInModeWrite(mHatID, mAddress, mMode);
     ui->lblStatus->setText(hatInterface->getStatus());
 #endif
 }

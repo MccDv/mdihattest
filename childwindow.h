@@ -25,6 +25,7 @@ class ChildWindow : public QMdiSubWindow
     Q_PROPERTY(TriggerMode triggerType READ triggerType WRITE setTriggerType NOTIFY triggerTypeChanged)
     Q_PROPERTY(uint8_t triggerSource READ triggerSource WRITE setTriggerSource NOTIFY triggerSourceChanged)
     Q_PROPERTY(uint8_t aiRange READ aiRange WRITE setAiRange NOTIFY aiRangeChanged)
+    Q_PROPERTY(uint8_t aiMode READ aiMode WRITE setAiMode NOTIFY aiModeChanged)
 
     Q_PROPERTY(bool tmrEnabled READ tmrEnabled WRITE setTmrEnabled NOTIFY tmrEnabledChanged)
     Q_PROPERTY(int tmrInterval READ tmrInterval WRITE setTmrInterval NOTIFY tmrIntervalChanged)
@@ -66,6 +67,12 @@ public:
     {
         mRange = aiRange;
         emit aiRangeChanged(aiRange);
+    }
+
+    void setAiMode(uint8_t aiMode)
+    {
+        mMode = aiMode;
+        emit aiModeChanged(aiMode);
     }
 
     void setCurFunction(int utFunction)
@@ -139,6 +146,7 @@ public:
     uint8_t devAddress() { return mDevAddress; }
     uint16_t devId() { return mDevID; }
     uint8_t aiRange() { return mRange; }
+    uint8_t aiMode() { return mMode; }
 
     bool tmrEnabled() { return mTmrEnabled; }
     int tmrInterval() { return mTmrInterval; }
@@ -172,6 +180,7 @@ private:
     QString mSerNum;
     uint8_t mDevAddress;
     uint8_t mRange;
+    uint8_t mMode;
     uint16_t mDevID;
     u_int32_t mScanOptions;
     TriggerMode mTriggerType;
@@ -204,6 +213,7 @@ signals:
     void triggerTypeChanged(TriggerMode);
     void triggerSourceChanged(uint8_t);
     void aiRangeChanged(uint8_t);
+    void aiModeChanged(uint8_t);
     void configQueue();
 
     void tmrEnabledChanged(bool);

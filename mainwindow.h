@@ -74,6 +74,7 @@ private slots:
     void setTimer();
     void updatePlotMenu(bool enabled);
     void changeRange();
+    void changeInputMode(bool modeSet);
     //void setBoardMenuSelect(QMdiSubWindow*);
 
 private:

@@ -40,6 +40,7 @@ private slots:
     void writeStoredTcValues();
     void updateTcValues();
     void setRange();
+    void setMode();
     void setInterval();
     void trapVoltsChecked();
     //void runBackgrndResult();
@@ -68,6 +69,7 @@ private:
     TriggerMode mTriggerType = TRIG_RISING_EDGE;
     uint8_t mTriggerSource = SOURCE_LOCAL;
     uint8_t mRange = A_IN_RANGE_BIP_10V;
+    uint8_t mMode = A_IN_MODE_SE;
     uint32_t mSamplesPerChan = 0;
     double mRateReturned = 0.0;
     struct HatInfo hatInfoList[MAX_NUMBER_HATS];

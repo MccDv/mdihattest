@@ -3158,7 +3158,7 @@ int HatInterface::aInRangeWrite(uint16_t devType, uint8_t address, uint8_t range
     switch (devType) {
     case HAT_ID_MCC_128:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc128_a_in_mode_write(address, range);
+        mResponse = mcc128_a_in_range_write(address, range);
         break;
     default:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
