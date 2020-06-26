@@ -62,10 +62,10 @@ MainWindow::MainWindow(QWidget *parent) :
     trigSourceGroup->addAction(ui->actionSOURCE_MASTER);
     trigSourceGroup->addAction(ui->actionSOURCE_SLAVE);
 
-    ui->actionBIP10V->setData(AI_RANGE_BIP_10V);
-    ui->actionBIP5V->setData(AI_RANGE_BIP_5V);
-    ui->actionBIP2V->setData(AI_RANGE_BIP_2V);
-    ui->actionBIP1V->setData(AI_RANGE_BIP_1V);
+    ui->actionBIP10V->setData(A_IN_RANGE_BIP_10V);
+    ui->actionBIP5V->setData(A_IN_RANGE_BIP_5V);
+    ui->actionBIP2V->setData(A_IN_RANGE_BIP_2V);
+    ui->actionBIP1V->setData(A_IN_RANGE_BIP_1V);
     connect(rangeGroup, SIGNAL(triggered(QAction*)), this, SLOT(changeRange()));
 
     ui->actionRISING_EDGE->setData(TRIG_RISING_EDGE);

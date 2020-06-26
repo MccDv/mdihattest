@@ -55,7 +55,7 @@ ChildWindow::ChildWindow(QWidget *parent, UtFunctionGroup funcGroup) : QMdiSubWi
     mTriggerType = TRIG_RISING_EDGE;
     mTriggerSource = SOURCE_LOCAL;
     mAiResolution = 12;
-    mRange = AI_RANGE_BIP_10V;
+    mRange = A_IN_RANGE_BIP_10V;
     mCurFunctionGroup = funcGroup;
     tmrRunFunc = new QTimer(this);
     mTmrEnabled = false;

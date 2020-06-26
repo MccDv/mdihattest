@@ -794,8 +794,8 @@ void InfoForm::readCal()
     double slope, offset;
     QString calDate;
 
-    mode = AI_MODE_SE;
-    range = AI_RANGE_BIP_10V;
+    mode = A_IN_MODE_SE;
+    range = A_IN_RANGE_BIP_10V;
     (void)mode;
     (void)range;
     curChan = ui->spnCalChan->value();
@@ -840,8 +840,8 @@ void InfoForm::writeCal()
     uint8_t chan, mode, range;
     double slope, offset;
 
-    mode = AI_MODE_SE;
-    range = AI_RANGE_BIP_10V;
+    mode = A_IN_MODE_SE;
+    range = A_IN_RANGE_BIP_10V;
     (void)mode;
     (void)range;
     chan = ui->spnCalChan->value();

@@ -66,7 +66,7 @@ private:
     uint32_t mScanOptions = 0;
     TriggerMode mTriggerType = TRIG_RISING_EDGE;
     uint8_t mTriggerSource = SOURCE_LOCAL;
-    uint8_t mRange = AI_RANGE_BIP_10V;
+    uint8_t mRange = A_IN_RANGE_BIP_10V;
     uint32_t mSamplesPerChan = 0;
     double mRateReturned = 0.0;
     struct HatInfo hatInfoList[MAX_NUMBER_HATS];
