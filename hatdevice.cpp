@@ -287,7 +287,7 @@ void HatDevice::checkCurTcConfig(bool saveToChild)
     parentWindow = qobject_cast<ChildWindow *>(this->parent());
     QString typePrefs, serNum, typeName;
     uint8_t chan, interval;
-    int numChans;
+    int numChans, mode;
     uint8_t tcType;
 
     mResponse = hatInterface->getSerialNumber(mHatID, mAddress, serNum);
@@ -308,8 +308,9 @@ void HatDevice::checkCurTcConfig(bool saveToChild)
     if(mTInPrefs == "")
         mTInPrefs = "255,255,255,255";
 
+    mode = A_IN_MODE_DIFF;
     typePrefs = "";
-    numChans = hatInterface->getNumAInChans(mHatID);
+    numChans = hatInterface->getNumAInChans(mHatID, mode);
     for(chan = 0; chan < numChans; chan++) {
         mResponse = hatInterface->readTcTypes(mHatID, mAddress, chan, tcType);
         ui->lblInfo->setText(hatInterface->getStatus());

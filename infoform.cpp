@@ -789,12 +789,12 @@ void InfoForm::readCal()
 {
     QString dataText;
     uint8_t chan, curChan;
-    uint8_t mode, range;
-    int numChans;
+    uint8_t range;
+    int mode, numChans;
     double slope, offset;
     QString calDate;
 
-    mode = A_IN_MODE_SE;
+    mode = A_IN_MODE_DIFF;
     range = A_IN_RANGE_BIP_10V;
     (void)mode;
     (void)range;
@@ -810,7 +810,7 @@ void InfoForm::readCal()
         dataText.append("</tr><tr>");
     }
 
-    numChans = hatInterface->getNumAInChans(mHatID);
+    numChans = hatInterface->getNumAInChans(mHatID, mode);
 
     for(chan = 0; chan < numChans; chan++) {
         mResponse = hatInterface->readCalCoeffs(mHatID, mAddress, chan, mode, range, slope, offset);
@@ -856,11 +856,12 @@ void InfoForm::writeCal()
 void InfoForm::showBoardParameters()
 {
     bool isOpen;
-    int numChans, prec;
+    int numChans, prec, mode;
     int32_t aInMinCode, aInMaxCode;
     double aInMaxVolts, aInMinVolts;
     double aInMaxRange, aInMinRange;
 
+    mode = A_IN_MODE_DIFF;
     ui->lblInfo->clear();
     ui->lblStatus->clear();
     ui->teShowValues->clear();
@@ -883,7 +884,7 @@ void InfoForm::showBoardParameters()
         ui->teShowValues->setText(QString("%1 device is not open.\n").arg(mDevName)
              + "Use Discover to open device.\n");
     }
-    numChans = hatInterface->getNumAInChans(mHatID);
+    numChans = hatInterface->getNumAInChans(mHatID, mode);
     ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
     if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172) | (mHatID == HAT_ID_MCC_134)) {
         aInMinCode = hatInterface->getAInCodeMin(mHatID);
@@ -967,13 +968,14 @@ void InfoForm::readTcTypes()
 {
     QString dataText, typeName;
     uint8_t chan, curChan;
-    int numChans;
+    int numChans, mode;
     uint8_t tcType, typeIndex;
 
     curChan = ui->spnCalChan->value();
     ui->teShowValues->clear();
+    mode = A_IN_MODE_DIFF;
 
-    numChans = hatInterface->getNumAInChans(mHatID);
+    numChans = hatInterface->getNumAInChans(mHatID, mode);
 
     for(chan = 0; chan < numChans; chan++) {
         mResponse = hatInterface->readTcTypes(mHatID, mAddress, chan, tcType);

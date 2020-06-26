@@ -432,7 +432,7 @@ int HatInterface::readCalDate(uint16_t devType, uint8_t address, QString &calDat
     return mResponse;
 }
 
-int HatInterface::getNumAInChans(uint16_t devType)
+int HatInterface::getNumAInChans(uint16_t devType, int mode)
 {
     QString nameOfFunc, funcArgs, funcStr;
     QString argVals;
@@ -464,7 +464,7 @@ int HatInterface::getNumAInChans(uint16_t devType)
 #ifdef HAT_06
     case HAT_ID_MCC_128:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        numChans = mcc128_info()->NUM_AI_CHANNELS;
+        numChans = mcc128_info()->NUM_AI_CHANNELS[mode];
         break;
 #endif
     default:
@@ -825,7 +825,7 @@ int HatInterface::readCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan,
 #ifdef HAT_06
     case HAT_ID_MCC_128:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc128_calibration_coefficient_read(address, chan, mode, range, &chanSlope, &chanOffset);
+        mResponse = mcc128_calibration_coefficient_read(address, range, &chanSlope, &chanOffset);
         break;
 #endif
     default:
@@ -884,7 +884,7 @@ int HatInterface::writeCalCoeffs(uint16_t devType, uint8_t address, uint8_t chan
 #ifdef HAT_06
     case HAT_ID_MCC_128:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc128_calibration_coefficient_write(address, chan, mode, range, slope, offset);
+        mResponse = mcc128_calibration_coefficient_write(address, range, slope, offset);
         break;
 #endif
     default:
@@ -1063,7 +1063,7 @@ int HatInterface::setTrigger(uint16_t devType, uint8_t address, uint8_t source, 
 #ifdef HAT_06
     case HAT_ID_MCC_128:
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-        mResponse = mcc128_trigger_config(address, source, trigType);
+        mResponse = mcc128_trigger_mode(address, trigType);
         break;
 #endif
     default:
@@ -3053,24 +3053,124 @@ int HatInterface::writeTestSignals(uint16_t devType, uint8_t address, uint8_t mo
 
 #ifdef HAT_06
 
-int HatInterface::aInModeRead(uint16_t devType, uint8_t address, uint8_t &value)
+int HatInterface::aInModeRead(uint16_t devType, uint8_t address, uint8_t &mode)
 {
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
 
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": modeRead");
+    funcArgs = "(mAddress, &mode)\n";
+    switch (devType) {
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_mode_read(address, &mode);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2)")
+            .arg(address)
+            .arg(mode);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
 }
 
-int HatInterface::aInModeWrite(uint16_t devType, uint8_t address, uint8_t value)
+int HatInterface::aInModeWrite(uint16_t devType, uint8_t address, uint8_t mode)
 {
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
 
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": modeWrite");
+    funcArgs = "(mAddress, mode)\n";
+    switch (devType) {
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_mode_write(address, mode);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2)")
+            .arg(address)
+            .arg(mode);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
 }
 
-int HatInterface::aInRangeRead(uint16_t devType, uint8_t address, uint8_t &value)
+int HatInterface::aInRangeRead(uint16_t devType, uint8_t address, uint8_t &range)
 {
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
 
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": rangeRead");
+    funcArgs = "(mAddress, &range)\n";
+    switch (devType) {
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_range_read(address, &range);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2)")
+            .arg(address)
+            .arg(range);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
 }
 
-int HatInterface::aInRangeWrite(uint16_t devType, uint8_t address, uint8_t value)
+int HatInterface::aInRangeWrite(uint16_t devType, uint8_t address, uint8_t range)
 {
+    QString nameOfFunc, funcArgs, argVals, funcStr;
+    QTime t;
+    QString sStartTime;
+    QString hatName;
 
+    hatName = getHatTypeName(devType);
+    nameOfFunc = hatName.append(": rangeWrite");
+    funcArgs = "(mAddress, range)\n";
+    switch (devType) {
+    case HAT_ID_MCC_128:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = mcc128_a_in_mode_write(address, range);
+        break;
+    default:
+        sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+        mResponse = RESULT_INVALID_DEVICE;
+        break;
+    }
+    argVals = QStringLiteral("(%1, %2)")
+            .arg(address)
+            .arg(range);
+    mStatusString = nameOfFunc + argVals + QString(" [Error = %1]").arg(mResponse);
+
+    funcStr = nameOfFunc + funcArgs + "Arg vals: " + argVals;
+    reportResult(mResponse, sStartTime + funcStr);
+    return mResponse;
 }
 
 #else
