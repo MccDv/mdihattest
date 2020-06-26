@@ -494,6 +494,7 @@ void HatDevice::runSelectedFunction()
         default:
             break;
         }
+        break;
     case UL_TIN:
         runTinFunction();
         break;
