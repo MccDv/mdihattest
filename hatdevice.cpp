@@ -1083,6 +1083,14 @@ void HatDevice::checkStatus()
                 timeout, buffer, mBufSize, &samplesPerChanRead);
             break;
 #endif
+#ifdef HAT_06
+        case HAT_ID_MCC_128:
+            nameOfFunc = "128: AInScanRead";
+            sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
+            mResponse = mcc128_a_in_scan_read(mAddress, &status, mBlockSize,
+                timeout, buffer, mBufSize, &samplesPerChanRead);
+            break;
+#endif
         default:
             mResponse = RESULT_INVALID_DEVICE;
             break;
