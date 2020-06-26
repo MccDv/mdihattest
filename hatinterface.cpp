@@ -939,7 +939,6 @@ int HatInterface::aInRead(uint16_t devType, uint8_t address, uint8_t chan, uint3
 #endif
 #ifdef HAT_06
     case HAT_ID_MCC_128:
-        multiplier = 1000;
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         mResponse = mcc128_a_in_read(address, chan, options, &data);
         break;

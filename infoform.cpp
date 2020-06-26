@@ -917,7 +917,7 @@ void InfoForm::showBoardParameters()
         ui->lblStatus->setText(hatInterface->getStatus());
         if(mResponse == RESULT_SUCCESS) {
             rangeText = getRangeText(range);
-            ui->teShowValues->append("\nRange: " + rangeText);
+            ui->teShowValues->append("Range: " + rangeText);
         } else {
             QString errText;
             errText = getErrorDescription(mResponse);
@@ -928,7 +928,7 @@ void InfoForm::showBoardParameters()
         ui->lblStatus->setText(hatInterface->getStatus());
         if(mResponse == RESULT_SUCCESS) {
             modeText = getModeText(mode);
-            ui->teShowValues->append("\nRange: " + modeText);
+            ui->teShowValues->append("Mode: " + modeText);
         } else {
             QString errText;
             errText = getErrorDescription(mResponse);
@@ -940,7 +940,7 @@ void InfoForm::showBoardParameters()
 
 #ifdef HAT_04
     numChans = hatInterface->getNumAOutChans(mHatID);
-    ui->teShowValues->append(QString("AOut chans: %1").arg(numChans));
+    ui->teShowValues->append(QString("\nAOut chans: %1").arg(numChans));
     int lowCount = hatInterface->getAOutCodeMin(mHatID);
     int highCount = hatInterface->getAOutCodeMax(mHatID);
     ui->teShowValues->append(QString("AOut code range: %1 to %2")
