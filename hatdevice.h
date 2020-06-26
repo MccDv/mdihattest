@@ -39,6 +39,7 @@ private slots:
     void queueDialogResponse();
     void writeStoredTcValues();
     void updateTcValues();
+    void setRange();
     void setInterval();
     void trapVoltsChecked();
     //void runBackgrndResult();

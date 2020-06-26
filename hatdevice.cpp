@@ -353,6 +353,14 @@ void HatDevice::checkCurTcConfig(bool saveToChild)
     }
 }
 
+void HatDevice::setRange()
+{
+#ifdef HAT_06
+    mResponse = hatInterface->aInRangeWrite(mHatID, mAddress, mRange);
+    ui->lblStatus->setText(hatInterface->getStatus());
+#endif
+}
+
 void HatDevice::setInterval()
 {
     uint8_t interval;
@@ -444,16 +452,34 @@ void HatDevice::runSelectedFunction()
     ui->lblInfo->clear();
     ui->lblStatus->clear();
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+
+#ifdef HAT_06
+    if (mHatID == HAT_ID_MCC_128)
+        setRange();
+#endif
+
     switch (mCurFunction) {
     case UL_AIN:
         runAinFunction();
         break;
     case UL_AINSCAN:
-        if ((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_128))
+        switch (mHatID) {
+        case HAT_ID_MCC_118:
             runAInScanFunc();
-        else
+            break;
+#ifdef HAT_06
+        case HAT_ID_MCC_128:
+            runAInScanFunc();
+            break;
+#endif
+#ifdef HAT_05
+        case HAT_ID_MCC_172:
             runAInScan172Func();
-        break;
+            break;
+#endif
+        default:
+            break;
+        }
     case UL_TIN:
         runTinFunction();
         break;
