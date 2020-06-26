@@ -856,7 +856,8 @@ void InfoForm::writeCal()
 void InfoForm::showBoardParameters()
 {
     bool isOpen;
-    int numChans, prec, mode;
+    int numChans, prec;
+    uint8_t mode;
     int32_t aInMinCode, aInMaxCode;
     double aInMaxVolts, aInMinVolts;
     double aInMaxRange, aInMinRange;
@@ -886,7 +887,10 @@ void InfoForm::showBoardParameters()
     }
     numChans = hatInterface->getNumAInChans(mHatID, mode);
     ui->teShowValues->append(QString("AIn chans: %1").arg(numChans));
-    if((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_172) | (mHatID == HAT_ID_MCC_134)) {
+    if((mHatID == HAT_ID_MCC_118)
+            | (mHatID == HAT_ID_MCC_172)
+            | (mHatID == HAT_ID_MCC_134)
+            | (mHatID == HAT_ID_MCC_128)) {
         aInMinCode = hatInterface->getAInCodeMin(mHatID);
         aInMaxCode = hatInterface->getAInCodeMax(mHatID);
         ui->teShowValues->append(QString("Code range: %1 to %2")
@@ -903,6 +907,36 @@ void InfoForm::showBoardParameters()
                                  .arg(aInMinVolts, 0, 'f', prec)
                                  .arg(aInMaxVolts, 0, 'f', prec));
     }
+
+#ifdef HAT_06
+    uint8_t range;
+    QString rangeText, modeText;
+
+    if(mHatID == HAT_ID_MCC_128) {
+        mResponse = hatInterface->aInRangeRead(mHatID, mAddress, range);
+        ui->lblStatus->setText(hatInterface->getStatus());
+        if(mResponse == RESULT_SUCCESS) {
+            rangeText = getRangeText(range);
+            ui->teShowValues->append("\nRange: " + rangeText);
+        } else {
+            QString errText;
+            errText = getErrorDescription(mResponse);
+            ui->teShowValues->append("\n\nreadRange() returned error " + errText);
+        }
+
+        mResponse = hatInterface->aInModeRead(mHatID, mAddress, mode);
+        ui->lblStatus->setText(hatInterface->getStatus());
+        if(mResponse == RESULT_SUCCESS) {
+            modeText = getModeText(mode);
+            ui->teShowValues->append("\nRange: " + modeText);
+        } else {
+            QString errText;
+            errText = getErrorDescription(mResponse);
+            ui->teShowValues->append("\n\nreadMode() returned error " + errText);
+        }
+    }
+
+#endif
 
 #ifdef HAT_04
     numChans = hatInterface->getNumAOutChans(mHatID);

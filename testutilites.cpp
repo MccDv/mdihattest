@@ -55,6 +55,11 @@ QString getHatTypeName(uint16_t hatType)
         return "MCC172";
         break;
 #endif
+#ifdef HAT_06
+    case HAT_ID_MCC_128:
+        return "MCC128";
+        break;
+#endif
     default:
         return "NO_ID";
         break;
@@ -385,6 +390,52 @@ QString getSourceText(uint8_t sourceClockTrig)
 QString getSourceText(uint8_t sourceClockTrig)
 {
     (void)sourceClockTrig;
+    return "";
+}
+
+#endif
+
+#ifdef HAT_06
+
+QString getRangeText(uint8_t range)
+{
+    switch (range) {
+    case A_IN_RANGE_BIP_10V:
+        return "Bip10V";
+        break;
+    case A_IN_RANGE_BIP_5V:
+        return "Bip5V";
+        break;
+    case A_IN_RANGE_BIP_2V:
+        return "Bip2V";
+        break;
+    case A_IN_RANGE_BIP_1V:
+        return "Bip1V";
+        break;
+    default:
+        return "";
+    }
+}
+
+QString getModeText(uint8_t mode)
+{
+    switch (mode) {
+    case A_IN_MODE_SE:
+        return "Single-ended";
+        break;
+    case A_IN_MODE_DIFF:
+        return "Differential";
+        break;
+    default:
+        return "";
+    }
+}
+
+#else
+
+QString getRangeText(uint8_t range)
+{
+    (void)range;
     return "";
 }
 

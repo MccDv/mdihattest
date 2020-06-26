@@ -14,6 +14,8 @@ QString getErrorDescription(int response);
 QString getStatusText(uint16_t status);
 QString getTrigText(TriggerMode trigType);
 QString getSourceText(uint8_t sourceClockTrig);
+QString getRangeText(uint8_t range);
+QString getModeText(uint8_t mode);
 QString getTcTypeName(uint8_t tcType);
 QString getConfigItemName(uint8_t configItem);
 QString getHatTypeName(uint16_t hatType);

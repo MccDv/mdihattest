@@ -463,8 +463,11 @@ int HatInterface::getNumAInChans(uint16_t devType, int mode)
 #endif
 #ifdef HAT_06
     case HAT_ID_MCC_128:
+        funcArgs = "(mode) = result\n";
         sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
         numChans = mcc128_info()->NUM_AI_CHANNELS[mode];
+        argVals = QString("(%1)")
+                .arg(mode);
         break;
 #endif
     default:
