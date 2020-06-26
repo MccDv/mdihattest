@@ -449,7 +449,7 @@ void HatDevice::runSelectedFunction()
         runAinFunction();
         break;
     case UL_AINSCAN:
-        if(mHatID == HAT_ID_MCC_118)
+        if ((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_128))
             runAInScanFunc();
         else
             runAInScan172Func();
@@ -600,8 +600,9 @@ void HatDevice::runAInScanFunc()
     if (mHaltAction)
         return;
 
-    if(mHatID != HAT_ID_MCC_118) {
-        //so far, only compatible with 118
+    if ((mHatID == HAT_ID_MCC_118) | (mHatID == HAT_ID_MCC_128)) {
+        //so far, only compatible with 118 / 128
+    } else {
         ui->lblStatus->setText("Syncronous scan not supported for this device");
         ui->lblInfo->setText("Select a different device or function");
         return;
@@ -666,10 +667,15 @@ void HatDevice::runAInScanFunc()
     buffer = new double[bufSize];
     memset(buffer, 0.00000001, mBufSize * sizeof(*buffer));
 
-    nameOfFunc = "118: AInScanStart";
+    QString hatName = getHatTypeName(mHatID);
+    nameOfFunc = hatName.append(": AInScanStart");
     funcArgs = "(mAddress, chanMask, mSamplesPerChan, &rate, mScanOptions)\n";
     sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-    mResponse = mcc118_a_in_scan_start(mAddress, chanMask, mSamplesPerChan, rate, mScanOptions);
+    if (mHatID == HAT_ID_MCC_118)
+        mResponse = mcc118_a_in_scan_start(mAddress, chanMask, mSamplesPerChan, rate, mScanOptions);
+    else
+        mResponse = mcc128_a_in_scan_start(mAddress, chanMask, mSamplesPerChan, rate, mScanOptions);
+
     argVals = QStringLiteral("(%1, %2, %3, %4, %5)")
             .arg(mAddress)
             .arg(chanMask)
@@ -699,11 +705,15 @@ void HatDevice::runAInScanFunc()
             double timeout;
             uint32_t sampsReadPerChan;
             timeout = ui->leTimeout->text().toDouble();
-            nameOfFunc = "118: AInScanRead";
+            nameOfFunc = hatName.append(": AInScanRead");
             funcArgs = "(mAddress, status, mSamplesToRead, timo, buffer, bufSize, numRead)\n";
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
             do {
-                mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
+                if (mHatID == HAT_ID_MCC_118)
+                    mResponse = mcc118_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
+                else
+                    mResponse = mcc128_a_in_scan_read(mAddress, &status, 0, timeout, NULL, 0, NULL);
+
                 statString = getStatusText(status);
                 ui->lblStatus->setText(QString("  Status: %1").arg(statString));
                 delay(200);
@@ -727,7 +737,11 @@ void HatDevice::runAInScanFunc()
 
             sampsToRead = -1;
             sStartTime = t.currentTime().toString("hh:mm:ss.zzz") + "~";
-            mResponse = mcc118_a_in_scan_read(mAddress, &status, sampsToRead, timeout, buffer, mBufSize, &sampsReadPerChan);
+            if (mHatID == HAT_ID_MCC_118)
+                mResponse = mcc118_a_in_scan_read(mAddress, &status, sampsToRead, timeout, buffer, mBufSize, &sampsReadPerChan);
+            else
+                mResponse = mcc128_a_in_scan_read(mAddress, &status, sampsToRead, timeout, buffer, mBufSize, &sampsReadPerChan);
+
             argVals = QStringLiteral("(%1, %2, %3, %4, %5, %6, %7)")
                     .arg(mAddress)
                     .arg(status)
