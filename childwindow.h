@@ -179,8 +179,8 @@ private:
     QString mDevName;
     QString mSerNum;
     uint8_t mDevAddress;
-    uint8_t mRange;
-    uint8_t mMode;
+    uint8_t mRange = A_IN_RANGE_BIP_10V;
+    uint8_t mMode = A_IN_MODE_SE;
     uint16_t mDevID;
     u_int32_t mScanOptions;
     TriggerMode mTriggerType;
