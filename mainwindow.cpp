@@ -478,6 +478,7 @@ void MainWindow::setBoardMenuSelect(QMdiSubWindow *childWind)
 
     curChild = qobject_cast<ChildWindow *>(childWind);
     if (curChild) {
+        createFuncMenus();
         mRange = curChild->aiRange();
         mScanOptions = curChild->scanOptions();
         mCurFunction = curChild->curFunction();

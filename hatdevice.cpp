@@ -465,13 +465,6 @@ void HatDevice::runSelectedFunction()
     ui->lblStatus->clear();
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 
-#ifdef HAT_06
-    if (mHatID == HAT_ID_MCC_128) {
-        setMode();
-        setRange();
-    }
-#endif
-
     switch (mCurFunction) {
     case UL_AIN:
         runAinFunction();
@@ -655,6 +648,13 @@ void HatDevice::runAInScanFunc()
         delete[] buffer;
         buffer = NULL;
     }
+
+#ifdef HAT_06
+    if (mHatID == HAT_ID_MCC_128) {
+        setMode();
+        setRange();
+    }
+#endif
 
     if(mScanOptions & OPTS_EXTTRIGGER) {
         runSetTriggerFunc();
@@ -1207,6 +1207,8 @@ void HatDevice::stopScan()
         mRunning = false;
         runReadScanStatus();
     }
+    if (ui->chkCleanup->isChecked())
+        mResponse = hatInterface->aInScanCleanup(mHatID, mAddress);
 }
 
 void HatDevice::runReadScanStatus()
