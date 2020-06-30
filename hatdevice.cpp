@@ -1069,7 +1069,10 @@ void HatDevice::checkStatus()
         //return;
     }
 
-    //check if the scan is triggered - if not, wait here
+    /*
+     * If using external trigger,
+     * check if the scan is triggered - if not, wait here
+    */
     if(loopStatus | ((mScanOptions & OPTS_EXTTRIGGER) && !mTriggered)) {
         do {
             mResponse = hatInterface->readAInScanStatus(mHatID, mAddress, status, samplesAvailable);
@@ -1139,6 +1142,7 @@ void HatDevice::checkStatus()
         argVals = QString("(%1, %2, %3, %4, %5, %6, %7)")
                 .arg(mAddress).arg(status).arg(mBlockSize).arg(timeout)
                 .arg("buffer").arg(mBufSize).arg(samplesPerChanRead);
+        samplesAvailable = samplesPerChanRead;
         overrunDetected = (status & (STATUS_BUFFER_OVERRUN | STATUS_HW_OVERRUN));
         if (overrunDetected)
             argVals += " [OVERRUN]";
