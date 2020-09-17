@@ -35,7 +35,7 @@ QMAKE_CXXFLAGS += -Wno-psabi
 DEFINES += HAT_03
 DEFINES += HAT_04
 DEFINES += HAT_05
-DEFINES += HAT_06
+#DEFINES += HAT_06
 
 SOURCES += \
     main.cpp \

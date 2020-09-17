@@ -440,7 +440,9 @@ int HatInterface::getNumAInChans(uint16_t devType, int mode)
     QString sStartTime;
     int numChans;
     QString hatName;
-
+#ifndef HAT_06
+    (void) mode;
+#endif
     hatName = getHatTypeName(devType);
     nameOfFunc = hatName.append(": numAIChans");
     funcArgs = "() = result\n";
