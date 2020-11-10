@@ -468,6 +468,9 @@
              <pointsize>9</pointsize>
             </font>
            </property>
+           <property name="toolTip">
+            <string>Channel index (must be 0 for 1 channel)</string>
+           </property>
           </widget>
          </item>
          <item>

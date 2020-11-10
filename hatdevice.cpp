@@ -1979,15 +1979,14 @@ void HatDevice::dataEval()
 
 void HatDevice::checkChanRange()
 {
-    int highChan, lowChan, histChan;
+    int highChan, lowChan, histChan, maxIndex;
 
     highChan = ui->spnHighChan->value();
     lowChan = ui->spnLowChan->value();
     histChan = ui->spnHistChan->value();
-    if (histChan > highChan)
-        ui->spnHistChan->setValue(highChan);
-    if (histChan < lowChan)
-        ui->spnHistChan->setValue(lowChan);
+    maxIndex = highChan - lowChan;
+    if (histChan > maxIndex)
+        ui->spnHistChan->setValue(maxIndex);
 }
 
 void HatDevice::setPlotMode()
