@@ -8,13 +8,18 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
-TARGET = mdihattest
+TARGET = orghattest
 TEMPLATE = app
 
 CONFIG += console
 
 # Suppress QMap parameter error for newer qt library
 QMAKE_CXXFLAGS += -Wno-psabi
+
+# QMAKE_CXXFLAGS_DEBUG -= -O
+# QMAKE_CXXFLAGS_DEBUG -= -O1
+# QMAKE_CXXFLAGS_DEBUG -= -O2
+# QMAKE_CXXFLAGS_DEBUG += -O0
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -35,7 +40,7 @@ QMAKE_CXXFLAGS += -Wno-psabi
 DEFINES += HAT_03
 DEFINES += HAT_04
 DEFINES += HAT_05
-#DEFINES += HAT_06
+DEFINES += HAT_06
 
 SOURCES += \
     main.cpp \

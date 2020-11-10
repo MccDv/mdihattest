@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QTimer>
+#include "qmath.h"
 #include "qcustomplot.h"
 #include "queuedialog.h"
 #include "unitest.h"
@@ -43,6 +44,8 @@ private slots:
     void setMode();
     void setInterval();
     void trapVoltsChecked();
+    void checkChanRange();
+    void setPlotMode();
     //void runBackgrndResult();
 
 private:
@@ -56,6 +59,7 @@ private:
     QActionGroup *trigTypeGroup;
     QueueDialog *queueSetup;
     ErrorDialog errDlg;
+    QCPBars *mNewBars;
 
     int mNumHats = 0;
     int mDevIndex = 0;
@@ -147,6 +151,7 @@ private:
     //void setError(int curError, QString funcText);
     //void addFunction(QString funcString);
     void runReadScanStatus();
+    void dataEval();
 };
 
 #endif // HATDEVICE_H

@@ -36,6 +36,8 @@ HatDevice::HatDevice(QWidget *parent) :
     ui->teShowValues->setStyleSheet("QTextEdit { background-color : white; color : blue; }" );
     ui->lblRateReturned->setFont(QFont ("Courier", 8));
     ui->lblRateReturned->setStyleSheet("QLabel { background-color : white; color : blue; }" );
+    ui->lblRMSbits->setFont(QFont ("Courier", 8));
+    ui->lblRMSbits->setStyleSheet("QLabel { background-color : white; color : blue; }" );
     ui->lblBufferSize->setFont(QFont ("Courier", 8));
     ui->lblBufferSize->setStyleSheet("QLabel { background-color : white; color : grey; }" );
     ui->lblStatus->setStyleSheet("QLabel { color : blue; }" );
@@ -62,6 +64,9 @@ HatDevice::HatDevice(QWidget *parent) :
     connect(ui->cmdSetTcConf, SIGNAL(clicked(bool)), this, SLOT(writeStoredTcValues()));
     connect(ui->cmdReadTcConf, SIGNAL(clicked(bool)), this, SLOT(updateTcValues()));
     connect(ui->cmdSetInterval, SIGNAL(clicked(bool)), this, SLOT(setInterval()));
+    connect(ui->spnHighChan, SIGNAL(valueChanged(int)), this, SLOT(checkChanRange()));
+    connect(ui->spnLowChan, SIGNAL(valueChanged(int)), this, SLOT(checkChanRange()));
+    connect(ui->chkRMSbins, SIGNAL(clicked(bool)), this, SLOT(setPlotMode()));
 
     rbPlotSel[0] = ui->rbPlot0;
     rbPlotSel[1] = ui->rbPlot1;
@@ -84,7 +89,8 @@ HatDevice::HatDevice(QWidget *parent) :
     for (int i = 0; i < 8; i++)
         mPlotList[i] = true;
     showPlotWindow(false);
-
+    ui->chkRMSbins->setVisible(false);
+    ui->lblRMSbits->setVisible(false);
 }
 
 HatDevice::~HatDevice()
@@ -115,6 +121,7 @@ void HatDevice::updateParameters()
     ChildWindow *parentWindow;
     QString trigString, sourceString;
     uint32_t allOptions;
+    bool showBins;
 
     parentWindow = qobject_cast<ChildWindow *>(this->parent());
     mDevName = parentWindow->devName();
@@ -123,6 +130,7 @@ void HatDevice::updateParameters()
     allOptions = parentWindow->scanOptions();
     mScanOptions = allOptions & 0xFFF;
     mBackgroundScan = ((uint32_t)(allOptions & OPTS_IFC_BACKGROUND) != 0);
+    showBins = ((uint32_t)(allOptions & OPTS_NOSCALEDATA) != 0);
     mTriggerType = parentWindow->triggerType();
     mTriggerSource = parentWindow->triggerSource();
     mRange = parentWindow->aiRange();
@@ -156,6 +164,10 @@ void HatDevice::updateParameters()
         maInMinRange = hatInterface->getAInRangeMin(mHatID, 0);
         maInMaxRange = hatInterface->getAInRangeMax(mHatID, 0);
     }
+
+    ui->chkRMSbins->setVisible(showBins);
+    ui->lblRMSbits->setVisible(showBins);
+    ui->spnHistChan->setVisible(showBins);
 }
 
 void HatDevice::showQueueConfig()
@@ -423,6 +435,8 @@ void HatDevice::goCmdClicked()
     mTimerConfigured = tmrIsEnabled;
     if(ui->chkVolts->isChecked())
         mTrapVal = ui->leTimeout->text().toDouble();
+    if(ui->chkRMSbins->isChecked())
+        checkChanRange();
     runSelectedFunction();
 }
 
@@ -1409,6 +1423,7 @@ void HatDevice::setupPlot(QCustomPlot *dataPlot, int chanCount)
     dataPlot->xAxis->setTickLabelColor(Qt::blue);
     dataPlot->yAxis->setTickLabelColor(Qt::blue);
     dataPlot->xAxis->setAutoTickCount(3);
+    //dataPlot->setAutoAddPlottableToLegend(false);
 }
 
 void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex, int blockSize)
@@ -1424,61 +1439,66 @@ void HatDevice::plotScan(unsigned long long currentCount, long long currentIndex
     int sampleNum = 0;
     int increment = 0;
     long long totalSamples;
-    bool checkValue;
+    bool checkValue, floatValue;
     double diffValue = 0.0;
 
     checkValue = ui->chkVolts->isChecked();
     totalSamples = mChanCount * ui->leNumSamples->text().toLong();
+    floatValue = (!(mScanOptions & OPTS_NOSCALEDATA));
 
-    for (int y = 0; y < blockSize; y++) {
-        curScan = currentIndex + increment;
-        if (!(curScan < totalSamples)) {
-            currentIndex = 0;
-            curScan = 0;
-            increment = 0;
+    if (!floatValue & ui->chkRMSbins->isChecked()) {
+        dataEval();
+    } else {
+        for (int y = 0; y < blockSize; y++) {
+            curScan = currentIndex + increment;
+            if (!(curScan < totalSamples)) {
+                currentIndex = 0;
+                curScan = 0;
+                increment = 0;
+            }
+            xData[y] = currentCount + sampleNum;
+            diffSamp = mChanCount;
+            for (int chan = 0; chan < mChanCount; chan++) {
+                if(checkValue) {
+                    //trap differential outside value
+                    if((y + diffSamp) < blockSize) {
+                        diffValue = buffer[curScan + chan + diffSamp] - buffer[curScan + chan];
+                    }
+                    if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
+                        mHaltAction = true;
+                        mUseTimer = false;
+                    }
+                    yChans[chan][y] = diffValue;
+                } else
+                    yChans[chan][y] = buffer[curScan + chan];
+                sampleNum++;
+                /*
+                if(checkValue)
+                    //trap value outside range
+                    if ((yChans[chan][y] > mTrapVal) | (yChans[chan][y] < (mTrapVal * -1))) {
+                        mHaltAction = true;
+                        mUseTimer = false;
+                    }
+                */
+           }
+            increment +=mChanCount;
         }
-        xData[y] = currentCount + sampleNum;
-        diffSamp = mChanCount;
-        for (int chan = 0; chan < mChanCount; chan++) {
-            if(checkValue) {
-                //trap differential outside value
-                if((y + diffSamp) < blockSize) {
-                    diffValue = buffer[curScan + chan + diffSamp] - buffer[curScan + chan];
-                }
-                if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
-                    mHaltAction = true;
-                    mUseTimer = false;
-                }
-                yChans[chan][y] = diffValue;
-            } else
-                yChans[chan][y] = buffer[curScan + chan];
-            sampleNum++;
-            /*
-            if(checkValue)
-                //trap value outside range
-                if ((yChans[chan][y] > mTrapVal) | (yChans[chan][y] < (mTrapVal * -1))) {
-                    mHaltAction = true;
-                    mUseTimer = false;
-                }
-            */
-       }
-        increment +=mChanCount;
-    }
 
-    curChanCount = 1;
-    if (mPlotChan == -1)
-        curChanCount = mChanCount;
-
-    for (int plotNum=0; plotNum<curChanCount; plotNum++) {
-        plotData = mPlotChan;
-        listIndex = plotNum % 8;
+        curChanCount = 1;
         if (mPlotChan == -1)
-            plotData = plotNum;
+            curChanCount = mChanCount;
 
-        if (mPlotList[listIndex])
-            ui->AiPlot->graph(plotNum)->setData(xValues, yChans[plotData]);
+        for (int plotNum=0; plotNum<curChanCount; plotNum++) {
+            plotData = mPlotChan;
+            listIndex = plotNum % 8;
+            if (mPlotChan == -1)
+                plotData = plotNum;
+
+            if (mPlotList[listIndex])
+                ui->AiPlot->graph(plotNum)->setData(xValues, yChans[plotData]);
+        }
+        updatePlot();
     }
-    updatePlot();
 }
 
 void HatDevice::printData(unsigned long long currentCount, long long currentIndex, int blockSize)
@@ -1511,55 +1531,59 @@ void HatDevice::printData(unsigned long long currentCount, long long currentInde
             prec = 0;
     }
 
-    totalSamps = mSamplesPerChan;
-    ui->teShowValues->clear();
-    checkValue = ui->chkVolts->isChecked();
-    dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
-    sampleLimit = mRunning? 100 : 1000 / mChanCount;
-    samplesToPrint = blockSize < sampleLimit? blockSize : sampleLimit;
-    if ((samplesToPrint + mTextIndex) > (totalSamps))
-        samplesToPrint = (totalSamps) - mTextIndex;
-    for (int y = 0; y < samplesToPrint; y++) {
-        //int increment = 0;
-        curScan = currentIndex + increment;
-        if (!(curScan < samplePerChanel)) {
-            currentIndex = 0;
-            curScan = 0;
-            //sampleNum = 0;
-        }
-        dataText.append("<td>" + str.setNum(increment) + "</td>");
-        diffSamp = mChanCount;
-        for (int chan = 0; chan < mChanCount; chan++) {
-            if(checkValue) {
-                //trap differential outside value
-                //if((y + diffSamp) < samplesToPrint) {
-                    diffValue = buffer[increment + chan + diffSamp] - buffer[increment + chan];
-                //}
-                if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
-                    mHaltAction = true;
-                    mUseTimer = false;
-                }
-                curSample = diffValue;
-            } else
-                curSample = buffer[increment + chan];
-
-            if (floatValue) {
-                val = QString("%1%2").arg((curSample < 0) ? "" : "+")
-                        .arg(curSample, 2, 'f', prec, '0');
-            } else {
-                val = QString("%1").arg(curSample, 0, 'f', prec);
+    if (!floatValue & ui->chkRMSbins->isChecked()) {
+        dataEval();
+    } else {
+        totalSamps = mSamplesPerChan;
+        ui->teShowValues->clear();
+        checkValue = ui->chkVolts->isChecked();
+        dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
+        sampleLimit = mRunning? 100 : 1000 / mChanCount;
+        samplesToPrint = blockSize < sampleLimit? blockSize : sampleLimit;
+        if ((samplesToPrint + mTextIndex) > (totalSamps))
+            samplesToPrint = (totalSamps) - mTextIndex;
+        for (int y = 0; y < samplesToPrint; y++) {
+            //int increment = 0;
+            curScan = currentIndex + increment;
+            if (!(curScan < samplePerChanel)) {
+                currentIndex = 0;
+                curScan = 0;
+                //sampleNum = 0;
             }
-            dataText.append("<td>" + val + "</td>");
+            dataText.append("<td>" + str.setNum(increment) + "</td>");
+            diffSamp = mChanCount;
+            for (int chan = 0; chan < mChanCount; chan++) {
+                if(checkValue) {
+                    //trap differential outside value
+                    //if((y + diffSamp) < samplesToPrint) {
+                        diffValue = buffer[increment + chan + diffSamp] - buffer[increment + chan];
+                    //}
+                    if ((diffValue > mTrapVal) | (diffValue < (mTrapVal * -1))) {
+                        mHaltAction = true;
+                        mUseTimer = false;
+                    }
+                    curSample = diffValue;
+                } else
+                    curSample = buffer[increment + chan];
+
+                if (floatValue) {
+                    val = QString("%1%2").arg((curSample < 0) ? "" : "+")
+                            .arg(curSample, 2, 'f', prec, '0');
+                } else {
+                    val = QString("%1").arg(curSample, 0, 'f', prec);
+                }
+                dataText.append("<td>" + val + "</td>");
+            }
+            dataText.append("</tr><tr>");
+            //sampleNum = sampleNum + 1;
+            increment += mChanCount;
+            mTextIndex = increment;
         }
-        dataText.append("</tr><tr>");
-        //sampleNum = sampleNum + 1;
-        increment += mChanCount;
-        mTextIndex = increment;
+        dataText.append("</td></tr>");
+        ui->teShowValues->setHtml(dataText);
+        if (samplesToPrint < totalSamps)
+            ui->teShowValues->append("... (F6)");
     }
-    dataText.append("</td></tr>");
-    ui->teShowValues->setHtml(dataText);
-    if (samplesToPrint < totalSamps)
-        ui->teShowValues->append("... (F6)");
 }
 
 void HatDevice::updateData()
@@ -1859,3 +1883,134 @@ void HatDevice::runTinFunction()
     }
 }
 
+void HatDevice::dataEval()
+{
+    QString dataText, str;
+    int chan;
+    long long samplePerChanel = ui->leNumSamples->text().toLongLong();
+    QMap<double, int> histgrmData;
+    uint increment;
+    int binSize, numBins, maxBinSize;
+    double dataValue, totalValue, avgValue, binVal;
+    double rmsBins, squareTotal, noise, maxBin;
+    QCPBars *newBars;
+    QColor penColor;
+
+    chan = ui->spnHistChan->value();
+    totalValue = 0.0;
+    increment = 0;
+    squareTotal = 0;
+    rmsBins = 0;
+    maxBin = 0.0;
+    maxBinSize = 0;
+
+    histgrmData.clear();
+    for (int y = 0; y < samplePerChanel; y++) {
+        dataValue = buffer[increment + chan];
+        if(histgrmData.contains(dataValue)) {
+            histgrmData[dataValue]++;
+        } else {
+            histgrmData[dataValue] = 1;
+        }
+        totalValue += dataValue;
+        increment += mChanCount;
+    }
+    numBins = histgrmData.count();
+    avgValue = totalValue / samplePerChanel;
+    QMapIterator<double, int> iBin(histgrmData);
+
+    ui->AiPlot->clearPlottables();
+    ui->AiPlot->replot();
+    if (mPlot) {
+        newBars = new QCPBars(ui->AiPlot->xAxis, ui->AiPlot->yAxis);
+        penColor = Qt::blue;
+        newBars->setPen(penColor);
+        newBars->setBrush(QColor(100, 180, 250));
+        newBars->setWidthType(QCPBars::wtAbsolute);
+        newBars->setWidth(3);
+        ui->AiPlot->addPlottable(newBars);
+        while (iBin.hasNext()) {
+            iBin.next();
+            binVal = iBin.key();
+            binSize = iBin.value();
+            for (int bs = 0; bs < binSize; bs++) {
+                noise = avgValue - binVal;
+                squareTotal += qPow(noise, 2);
+            }
+            newBars->addData(binVal, binSize);
+            if (binSize > maxBinSize) {
+                maxBinSize = binSize;
+                maxBin = binVal;
+            }
+        }
+        newBars->rescaleAxes();
+        ui->AiPlot->yAxis->setRangeUpper(maxBinSize * 1.2);
+        ui->AiPlot->xAxis->setRangeLower(maxBin - numBins);
+        ui->AiPlot->xAxis->setRangeUpper(maxBin + numBins);
+        ui->AiPlot->replot();
+    } else {
+        ui->teShowValues->clear();
+        dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
+        dataText.append("<td colspan=2><u>Chan " + str.setNum(chan) + "</u></td>");
+        dataText.append("</tr><tr>");
+        while (iBin.hasNext()) {
+            iBin.next();
+            binVal = iBin.key();
+            binSize = iBin.value();
+            for (int bs = 0; bs < binSize; bs++) {
+                noise = avgValue - binVal;
+                squareTotal += qPow(noise, 2);
+            }
+            dataText.append("<td>" + str.setNum(binVal) + "</td>");
+            dataText.append("<td>" + str.setNum(binSize) + "</td>");
+            dataText.append("</tr><tr>");
+        }
+        dataText.append("</td></tr>");
+        ui->teShowValues->setHtml(dataText);
+    }
+
+    rmsBins = qPow(squareTotal / samplePerChanel, 0.5);
+    ui->lblRMSbits->setText(QString("Bins: %1,  RMS: %2,  Avg: %3, Max: %4")
+                            .arg(numBins)
+                            .arg(rmsBins)
+                            .arg(avgValue)
+                            .arg(maxBinSize));
+}
+
+void HatDevice::checkChanRange()
+{
+    int highChan, lowChan, histChan;
+
+    highChan = ui->spnHighChan->value();
+    lowChan = ui->spnLowChan->value();
+    histChan = ui->spnHistChan->value();
+    if (histChan > highChan)
+        ui->spnHistChan->setValue(highChan);
+    if (histChan < lowChan)
+        ui->spnHistChan->setValue(lowChan);
+}
+
+void HatDevice::setPlotMode()
+{
+    int32_t blockSize;
+    //QColor penColor;
+
+    ui->AiPlot->clearPlottables();
+    if (mPlot) {
+        blockSize = ui->leBlockSize->text().toUInt();
+        if (ui->chkRMSbins->isChecked()) {
+            /*mNewBars = new QCPBars(ui->AiPlot->xAxis, ui->AiPlot->yAxis);
+            penColor = Qt::blue;
+            mNewBars->setPen(penColor);
+            mNewBars->setBrush(QColor(100, 180, 250)); */
+            if (buffer)
+                dataEval();
+        } else {
+            //ui->AiPlot->removePlottable(mNewBars);
+            if (buffer) {
+                setupPlot(ui->AiPlot, mChanCount);
+                plotScan(0, 0, blockSize);
+            }
+        }
+    }
+}
