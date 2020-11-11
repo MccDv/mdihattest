@@ -1891,7 +1891,7 @@ void HatDevice::runTinFunction()
 
 void HatDevice::dataEval()
 {
-    QString dataText, str;
+    QString dataText, str, scanRange;
     int chan;
     long long samplePerChanel = ui->leNumSamples->text().toLongLong();
     QMap<double, int> histgrmData;
@@ -1913,6 +1913,11 @@ void HatDevice::dataEval()
     devChan = mChanList[chan];
     rateReturned = ui->lblRateReturned->text().toDouble();
 
+    scanRange = "Channels in scan: ";
+    foreach (int ch, mChanList) {
+        scanRange.append(QString("%1,").arg(ch));
+    }
+    //scanRange.append("</td>");
     histgrmData.clear();
     for (int y = 0; y < samplePerChanel; y++) {
         dataValue = buffer[increment + chan];
@@ -1981,7 +1986,9 @@ void HatDevice::dataEval()
             dataText.append("</tr><tr>");
         }
         dataText.append("</td></tr>");
-        dataText.insert(0, QString("<td colspan=2>%1 (%2) %3 samples</td><td>at %4 S/s</td><tr><td>Bins: %5,</td><td>RMS: %6, Avg: %7,</td><td>Max: %8</td></tr>")
+        dataText.prepend(QString("%1 (%2) %3 samples at %4 S/s<br>"
+                                   "Bins: %5, RMS: %6, Avg: %7, Max: %8<br>"
+                                   "%9<br>")
                         .arg(mSerNum)
                         .arg(rangeText)
                         .arg(samplePerChanel)
@@ -1989,7 +1996,8 @@ void HatDevice::dataEval()
                         .arg(numBins)
                         .arg(rmsBins, 5, 'f', 2)
                         .arg(avgValue)
-                        .arg(maxBinSize));
+                        .arg(maxBinSize)
+                        .arg(scanRange));
         ui->teShowValues->setHtml(dataText);
     }
 
