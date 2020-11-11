@@ -1899,6 +1899,7 @@ void HatDevice::dataEval()
     int binSize, numBins, maxBinSize, devChan;
     double dataValue, totalValue, avgValue, binVal;
     double rmsBins, squareTotal, noise, maxBin;
+    double rateReturned;
     QCPBars *newBars;
     QColor penColor;
 
@@ -1910,6 +1911,7 @@ void HatDevice::dataEval()
     maxBin = 0.0;
     maxBinSize = 0;
     devChan = mChanList[chan];
+    rateReturned = ui->lblRateReturned->text().toDouble();
 
     histgrmData.clear();
     for (int y = 0; y < samplePerChanel; y++) {
@@ -1979,9 +1981,11 @@ void HatDevice::dataEval()
             dataText.append("</tr><tr>");
         }
         dataText.append("</td></tr>");
-        dataText.insert(0, QString("%1 (%2) Bins: %3,  RMS: %4,  Avg: %5, Max: %6\n\n")
+        dataText.insert(0, QString("<td colspan=2>%1 (%2) %3 samples</td><td>at %4 S/s</td><tr><td>Bins: %5,</td><td>RMS: %6, Avg: %7,</td><td>Max: %8</td></tr>")
                         .arg(mSerNum)
                         .arg(rangeText)
+                        .arg(samplePerChanel)
+                        .arg(rateReturned, 6, 'f', 2)
                         .arg(numBins)
                         .arg(rmsBins, 5, 'f', 2)
                         .arg(avgValue)
