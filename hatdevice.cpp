@@ -1917,7 +1917,7 @@ void HatDevice::dataEval()
     foreach (int ch, mChanList) {
         scanRange.append(QString("%1,").arg(ch));
     }
-    //scanRange.append("</td>");
+    scanRange.remove(scanRange.length() - 1, 1);
     histgrmData.clear();
     for (int y = 0; y < samplePerChanel; y++) {
         dataValue = buffer[increment + chan];
