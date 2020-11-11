@@ -119,7 +119,7 @@ void HatDevice::closeEvent(QCloseEvent *event)
 void HatDevice::updateParameters()
 {
     ChildWindow *parentWindow;
-    QString trigString, sourceString;
+    QString trigString, sourceString, serNum;
     uint32_t allOptions;
     bool showBins;
 
@@ -154,7 +154,6 @@ void HatDevice::updateParameters()
         ui->lblTimerIteration->setText("Tmr On");
 
     ui->lblStatus->clear();
-    this->setWindowTitle(mFuncName + ": " + mDevName);
     if((mHatID == HAT_ID_MCC_118)
             | (mHatID == HAT_ID_MCC_172)
             | (mHatID == HAT_ID_MCC_134)
@@ -163,7 +162,14 @@ void HatDevice::updateParameters()
         maInMaxCode = hatInterface->getAInCodeMax(mHatID);
         maInMinRange = hatInterface->getAInRangeMin(mHatID, 0);
         maInMaxRange = hatInterface->getAInRangeMax(mHatID, 0);
+        mResponse = hatInterface->getSerialNumber(mHatID, mAddress, serNum);
+        ui->lblInfo->setText(hatInterface->getStatus());
+        if(mResponse == RESULT_SUCCESS) {
+            mSerNum = QString("%1").arg(serNum);
+            //parentWindow->setSerNum(mSerNum);
+        }
     }
+    this->setWindowTitle(mFuncName + ": " + mDevName + " [" + serNum + "]");
 
     ui->chkRMSbins->setVisible(showBins);
     ui->lblRMSbits->setVisible(showBins);
@@ -281,7 +287,7 @@ void HatDevice::setUiForFunction()
     //ui->cmdStop->setEnabled(false);
     showPlotWindow(mPlot);
     hatInterface->updatePlotMenu(mPlot);
-    this->setWindowTitle(mFuncName + ": " + mDevName);
+    this->setWindowTitle(mFuncName + ": " + mDevName + " [" + mSerNum + "]");
 }
 
 void HatDevice::functionChanged(int utFunction)
@@ -1890,7 +1896,7 @@ void HatDevice::dataEval()
     long long samplePerChanel = ui->leNumSamples->text().toLongLong();
     QMap<double, int> histgrmData;
     uint increment;
-    int binSize, numBins, maxBinSize;
+    int binSize, numBins, maxBinSize, devChan;
     double dataValue, totalValue, avgValue, binVal;
     double rmsBins, squareTotal, noise, maxBin;
     QCPBars *newBars;
@@ -1903,6 +1909,7 @@ void HatDevice::dataEval()
     rmsBins = 0;
     maxBin = 0.0;
     maxBinSize = 0;
+    devChan = mChanList[chan];
 
     histgrmData.clear();
     for (int y = 0; y < samplePerChanel; y++) {
@@ -1934,6 +1941,7 @@ void HatDevice::dataEval()
     }
     rmsBins = qPow(squareTotal / samplePerChanel, 0.5);
 
+    QString rangeText = getRangeText(mRange);
     ui->AiPlot->clearPlottables();
     ui->AiPlot->replot();
     if (mPlot) {
@@ -1959,7 +1967,7 @@ void HatDevice::dataEval()
     } else {
         ui->teShowValues->clear();
         dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
-        dataText.append("<td colspan=2><u>Chan " + str.setNum(chan) + "</u></td>");
+        dataText.append("<td colspan=2><u>Chan " + str.setNum(devChan) + "</u></td>");
         dataText.append("</tr><tr>");
         QMapIterator<double, int> tBin(histgrmData);
         while (tBin.hasNext()) {
@@ -1971,7 +1979,9 @@ void HatDevice::dataEval()
             dataText.append("</tr><tr>");
         }
         dataText.append("</td></tr>");
-        dataText.insert(0, QString("Bins: %1,  RMS: %2,  Avg: %3, Max: %4\n\n")
+        dataText.insert(0, QString("%1 (%2) Bins: %3,  RMS: %4,  Avg: %5, Max: %6\n\n")
+                        .arg(mSerNum)
+                        .arg(rangeText)
                         .arg(numBins)
                         .arg(rmsBins)
                         .arg(avgValue)
