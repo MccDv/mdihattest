@@ -1983,7 +1983,7 @@ void HatDevice::dataEval()
                         .arg(mSerNum)
                         .arg(rangeText)
                         .arg(numBins)
-                        .arg(rmsBins)
+                        .arg(rmsBins, 5, 'f', 2)
                         .arg(avgValue)
                         .arg(maxBinSize));
         ui->teShowValues->setHtml(dataText);
@@ -1991,7 +1991,7 @@ void HatDevice::dataEval()
 
     ui->lblRMSbits->setText(QString("Bins: %1,  RMS: %2,  Avg: %3, Max: %4")
                             .arg(numBins)
-                            .arg(rmsBins)
+                            .arg(rmsBins, 5, 'f', 2)
                             .arg(avgValue)
                             .arg(maxBinSize));
 }
