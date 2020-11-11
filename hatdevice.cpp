@@ -1918,6 +1918,21 @@ void HatDevice::dataEval()
     numBins = histgrmData.count();
     avgValue = totalValue / samplePerChanel;
     QMapIterator<double, int> iBin(histgrmData);
+    while (iBin.hasNext()) {
+        iBin.next();
+        binVal = iBin.key();
+        binSize = iBin.value();
+        for (int bs = 0; bs < binSize; bs++) {
+            noise = avgValue - binVal;
+            squareTotal += qPow(noise, 2);
+        }
+        //newBars->addData(binVal, binSize);
+        if (binSize > maxBinSize) {
+            maxBinSize = binSize;
+            maxBin = binVal;
+        }
+    }
+    rmsBins = qPow(squareTotal / samplePerChanel, 0.5);
 
     ui->AiPlot->clearPlottables();
     ui->AiPlot->replot();
@@ -1929,19 +1944,12 @@ void HatDevice::dataEval()
         newBars->setWidthType(QCPBars::wtAbsolute);
         newBars->setWidth(3);
         ui->AiPlot->addPlottable(newBars);
-        while (iBin.hasNext()) {
-            iBin.next();
-            binVal = iBin.key();
-            binSize = iBin.value();
-            for (int bs = 0; bs < binSize; bs++) {
-                noise = avgValue - binVal;
-                squareTotal += qPow(noise, 2);
-            }
+        QMapIterator<double, int> pBin(histgrmData);
+        while (pBin.hasNext()) {
+            pBin.next();
+            binVal = pBin.key();
+            binSize = pBin.value();
             newBars->addData(binVal, binSize);
-            if (binSize > maxBinSize) {
-                maxBinSize = binSize;
-                maxBin = binVal;
-            }
         }
         newBars->rescaleAxes();
         ui->AiPlot->yAxis->setRangeUpper(maxBinSize * 1.2);
@@ -1953,23 +1961,24 @@ void HatDevice::dataEval()
         dataText = "<style> th, td { padding-right: 10px;}</style><tr>";
         dataText.append("<td colspan=2><u>Chan " + str.setNum(chan) + "</u></td>");
         dataText.append("</tr><tr>");
-        while (iBin.hasNext()) {
-            iBin.next();
-            binVal = iBin.key();
-            binSize = iBin.value();
-            for (int bs = 0; bs < binSize; bs++) {
-                noise = avgValue - binVal;
-                squareTotal += qPow(noise, 2);
-            }
+        QMapIterator<double, int> tBin(histgrmData);
+        while (tBin.hasNext()) {
+            tBin.next();
+            binVal = tBin.key();
+            binSize = tBin.value();
             dataText.append("<td>" + str.setNum(binVal) + "</td>");
             dataText.append("<td>" + str.setNum(binSize) + "</td>");
             dataText.append("</tr><tr>");
         }
         dataText.append("</td></tr>");
+        dataText.insert(0, QString("Bins: %1,  RMS: %2,  Avg: %3, Max: %4\n\n")
+                        .arg(numBins)
+                        .arg(rmsBins)
+                        .arg(avgValue)
+                        .arg(maxBinSize));
         ui->teShowValues->setHtml(dataText);
     }
 
-    rmsBins = qPow(squareTotal / samplePerChanel, 0.5);
     ui->lblRMSbits->setText(QString("Bins: %1,  RMS: %2,  Avg: %3, Max: %4")
                             .arg(numBins)
                             .arg(rmsBins)
