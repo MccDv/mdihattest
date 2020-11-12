@@ -1949,6 +1949,7 @@ void HatDevice::dataEval()
     rmsBins = qPow(squareTotal / samplePerChanel, 0.5);
 
     QString rangeText = getRangeText(mRange);
+    QString modeText = getModeText(mMode);
     ui->AiPlot->clearPlottables();
     ui->AiPlot->replot();
     if (mPlot) {
@@ -1988,16 +1989,17 @@ void HatDevice::dataEval()
         dataText.append("</td></tr>");
         dataText.prepend(QString("%1 (%2) %3 samples at %4 S/s<br>"
                                    "Bins: %5, RMS: %6, Avg: %7, Max: %8<br>"
-                                   "%9<br>")
-                        .arg(mSerNum)
-                        .arg(rangeText)
-                        .arg(samplePerChanel)
-                        .arg(rateReturned, 6, 'f', 2)
-                        .arg(numBins)
-                        .arg(rmsBins, 5, 'f', 2)
-                        .arg(avgValue)
-                        .arg(maxBinSize)
-                        .arg(scanRange));
+                                   "%9, %10 mode<br>")
+                         .arg(mSerNum)
+                         .arg(rangeText)
+                         .arg(samplePerChanel)
+                         .arg(rateReturned, 6, 'f', 2)
+                         .arg(numBins)
+                         .arg(rmsBins, 5, 'f', 2)
+                         .arg(avgValue)
+                         .arg(maxBinSize)
+                         .arg(scanRange)
+                         .arg(modeText));
         ui->teShowValues->setHtml(dataText);
     }
 
